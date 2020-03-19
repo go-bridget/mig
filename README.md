@@ -1,0 +1,2 @@
+# mig
+Database migration utility
