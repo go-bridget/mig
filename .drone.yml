@@ -1,0 +1,19 @@
+kind: pipeline
+name: migrations
+
+steps:
+- name: migrate
+  image: bridget/mig
+  pull: never
+  commands:
+  - mig create --migrate-path test/schema --db-dsn "root:test@tcp(migration-db:3306)/mysql" --real
+  - mig migrate --migrate-path test/schema --service=stats --db-dsn "root:test@tcp(migration-db:3306)/stats" --real
+
+services:
+- name: migration-db
+  pull: always
+  image: percona:8.0
+  ports:
+    - 3306
+  environment:
+    MYSQL_ROOT_PASSWORD: test
