@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/SentimensRG/sigctx"
-	"github.com/namsral/flag"
 	"github.com/pkg/errors"
+	flag "github.com/spf13/pflag"
 )
 
 // NewApp creates a new App instance
@@ -49,20 +49,24 @@ func (app *App) Run(args []string) error {
 	// print help for command(s)
 	if contains(args, "-h") || contains(args, "-?") || contains(args, "--help") {
 		app.HelpCommand(command)
-		flag.PrintDefaults()
 		return nil
 	}
 
 	// initialize command (pre-load data, etc.)
 	if command.Init != nil {
 		if err := command.Init(ctx); err != nil {
+			app.HelpCommand(command)
 			return err
 		}
 	}
 
 	// Run command if defined
 	if command.Run != nil {
-		return command.Run(ctx, commands)
+		if err := command.Run(ctx, commands); err != nil {
+			app.HelpCommand(command)
+			return err
+		}
+		return nil
 	}
 
 	return errors.New("Missing Run() for command")
@@ -102,6 +106,8 @@ func (app *App) HelpCommand(command *Command) {
 	pad := "   "
 	format := pad + "%-" + fmt.Sprintf("%d", maxLen+3) + "s %s\n"
 	fmt.Printf(format, command.Name, command.Title)
+	fmt.Println()
+	flag.PrintDefaults()
 	fmt.Println()
 }
 

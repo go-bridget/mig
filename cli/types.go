@@ -3,19 +3,19 @@ package cli
 import (
 	"context"
 
-	"github.com/namsral/flag"
+	flag "github.com/spf13/pflag"
 )
 
-// This package builds on namsral/flag functionality.
+// This package builds on spf13/pflag functionality.
 //
-// We omit exposing functions which return a pointer from the namsral/flag
+// We omit exposing functions which return a pointer from the spf13/pflag
 // public API, so we can encourage defining the flag values into structs.
 //
-// We also don't expose a lot of the namsral/flag functionality here, since we
+// We also don't expose a lot of the spf13/pflag functionality here, since we
 // expect that it will be wrapped in cli.App, and it makes little sense to use
-// namsral/flag "primitives" when we're creating a higher level abstraction.
+// spf13/pflag "primitives" when we're creating a higher level abstraction.
 //
-// That being said, it's still possible to use the namsral/flag API, but there
+// That being said, it's still possible to use the spf13/pflag API, but there
 // should be little reason to do that.
 
 var (
