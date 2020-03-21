@@ -14,6 +14,7 @@ var version string
 
 func main() {
 	app := cli.NewApp("mig")
+	app.AddCommand("create", "Create database schema SQL", createCmd)
 	app.AddCommand("migrate", "Apply SQL migrations to database", migrateCmd)
 	if err := app.Run(os.Args); err != nil {
 		fmt.Printf("An error occured: %s", err)
