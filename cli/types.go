@@ -31,13 +31,23 @@ var (
 type (
 	// App is the cli entrypoint
 	App struct {
-		// Init gets called with a cancellable context
+		Name string
+
+		commands map[string]commandInfo
+	}
+
+	// Command is an individual command
+	Command struct {
+		Name, Title string
+
+		Bind func(context.Context)
 		Init func(context.Context) error
+		Run  func(context.Context, []string) error
+	}
 
-		// Action gets called with a cancellable context and commands as parameters
-		Action func(context.Context, []string) error
-
-		// PrintCommands is an utility function to print the help for commands
-		PrintCommands func()
+	commandInfo struct {
+		Name  string
+		Title string
+		New   func() *Command
 	}
 )

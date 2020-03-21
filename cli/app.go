@@ -1,33 +1,138 @@
 package cli
 
 import (
+	"fmt"
+
 	"github.com/SentimensRG/sigctx"
 	"github.com/namsral/flag"
+	"github.com/pkg/errors"
 )
 
-// App is a cli entrypoint which sets up a cancellable context for the action
+// NewApp creates a new App instance
+func NewApp(name string) *App {
+	return &App{
+		Name:     name,
+		commands: make(map[string]commandInfo),
+	}
+}
+
+// Run is a cli entrypoint which sets up a cancellable context for the command
 func (app *App) Run(args []string) error {
+	ctx := sigctx.New()
+	commands := parseCommands(args)
+	if len(commands) == 0 {
+		app.Help()
+		return nil
+	}
+
+	command, err := app.FindCommand(commands)
+	if err != nil {
+		app.Help()
+		return err
+	}
+
+	// bind command specific flags
+	if command.Bind != nil {
+		command.Bind(ctx)
+	}
 	flag.Parse()
-	// run action flow
-	if app.Action != nil {
-		ctx := sigctx.New()
-		// init actions
-		if app.Init != nil {
-			if err := app.Init(ctx); err != nil {
-				return err
+
+	contains := func(haystack []string, needle string) bool {
+		for _, hay := range haystack {
+			if hay == needle {
+				return true
 			}
 		}
-		// run actions
-		commands := parseCommands(args)
-		return app.Action(ctx, commands)
+		return false
 	}
-	// command help
-	if app.PrintCommands != nil {
-		app.PrintCommands()
+
+	// print help for command(s)
+	if contains(args, "-h") || contains(args, "-?") || contains(args, "--help") {
+		app.HelpCommand(command)
+		flag.PrintDefaults()
+		return nil
 	}
-	// flags help
-	flag.PrintDefaults()
-	return nil
+
+	// initialize command (pre-load data, etc.)
+	if command.Init != nil {
+		if err := command.Init(ctx); err != nil {
+			return err
+		}
+	}
+
+	// Run command if defined
+	if command.Run != nil {
+		return command.Run(ctx, commands)
+	}
+
+	return errors.New("Missing Run() for command")
+}
+
+// Help prints out registered commands for app
+func (app *App) Help() {
+	fmt.Println("Usage:", app.Name, "(command) [-flags]")
+	fmt.Println("Available commands:")
+	fmt.Println()
+
+	maxLen := 0
+	for _, command := range app.commands {
+		if len(command.Name) > maxLen {
+			maxLen = len(command.Name)
+		}
+	}
+	pad := "   "
+	format := pad + "%-" + fmt.Sprintf("%d", maxLen+3) + "s %s\n"
+	for _, command := range app.commands {
+		fmt.Printf(format, command.Name, command.Title)
+	}
+	fmt.Println()
+}
+
+// Help prints out registered commands for app
+func (app *App) HelpCommand(command *Command) {
+	fmt.Println("Usage:", app.Name, "(command) [-flags]")
+	fmt.Println()
+
+	maxLen := 0
+	for _, command := range app.commands {
+		if len(command.Name) > maxLen {
+			maxLen = len(command.Name)
+		}
+	}
+	pad := "   "
+	format := pad + "%-" + fmt.Sprintf("%d", maxLen+3) + "s %s\n"
+	fmt.Printf(format, command.Name, command.Title)
+	fmt.Println()
+}
+
+// AddCommand adds a command to the app
+func (app *App) AddCommand(name, title string, constructor func() *Command) {
+	info := commandInfo{
+		Name:  name,
+		Title: title,
+		New:   constructor,
+	}
+	app.commands[name] = info
+}
+
+// FindCommand finds a command for the app
+func (app *App) FindCommand(commands []string) (*Command, error) {
+	// This is just fully naive, we use the first command we find
+	// but we could be smarter and have sub commands? Maybe one day.
+	for _, commandName := range commands {
+		info, ok := app.commands[commandName]
+		if ok {
+			command := info.New()
+			if command.Name == "" {
+				command.Name = info.Name
+			}
+			if command.Title == "" {
+				command.Title = info.Title
+			}
+			return command, nil
+		}
+	}
+	return nil, errors.New("no command found")
 }
 
 // parseCommand cleans up args[], returning only commands
