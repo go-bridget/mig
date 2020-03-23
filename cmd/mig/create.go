@@ -22,11 +22,10 @@ func createCmd() *cli.Command {
 
 	return &cli.Command{
 		Bind: func(_ context.Context) {
-			cli.StringVar(&config.migrate.Path, "migrate-path", "schema", "Source path for database migrations")
+			(&config.migrate).Bind()
+
 			cli.StringVar(&config.db.Credentials.Driver, "db-driver", "mysql", "Database driver")
 			cli.StringVar(&config.db.Credentials.DSN, "db-dsn", "", "DSN for database connection")
-			cli.StringVar(&config.service, "service", "", "Service name for migrations")
-			cli.BoolVar(&config.real, "real", false, "false = print migrations, true = run migrations")
 		},
 		Init: func(_ context.Context) error {
 			if err := migrate.Load(config.migrate); err != nil {
@@ -41,7 +40,7 @@ func createCmd() *cli.Command {
 				queries = append(queries, fmt.Sprintf("CREATE DATABASE IF NOT EXISTS `%s`;", schema))
 			}
 
-			if config.real {
+			if config.migrate.Apply {
 				handle, err := db.ConnectWithRetry(ctx, config.db)
 				if err != nil {
 					return errors.Wrap(err, "error connecting to database")

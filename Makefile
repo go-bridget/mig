@@ -5,7 +5,7 @@ IMAGE := bridget/mig
 all: docker test
 
 docker:
-	docker build --no-cache --rm -t $(IMAGE) .
+	docker build --no-cache --build-arg GIT_COMMIT=$(shell git rev-list -1 HEAD) --rm -t $(IMAGE) .
 
 push:
 	docker push $(IMAGE)

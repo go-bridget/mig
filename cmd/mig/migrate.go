@@ -15,38 +15,34 @@ func migrateCmd() *cli.Command {
 	var config struct {
 		db      db.Options
 		migrate migrate.Options
-
-		real    bool
-		service string
 	}
 
 	return &cli.Command{
 		Bind: func(_ context.Context) {
-			cli.StringVar(&config.migrate.Path, "migrate-path", "schema", "Source path for database migrations")
+			(&config.migrate).Bind()
+
 			cli.StringVar(&config.db.Credentials.Driver, "db-driver", "mysql", "Database driver")
 			cli.StringVar(&config.db.Credentials.DSN, "db-dsn", "", "DSN for database connection")
-			cli.StringVar(&config.service, "service", "", "Service name for migrations")
-			cli.BoolVar(&config.real, "real", false, "false = print migrations, true = run migrations")
 		},
 		Init: func(_ context.Context) error {
 			if err := migrate.Load(config.migrate); err != nil {
 				return errors.Wrap(err, "error loading migrations")
 			}
-			if config.service == "" {
-				return errors.Errorf("Available migration services: [%s]", strings.Join(migrate.List(), ", "))
+			if config.migrate.Project == "" {
+				return errors.Errorf("Available migration projects: [%s]", strings.Join(migrate.List(), ", "))
 			}
 			return nil
 		},
 		Run: func(ctx context.Context, commands []string) error {
-			switch config.real {
+			switch config.migrate.Apply {
 			case true:
 				handle, err := db.ConnectWithRetry(ctx, config.db)
 				if err != nil {
 					return errors.Wrap(err, "error connecting to database")
 				}
-				return migrate.Run(config.service, handle)
+				return migrate.Run(config.migrate, handle)
 			default:
-				return migrate.Print(config.service)
+				return migrate.Print(config.migrate)
 			}
 			return nil
 		},

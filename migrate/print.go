@@ -8,22 +8,24 @@ import (
 )
 
 // Print outputs database migrations for a project to log output
-func Print(project string) error {
-	fs, ok := migrations[project]
+func Print(options Options) error {
+	fs, ok := migrations[options.Project]
 	if !ok {
-		return errors.Errorf("Migrations for '%s' don't exist", project)
+		return errors.Errorf("Migrations for '%s' don't exist", options.Project)
 	}
 
 	printQuery := func(idx int, query string) error {
-		log.Println()
-		log.Println("-- Statement index:", idx)
-		log.Println(query)
-		log.Println()
+		if options.Verbose {
+			log.Println()
+			log.Println("-- Statement index:", idx)
+			log.Println(query)
+			log.Println()
+		}
 		return nil
 	}
 
 	migrate := func(filename string) error {
-		log.Println("Printing migrations from", filename)
+		log.Println("-- Migrations file:", filename)
 		stmts, err := statements(fs.ReadFile(filename))
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf("Error reading migration: %s", filename))

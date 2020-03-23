@@ -3,11 +3,11 @@ name: migrations
 
 steps:
 - name: migrate
-  image: bridget/mig
+  image: bridget/mig:latest
   pull: never
   commands:
-  - mig create --migrate-path test/schema --db-dsn "root:test@tcp(migration-db:3306)/mysql" --real
-  - mig migrate --migrate-path test/schema --service=stats --db-dsn "root:test@tcp(migration-db:3306)/stats" --real
+  - mig create --migrate-path test/schema --db-dsn "root:test@tcp(migration-db:3306)/mysql" --apply
+  - mig migrate --migrate-path test/schema --project=stats --db-dsn "root:test@tcp(migration-db:3306)/stats" --apply
 
 services:
 - name: migration-db

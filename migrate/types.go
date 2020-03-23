@@ -3,7 +3,11 @@ package migrate
 type (
 	// Options include migration options
 	Options struct {
-		Path string
+		Path    string
+		Project string
+
+		Apply   bool
+		Verbose bool
 	}
 
 	// Migration holds the DB structure for the migration table
