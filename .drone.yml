@@ -8,6 +8,7 @@ steps:
   commands:
   - mig create --migrate-path test/schema --db-dsn "root:test@tcp(migration-db:3306)/mysql" --apply
   - mig migrate --migrate-path test/schema --project=stats --db-dsn "root:test@tcp(migration-db:3306)/stats" --apply
+  - mig version
 
 services:
 - name: migration-db

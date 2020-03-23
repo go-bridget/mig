@@ -15,17 +15,12 @@ func createCmd() *cli.Command {
 	var config struct {
 		db      db.Options
 		migrate migrate.Options
-
-		real    bool
-		service string
 	}
 
 	return &cli.Command{
 		Bind: func(_ context.Context) {
+			(&config.db).Bind()
 			(&config.migrate).Bind()
-
-			cli.StringVar(&config.db.Credentials.Driver, "db-driver", "mysql", "Database driver")
-			cli.StringVar(&config.db.Credentials.DSN, "db-dsn", "", "DSN for database connection")
 		},
 		Init: func(_ context.Context) error {
 			if err := migrate.Load(config.migrate); err != nil {

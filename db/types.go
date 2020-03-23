@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"database/sql"
+
+	"github.com/go-bridget/mig/cli"
 )
 
 type (
@@ -27,3 +29,16 @@ type (
 		ConnectTimeout time.Duration
 	}
 )
+
+func (options *Options) Bind() {
+	options.BindWithPrefix("db")
+	return
+}
+
+func (options *Options) BindWithPrefix(prefix string) {
+	p := func(s string) string {
+		return prefix + "-" + s
+	}
+	cli.StringVar(&options.Credentials.Driver, p("driver"), "mysql", "Database driver")
+	cli.StringVar(&options.Credentials.DSN, p("dsn"), "", "DSN for database connection")
+}
