@@ -26,6 +26,9 @@ var (
 	StringVar   = flag.StringVar
 	Uint64Var   = flag.Uint64Var
 	UintVar     = flag.UintVar
+
+	Parse         = flag.Parse
+	PrintDefaults = flag.PrintDefaults
 )
 
 type (

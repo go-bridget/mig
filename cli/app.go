@@ -5,7 +5,6 @@ import (
 
 	"github.com/SentimensRG/sigctx"
 	"github.com/pkg/errors"
-	flag "github.com/spf13/pflag"
 )
 
 // NewApp creates a new App instance
@@ -35,7 +34,7 @@ func (app *App) Run(args []string) error {
 	if command.Bind != nil {
 		command.Bind(ctx)
 	}
-	flag.Parse()
+	Parse()
 
 	contains := func(haystack []string, needle string) bool {
 		for _, hay := range haystack {
@@ -107,7 +106,7 @@ func (app *App) HelpCommand(command *Command) {
 	format := pad + "%-" + fmt.Sprintf("%d", maxLen+3) + "s %s\n"
 	fmt.Printf(format, command.Name, command.Title)
 	fmt.Println()
-	flag.PrintDefaults()
+	PrintDefaults()
 	fmt.Println()
 }
 
