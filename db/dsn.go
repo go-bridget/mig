@@ -4,7 +4,7 @@ import "strings"
 
 func cleanDSN(dsn string) string {
 	dsn = addOptionToDSN(dsn, "?", "?")
-	dsn = addOptionToDSN(dsn, "collation=", "&collation=utf8_general_ci")
+	dsn = addOptionToDSN(dsn, "collation=", "&collation=utf8mb4_general_ci")
 	dsn = addOptionToDSN(dsn, "parseTime=", "&parseTime=true")
 	dsn = addOptionToDSN(dsn, "loc=", "&loc=Local")
 	dsn = strings.Replace(dsn, "?&", "?", 1)

@@ -19,8 +19,8 @@ func createCmd() *cli.Command {
 
 	return &cli.Command{
 		Bind: func(_ context.Context) {
-			(&config.db).Bind()
-			(&config.migrate).Bind()
+			(&config.db).Init().Bind()
+			(&config.migrate).Init().Bind()
 		},
 		Init: func(_ context.Context) error {
 			if err := migrate.Load(config.migrate); err != nil {

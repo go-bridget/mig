@@ -4,6 +4,14 @@ import (
 	"github.com/go-bridget/mig/cli"
 )
 
+func NewOptions() *Options {
+	return (&Options{}).Init()
+}
+
+func (options *Options) Init() *Options {
+	return options
+}
+
 func (options *Options) Bind() {
 	cli.StringVar(&options.Path, "migrate-path", "schema", "Project path for database migrations")
 	cli.StringVar(&options.Project, "project", "", "Project name for migrations")
