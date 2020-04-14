@@ -51,7 +51,10 @@ func (options *Options) Bind() *Options {
 // Bind binds the options variable flags with a custom prefix for multiple database connections
 func (options *Options) BindWithPrefix(prefix string) *Options {
 	p := func(s string) string {
-		return prefix + "-" + s
+		if prefix != "" {
+			return prefix + "-" + s
+		}
+		return s
 	}
 	cli.StringVar(&options.Credentials.Driver, p("driver"), "mysql", "Database driver")
 	cli.StringVar(&options.Credentials.DSN, p("dsn"), "", "DSN for database connection")
