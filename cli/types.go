@@ -2,6 +2,9 @@ package cli
 
 import (
 	"context"
+	"fmt"
+	"os"
+	"strings"
 
 	flag "github.com/spf13/pflag"
 )
@@ -27,7 +30,6 @@ var (
 	Uint64Var   = flag.Uint64Var
 	UintVar     = flag.UintVar
 
-	Parse         = flag.Parse
 	PrintDefaults = flag.PrintDefaults
 )
 
@@ -54,3 +56,41 @@ type (
 		New   func() *Command
 	}
 )
+
+func Parse() {
+	// clean maps `DB_DSN` to `db-dsn` (pflag like)
+	clean := func(s string) string {
+		s = strings.ToLower(s)
+		s = strings.Replace(s, "_", "-", -1)
+		return s
+	}
+	// check if slice contains value
+	in := func(haystack []string, needle string) bool {
+		for _, v := range haystack {
+			if v == needle {
+				return true
+			}
+		}
+		return false
+	}
+	// parse os.Environ() and include it as cli flags to the command line
+	for _, v := range os.Environ() {
+		vals := strings.SplitN(v, "=", 2)
+		if len(vals) != 2 {
+			continue
+		}
+		// check if destination flag exists
+		flagName := clean(vals[0])
+		if fn := flag.CommandLine.Lookup(flagName); fn == nil {
+			continue
+		}
+		// check if it was passed via os.Args already
+		flagOption := fmt.Sprintf("--%s", flagName)
+		if in(os.Args, flagOption) {
+			continue
+		}
+		// append flag based on environment value
+		os.Args = append(os.Args, fmt.Sprintf("--%s", flagName), vals[1])
+	}
+	flag.Parse()
+}

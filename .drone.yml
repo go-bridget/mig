@@ -10,6 +10,16 @@ steps:
   - mig migrate --migrate-path test/schema --project=stats --db-dsn "root:test@tcp(migration-db:3306)/stats" --apply
   - mig version
 
+- name: migrate-env
+  image: bridget/mig:latest
+  pull: never
+  environment:
+    DB_DSN: root:test@tcp(migration-db:3306)/mysql
+  commands:
+  - mig create --migrate-path test/schema --apply
+  - mig migrate --migrate-path test/schema --project=stats --apply
+  - mig version
+
 services:
 - name: migration-db
   pull: always
