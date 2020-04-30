@@ -2,7 +2,6 @@ package cli
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"strings"
 
@@ -57,40 +56,25 @@ type (
 	}
 )
 
-func Parse() {
-	// clean maps `DB_DSN` to `db-dsn` (pflag like)
-	clean := func(s string) string {
-		s = strings.ToLower(s)
-		s = strings.Replace(s, "_", "-", -1)
-		return s
-	}
-	// check if slice contains value
-	in := func(haystack []string, needle string) bool {
-		for _, v := range haystack {
-			if v == needle {
-				return true
-			}
-		}
-		return false
-	}
+func Parse() error {
 	// parse os.Environ() and include it as cli flags to the command line
 	for _, v := range os.Environ() {
 		vals := strings.SplitN(v, "=", 2)
-		if len(vals) != 2 {
+
+		// convert DB_DSN to db-dsn (pflag like)
+		flagName := vals[0]
+		flagName = strings.ToLower(flagName)
+		flagName = strings.Replace(flagName, "_", "-", -1)
+
+		// check if destination flag exists or modified
+		fn := flag.CommandLine.Lookup(flagName)
+		if fn == nil || fn.Changed {
 			continue
 		}
-		// check if destination flag exists
-		flagName := clean(vals[0])
-		if fn := flag.CommandLine.Lookup(flagName); fn == nil {
-			continue
+		if err := fn.Value.Set(vals[1]); err != nil {
+			return err
 		}
-		// check if it was passed via os.Args already
-		flagOption := fmt.Sprintf("--%s", flagName)
-		if in(os.Args, flagOption) {
-			continue
-		}
-		// append flag based on environment value
-		os.Args = append(os.Args, fmt.Sprintf("--%s", flagName), vals[1])
 	}
 	flag.Parse()
+	return nil
 }

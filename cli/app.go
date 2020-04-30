@@ -34,7 +34,10 @@ func (app *App) Run(args []string) error {
 	if command.Bind != nil {
 		command.Bind(ctx)
 	}
-	Parse()
+	if err := Parse(); err != nil {
+		app.HelpCommand(command)
+		return err
+	}
 
 	contains := func(haystack []string, needle string) bool {
 		for _, hay := range haystack {

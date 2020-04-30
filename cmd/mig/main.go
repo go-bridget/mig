@@ -10,8 +10,11 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 )
 
-// mig version number
-var Version string
+// mig build info
+var (
+	BuildVersion string
+	BuildTime    string
+)
 
 func main() {
 	app := cli.NewApp("mig")
@@ -20,7 +23,10 @@ func main() {
 	app.AddCommand("version", "Print version", func() *cli.Command {
 		return &cli.Command{
 			Run: func(_ context.Context, _ []string) error {
-				fmt.Println(app.Name, "version", Version)
+				fmt.Println(app.Name)
+				fmt.Println()
+				fmt.Println("build version ", BuildVersion)
+				fmt.Println("build time    ", BuildTime)
 				return nil
 			},
 		}
