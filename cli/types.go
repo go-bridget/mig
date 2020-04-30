@@ -29,6 +29,14 @@ var (
 	Uint64Var   = flag.Uint64Var
 	UintVar     = flag.UintVar
 
+	BoolVarP     = flag.BoolVarP
+	DurationVarP = flag.DurationVarP
+	Int64VarP    = flag.Int64VarP
+	IntVarP      = flag.IntVarP
+	StringVarP   = flag.StringVarP
+	Uint64VarP   = flag.Uint64VarP
+	UintVarP     = flag.UintVarP
+
 	PrintDefaults = flag.PrintDefaults
 )
 

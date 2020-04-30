@@ -14,7 +14,9 @@ push:
 	docker push $(IMAGE)
 
 build:
-	CGO_ENABLED=0 go build -ldflags "-X 'main.BuildVersion=$(BUILD_VERSION)' -X 'main.BuildTime=$(BUILD_TIME)'" ./cmd/...
+	go fmt ./...
+	mkdir -p _build
+	CGO_ENABLED=0 go build -o _build -ldflags "-X 'main.BuildVersion=$(BUILD_VERSION)' -X 'main.BuildTime=$(BUILD_TIME)'" ./cmd/...
 
 test:
 	drone exec --trusted

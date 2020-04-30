@@ -1,4 +1,4 @@
-package main
+package migrate
 
 import (
 	"context"
@@ -11,7 +11,9 @@ import (
 	"github.com/go-bridget/mig/migrate"
 )
 
-func migrateCmd() *cli.Command {
+const Name = "Apply SQL migrations to database"
+
+func New() *cli.Command {
 	var config struct {
 		db      db.Options
 		migrate migrate.Options

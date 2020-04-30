@@ -2,9 +2,11 @@ package cli
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/SentimensRG/sigctx"
 	"github.com/pkg/errors"
+	flag "github.com/spf13/pflag"
 )
 
 // NewApp creates a new App instance
@@ -15,8 +17,13 @@ func NewApp(name string) *App {
 	}
 }
 
-// Run is a cli entrypoint which sets up a cancellable context for the command
-func (app *App) Run(args []string) error {
+// Run passes os.Args without the command name to RunWithArgs()
+func (app *App) Run() error {
+	return app.RunWithArgs(os.Args[1:])
+}
+
+// RunWithArgs is a cli entrypoint which sets up a cancellable context for the command
+func (app *App) RunWithArgs(args []string) error {
 	ctx := sigctx.New()
 	commands := parseCommands(args)
 	if len(commands) == 0 {
@@ -24,34 +31,25 @@ func (app *App) Run(args []string) error {
 		return nil
 	}
 
-	command, err := app.FindCommand(commands)
+	command, err := app.findCommand(commands)
 	if err != nil {
 		app.Help()
 		return err
+	}
+
+	flag.Usage = func() {
+		app.HelpCommand(command)
 	}
 
 	// bind command specific flags
 	if command.Bind != nil {
 		command.Bind(ctx)
 	}
+
+	// parse flags and set from environment
 	if err := Parse(); err != nil {
 		app.HelpCommand(command)
 		return err
-	}
-
-	contains := func(haystack []string, needle string) bool {
-		for _, hay := range haystack {
-			if hay == needle {
-				return true
-			}
-		}
-		return false
-	}
-
-	// print help for command(s)
-	if contains(args, "-h") || contains(args, "-?") || contains(args, "--help") {
-		app.HelpCommand(command)
-		return nil
 	}
 
 	// initialize command (pre-load data, etc.)
@@ -99,12 +97,7 @@ func (app *App) HelpCommand(command *Command) {
 	fmt.Println("Usage:", app.Name, "(command) [-flags]")
 	fmt.Println()
 
-	maxLen := 0
-	for _, command := range app.commands {
-		if len(command.Name) > maxLen {
-			maxLen = len(command.Name)
-		}
-	}
+	maxLen := len(command.Name)
 	pad := "   "
 	format := pad + "%-" + fmt.Sprintf("%d", maxLen+3) + "s %s\n"
 	fmt.Printf(format, command.Name, command.Title)
@@ -123,11 +116,11 @@ func (app *App) AddCommand(name, title string, constructor func() *Command) {
 	app.commands[name] = info
 }
 
-// FindCommand finds a command for the app
-func (app *App) FindCommand(commands []string) (*Command, error) {
+// findCommand finds a command for the app
+func (app *App) findCommand(commands []string) (*Command, error) {
 	// This is just fully naive, we use the first command we find
 	// but we could be smarter and have sub commands? Maybe one day.
-	for _, commandName := range commands {
+	for _, commandName := range commands[0:1] {
 		info, ok := app.commands[commandName]
 		if ok {
 			command := info.New()

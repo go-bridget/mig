@@ -1,4 +1,4 @@
-package main
+package create
 
 import (
 	"context"
@@ -11,7 +11,9 @@ import (
 	"github.com/go-bridget/mig/migrate"
 )
 
-func createCmd() *cli.Command {
+const Name = "Create database schema SQL"
+
+func New() *cli.Command {
 	var config struct {
 		db      db.Options
 		migrate migrate.Options
