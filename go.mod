@@ -8,6 +8,7 @@ require (
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/joho/godotenv v1.3.0
 	github.com/pkg/errors v0.9.1
+	github.com/serenize/snaker v0.0.0-20171204205717-a683aaf2d516
 	github.com/spf13/pflag v1.0.5
 	go.elastic.co/apm/module/apmsql v1.7.2
 )

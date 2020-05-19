@@ -10,6 +10,7 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 
 	"github.com/go-bridget/mig/cmd/mig/create"
+	"github.com/go-bridget/mig/cmd/mig/docs"
 	"github.com/go-bridget/mig/cmd/mig/grants"
 	"github.com/go-bridget/mig/cmd/mig/migrate"
 )
@@ -26,6 +27,7 @@ func main() {
 	app.AddCommand("grants", grants.Name, grants.New)
 	app.AddCommand("create", create.Name, create.New)
 	app.AddCommand("migrate", migrate.Name, migrate.New)
+	app.AddCommand("docs", docs.Name, docs.New)
 
 	app.AddCommand("version", "Print version", func() *cli.Command {
 		return &cli.Command{
