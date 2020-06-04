@@ -126,7 +126,8 @@ func (app *App) findCommand(commands []string, fallback string) (*Command, error
 
 	// This is just fully naive, we use the first command we find
 	// but we could be smarter and have sub commands? Maybe one day.
-	for _, commandName := range commands[0:1] {
+	if len(commands) > 0 {
+		commandName = commands[0]
 		if info, ok := app.commands[commandName]; ok {
 			return spawn(info)
 		}
