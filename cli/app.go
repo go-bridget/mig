@@ -26,11 +26,6 @@ func (app *App) Run() error {
 func (app *App) RunWithArgs(args []string) error {
 	ctx := sigctx.New()
 	commands := parseCommands(args)
-	if len(commands) == 0 {
-		app.Help()
-		return nil
-	}
-
 	command, err := app.findCommand(commands, "start")
 	if err != nil {
 		app.Help()
@@ -74,7 +69,7 @@ func (app *App) RunWithArgs(args []string) error {
 
 // Help prints out registered commands for app
 func (app *App) Help() {
-	fmt.Println("Usage:", app.Name, "(command) [-flags]")
+	fmt.Println("Usage:", app.Name, "(command) [--flags]")
 	fmt.Println("Available commands:")
 	fmt.Println()
 
