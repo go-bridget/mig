@@ -31,7 +31,7 @@ func (app *App) RunWithArgs(args []string) error {
 		return nil
 	}
 
-	command, err := app.findCommand(commands)
+	command, err := app.findCommand(commands, "start")
 	if err != nil {
 		app.Help()
 		return err
@@ -117,21 +117,27 @@ func (app *App) AddCommand(name, title string, constructor func() *Command) {
 }
 
 // findCommand finds a command for the app
-func (app *App) findCommand(commands []string) (*Command, error) {
+func (app *App) findCommand(commands []string, fallback string) (*Command, error) {
+	spawn := func(info commandInfo) (*Command, error) {
+		command := info.New()
+		if command.Name == "" {
+			command.Name = info.Name
+		}
+		if command.Title == "" {
+			command.Title = info.Title
+		}
+		return command, nil
+	}
+
 	// This is just fully naive, we use the first command we find
 	// but we could be smarter and have sub commands? Maybe one day.
 	for _, commandName := range commands[0:1] {
-		info, ok := app.commands[commandName]
-		if ok {
-			command := info.New()
-			if command.Name == "" {
-				command.Name = info.Name
-			}
-			if command.Title == "" {
-				command.Title = info.Title
-			}
-			return command, nil
+		if info, ok := app.commands[commandName]; ok {
+			return spawn(info)
 		}
+	}
+	if info, ok := app.commands[fallback]; ok {
+		return spawn(info)
 	}
 	return nil, errors.New("no command found")
 }
