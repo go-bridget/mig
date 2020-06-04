@@ -45,7 +45,7 @@ type (
 	App struct {
 		Name string
 
-		commands map[string]commandInfo
+		commands map[string]CommandInfo
 	}
 
 	// Command is an individual command
@@ -57,7 +57,8 @@ type (
 		Run  func(context.Context, []string) error
 	}
 
-	commandInfo struct {
+	// CommandInfo is the constructor info for a command
+	CommandInfo struct {
 		Name  string
 		Title string
 		New   func() *Command

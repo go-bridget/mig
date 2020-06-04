@@ -13,7 +13,7 @@ import (
 func NewApp(name string) *App {
 	return &App{
 		Name:     name,
-		commands: make(map[string]commandInfo),
+		commands: make(map[string]CommandInfo),
 	}
 }
 
@@ -108,7 +108,7 @@ func (app *App) HelpCommand(command *Command) {
 
 // AddCommand adds a command to the app
 func (app *App) AddCommand(name, title string, constructor func() *Command) {
-	info := commandInfo{
+	info := CommandInfo{
 		Name:  name,
 		Title: title,
 		New:   constructor,
@@ -118,7 +118,7 @@ func (app *App) AddCommand(name, title string, constructor func() *Command) {
 
 // findCommand finds a command for the app
 func (app *App) findCommand(commands []string, fallback string) (*Command, error) {
-	spawn := func(info commandInfo) (*Command, error) {
+	spawn := func(info CommandInfo) (*Command, error) {
 		command := info.New()
 		if command.Name == "" {
 			command.Name = info.Name
