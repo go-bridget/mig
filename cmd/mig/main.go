@@ -41,7 +41,7 @@ func main() {
 		}
 	})
 	if err := app.Run(); err != nil {
-		fmt.Printf("An error occured: %s", err)
+		fmt.Printf("An error occurred: %s", err)
 		fmt.Println()
 		os.Exit(1)
 	}
