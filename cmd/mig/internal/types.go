@@ -1,11 +1,19 @@
 package internal
 
+import (
+	"strings"
+)
+
 // Table is an information_schema record
 type Table struct {
 	Name    string `db:"TABLE_NAME"`
 	Comment string `db:"TABLE_COMMENT"`
 
 	Columns []*Column
+}
+
+func (t *Table) Ignore() bool {
+	return strings.TrimSpace(strings.ToLower(t.Comment)) == "ignore"
 }
 
 // TableFields lists database columns from Table{}

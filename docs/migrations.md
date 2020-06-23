@@ -1,5 +1,7 @@
 # migrations
 
+Migration log of applied migrations
+
 | Name            | Type         | Key | Comment                        |
 |-----------------|--------------|-----|--------------------------------|
 | project         | varchar(16)  | PRI | Microservice or project name   |

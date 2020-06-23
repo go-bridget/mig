@@ -80,12 +80,11 @@ func renderMarkdown(basePath string, tables []*internal.Table) error {
 
 	// generate individual markdown files with service
 	for _, table := range tables {
-		filename := path.Join(basePath, table.Name+".md")
-
-		if strings.ToLower(table.Comment) == "ignore" {
+		if table.Ignore() {
 			continue
 		}
 
+		filename := path.Join(basePath, table.Name+".md")
 		contents := renderMarkdownTable(table)
 		if err := ioutil.WriteFile(filename, contents, 0644); err != nil {
 			return err

@@ -4,4 +4,4 @@ CREATE TABLE IF NOT EXISTS `migrations` (
  `statement_index` int(11) NOT NULL COMMENT 'Statement number from SQL file',
  `status` text NOT NULL COMMENT 'ok or full error message',
  PRIMARY KEY (`project`,`filename`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Migration log of applied migrations';
