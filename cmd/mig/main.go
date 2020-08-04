@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-bridget/mig/cmd/mig/create"
 	"github.com/go-bridget/mig/cmd/mig/docs"
+	"github.com/go-bridget/mig/cmd/mig/gen"
 	"github.com/go-bridget/mig/cmd/mig/grants"
 	"github.com/go-bridget/mig/cmd/mig/lint"
 	"github.com/go-bridget/mig/cmd/mig/migrate"
@@ -30,6 +31,7 @@ func main() {
 	app.AddCommand("migrate", migrate.Name, migrate.New)
 	app.AddCommand("docs", docs.Name, docs.New)
 	app.AddCommand("lint", lint.Name, lint.New)
+	app.AddCommand("gen", gen.Name, gen.New)
 
 	app.AddCommand("version", "Print version", func() *cli.Command {
 		return &cli.Command{

@@ -16,6 +16,21 @@ Additionally, it provides schema migrations for the configured databases, so
 the migrations themselves can be tested from CI jobs, and can generate source
 code and documentation for the final schema.
 
+## Usage
+
+~~~text
+Usage: mig (command) [--flags]
+Available commands:
+
+   grants     Create schemas, users and grant permissions
+   create     Create database schema SQL
+   migrate    Apply SQL migrations to database
+   docs       Generate markdown docs from DB schema
+   lint       Check schema for best practices and comments
+   gen        Generate source code from DB schema
+   version    Print version
+~~~
+
 ## Lint
 
 You can use mig to "lint" your database schema, by default:
