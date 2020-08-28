@@ -17,19 +17,22 @@ func New() *cli.Command {
 		db db.Options
 
 		schema string
+
+		skipComments bool
 	}
 
 	return &cli.Command{
 		Bind: func(_ context.Context) {
 			(&config.db).Init().Bind()
 			cli.StringVar(&config.schema, "schema", "", "Database schema to list")
+			cli.BoolVar(&config.skipComments, "skip-comments", false, "Skip validating table/column comments")
 		},
 		Run: func(ctx context.Context, commands []string) error {
 			tables, err := internal.ListTables(ctx, config.db, config.schema)
 			if err != nil {
 				return err
 			}
-			errs := validate(tables)
+			errs := validate(tables, config.skipComments)
 			if len(errs) > 0 {
 				for _, err := range errs {
 					fmt.Println(err)

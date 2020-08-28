@@ -16,10 +16,10 @@ const (
 )
 
 // validateTable checks individual columns
-func validateTable(table *internal.Table) []error {
+func validateTable(table *internal.Table, skipComments bool) []error {
 	errs := []error{}
 	for _, column := range table.Columns {
-		if strings.TrimSpace(column.Comment) == "" {
+		if !skipComments && strings.TrimSpace(column.Comment) == "" {
 			errs = append(errs, fmt.Errorf(errMissingColumnComment, table.Name, column.Name))
 		}
 		if err := isColumnNameValid(column.Name); err != nil {
@@ -30,19 +30,19 @@ func validateTable(table *internal.Table) []error {
 }
 
 // validate checks each table has a set comment
-func validate(tables []*internal.Table) []error {
+func validate(tables []*internal.Table, skipComments bool) []error {
 	errs := []error{}
 	for _, table := range tables {
 		if table.Ignore() {
 			continue
 		}
-		if strings.TrimSpace(table.Comment) == "" {
+		if !skipComments && strings.TrimSpace(table.Comment) == "" {
 			errs = append(errs, fmt.Errorf(errMissingTableComment, table.Name))
 		}
 		if err := isTableNameValid(table.Name); err != nil {
 			errs = append(errs, fmt.Errorf(errInvalidTableName, table.Name, err))
 		}
-		if tableErrs := validateTable(table); len(tableErrs) > 0 {
+		if tableErrs := validateTable(table, skipComments); len(tableErrs) > 0 {
 			errs = append(errs, tableErrs...)
 		}
 	}
