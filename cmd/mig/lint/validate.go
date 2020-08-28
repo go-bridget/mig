@@ -18,8 +18,12 @@ const (
 // validateTable checks individual columns
 func validateTable(table *internal.Table, skipComments bool) []error {
 	errs := []error{}
+	validComments := map[string]bool{
+		"id": true,
+	}
 	for _, column := range table.Columns {
-		if !skipComments && strings.TrimSpace(column.Comment) == "" {
+		validComment := validComments[strings.ToLower(column.Name)] || skipComments
+		if !validComment && strings.TrimSpace(column.Comment) == "" {
 			errs = append(errs, fmt.Errorf(errMissingColumnComment, table.Name, column.Name))
 		}
 		if err := isColumnNameValid(column.Name); err != nil {
