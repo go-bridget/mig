@@ -9,6 +9,9 @@ import (
 	"github.com/go-bridget/mig/db"
 )
 
+// only validate base tables, not views
+const tableType = "BASE TABLE"
+
 func ListTables(ctx context.Context, config db.Options, schema string) ([]*Table, error) {
 	handle, err := db.ConnectWithRetry(ctx, config)
 	if err != nil {
@@ -18,7 +21,7 @@ func ListTables(ctx context.Context, config db.Options, schema string) ([]*Table
 	// List tables in schema
 	tables := []*Table{}
 	fields := strings.Join(TableFields, ", ")
-	err = handle.Select(&tables, "select "+fields+" from information_schema.tables where table_schema=? order by table_name asc", schema)
+	err = handle.Select(&tables, "select "+fields+" from information_schema.tables where table_schema=? and table_type=? order by table_name asc", schema, tableType)
 	if err != nil {
 		return nil, errors.Wrap(err, "error listing database tables")
 	}
