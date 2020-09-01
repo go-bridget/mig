@@ -56,7 +56,7 @@ func Run(options Options, db *sqlx.DB) error {
 
 			var isApplied bool
 			for idx, stmt := range stmts {
-				isApplied = idx < status.StatementIndex
+				isApplied = idx <= status.StatementIndex
 				if options.Verbose {
 					fmt.Printf("-- statement %d/%d is applied? %t\n", idx, status.StatementIndex, isApplied)
 				}
