@@ -37,8 +37,9 @@ func Run(options Options, db *sqlx.DB) error {
 
 	migrate := func(filename string) error {
 		status := Migration{
-			Project:  options.Project,
-			Filename: filename,
+			Project:        options.Project,
+			Filename:       filename,
+			StatementIndex: -1,
 		}
 
 		// we can't log the main migrations table
