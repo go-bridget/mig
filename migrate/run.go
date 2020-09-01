@@ -18,7 +18,7 @@ func Run(options Options, db *sqlx.DB) error {
 		return errors.Errorf("Migrations for '%s' don't exist", options.Project)
 	}
 
-	printQuery := func(idx int, query string) error {
+	printQuery := func(idx int, query string) {
 		if options.Verbose {
 			fmt.Println()
 			fmt.Println("-- Statement index:", idx)
