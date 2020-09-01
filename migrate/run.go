@@ -18,13 +18,17 @@ func Run(options Options, db *sqlx.DB) error {
 		return errors.Errorf("Migrations for '%s' don't exist", options.Project)
 	}
 
-	execQuery := func(idx int, query string) error {
+	printQuery := func(idx int, query string) error {
 		if options.Verbose {
 			fmt.Println()
 			fmt.Println("-- Statement index:", idx)
 			fmt.Println(query)
 			fmt.Println()
 		}
+	}
+
+	execQuery := func(idx int, query string) error {
+		printQuery(idx, query)
 		if _, err := db.Exec(query); err != nil && err != sql.ErrNoRows {
 			return err
 		}
@@ -54,14 +58,21 @@ func Run(options Options, db *sqlx.DB) error {
 				return errors.Wrap(err, fmt.Sprintf("Error reading migration: %s", filename))
 			}
 
+			var isApplied bool
 			for idx, stmt := range stmts {
+				isApplied = idx < status.StatementIndex
+				if options.Verbose {
+					fmt.Printf("-- statement %d/%d is applied? %t\n", idx, status.StatementIndex, isApplied)
+				}
 				// skip stmt if it has already been applied
-				if idx >= status.StatementIndex {
+				if !isApplied {
 					status.StatementIndex = idx
 					if err := execQuery(idx, stmt); err != nil {
 						status.Status = err.Error()
 						return err
 					}
+				} else {
+					printQuery(idx, stmt)
 				}
 			}
 			status.Status = "ok"
