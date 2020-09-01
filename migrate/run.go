@@ -47,10 +47,6 @@ func Run(options Options, db *sqlx.DB) error {
 				return err
 			}
 		}
-		if status.Status == "ok" {
-			log.Println(filename, strings.ToUpper(status.Status))
-			return nil
-		}
 
 		up := func() error {
 			stmts, err := statements(fs.ReadFile(filename))
