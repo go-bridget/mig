@@ -6,6 +6,7 @@ steps:
   image: bridget/mig:latest
   pull: never
   commands:
+  - sleep 10
   - mig create --migrate-path test/schema --db-dsn "root:test@tcp(migration-db:3306)/mysql" --apply
   - mig migrate --migrate-path test/schema --project=stats --db-dsn "root:test@tcp(migration-db:3306)/stats" --apply
   - mig docs --schema=stats --db-dsn "root:test@tcp(migration-db:3306)/stats"
