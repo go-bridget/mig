@@ -65,7 +65,7 @@ func Run(options Options, db *sqlx.DB) error {
 				if !isApplied {
 					status.StatementIndex = idx
 					if err := execQuery(idx, stmt); err != nil {
-						status.StatementIndex --
+						status.StatementIndex--
 						status.Status = err.Error()
 						return err
 					}

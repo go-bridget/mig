@@ -43,6 +43,9 @@ var simpleTypes map[string]string = map[string]string{
 	"double": "float64",
 	// `decimal` - double stored as string, \o/
 	"decimal": "string",
+	// some coalescing for year/enum types
+	"year": "int",
+	"enum": "string",
 }
 
 func isSimple(column *internal.Column) (string, bool) {
@@ -60,8 +63,7 @@ var specialTypes map[string]specialType = map[string]specialType{
 	"datetime":  specialType{"time", "*time.Time"},
 	"time":      specialType{"time", "*time.Time"},
 	"timestamp": specialType{"time", "*time.Time"},
-	// `enum` and `set` aren't implemented
-	// `year` isn't implemented
+	// `set` is not implemented
 	"json": specialType{"sqlxTypes github.com/jmoiron/sqlx/types", "sqlxTypes.JSONText"},
 }
 
