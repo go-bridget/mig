@@ -12,14 +12,14 @@ var (
 	errPossiblePlural = errors.New("possible plural, singular form or suffix with _entry")
 )
 
-func isTableNameValid(name string) error {
+func isTableNameValid(name string, options Options) error {
 	name = strings.ToLower(name)
 	// ignore migrations table
 	if strings.ToLower(name) == "migrations" {
 		return nil
 	}
 	// check for plural suffix
-	if strings.HasSuffix(name, "s") {
+	if !options.skipPlural && strings.HasSuffix(name, "s") {
 		return errPossiblePlural
 	}
 	return isNameReserved(name)
