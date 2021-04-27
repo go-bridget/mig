@@ -21,21 +21,23 @@ import (
 // should be little reason to do that.
 
 var (
-	BoolVar     = flag.BoolVar
-	DurationVar = flag.DurationVar
-	Int64Var    = flag.Int64Var
-	IntVar      = flag.IntVar
-	StringVar   = flag.StringVar
-	Uint64Var   = flag.Uint64Var
-	UintVar     = flag.UintVar
+	BoolVar        = flag.BoolVar
+	DurationVar    = flag.DurationVar
+	Int64Var       = flag.Int64Var
+	IntVar         = flag.IntVar
+	StringVar      = flag.StringVar
+	Uint64Var      = flag.Uint64Var
+	UintVar        = flag.UintVar
+	StringSliceVar = flag.StringSliceVar
 
-	BoolVarP     = flag.BoolVarP
-	DurationVarP = flag.DurationVarP
-	Int64VarP    = flag.Int64VarP
-	IntVarP      = flag.IntVarP
-	StringVarP   = flag.StringVarP
-	Uint64VarP   = flag.Uint64VarP
-	UintVarP     = flag.UintVarP
+	BoolVarP        = flag.BoolVarP
+	DurationVarP    = flag.DurationVarP
+	Int64VarP       = flag.Int64VarP
+	IntVarP         = flag.IntVarP
+	StringVarP      = flag.StringVarP
+	Uint64VarP      = flag.Uint64VarP
+	UintVarP        = flag.UintVarP
+	StringSliceVarP = flag.StringSliceVarP
 
 	PrintDefaults = flag.PrintDefaults
 )

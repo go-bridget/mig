@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -57,7 +58,9 @@ func (app *App) RunWithArgs(args []string) error {
 
 	// Run command if defined
 	if command.Run != nil {
-		if err := command.Run(ctx, commands); err != nil {
+		err = command.Run(ctx, commands)
+		// don't print help with standard "context canceled" exit
+		if err != nil && !errors.Is(err, context.Canceled) {
 			app.HelpCommand(command)
 			return err
 		}
