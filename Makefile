@@ -1,6 +1,6 @@
 .PHONY: all docker push build test
 
-IMAGE := bridget/mig
+IMAGE := gobridget/mig
 
 all: docker test
 
