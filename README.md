@@ -1,5 +1,7 @@
 # mig
 
+[![Docker Hub: gobridget/mig](https://img.shields.io/badge/Docker%20Hub-gobridget%2Fmig-green.svg)](https://hub.docker.com/repository/docker/gobridget/mig)
+
 Mig is a database SQL statement based migration utility. It's short for migrate.
 
 It's used in production on several of my projects, both personal and
