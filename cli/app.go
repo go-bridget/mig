@@ -92,7 +92,7 @@ func (app *App) Help() {
 
 // Help prints out registered commands for app
 func (app *App) HelpCommand(command *Command) {
-	fmt.Println("Usage:", app.Name, "(command) [-flags]")
+	fmt.Println("Usage:", app.Name, "(command) [--flags]")
 	fmt.Println()
 
 	maxLen := len(command.Name)
