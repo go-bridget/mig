@@ -3,18 +3,27 @@ package internal
 import (
 	"strings"
 
-	"github.com/serenize/snaker"
+	stylecheck "honnef.co/go/tools/config"
 )
 
 func Camel(input string) string {
-	if strings.ToLower(input) == "id" {
-		return "ID"
-	}
 	// special case from having camel case `showId` fields in DB
 	if len(input) > 2 && input[len(input)-2:] == "Id" {
 		input = input[0:len(input)-2] + "_id"
 	}
-	return snaker.SnakeToCamel(input)
+
+	// split string and check against initialisms
+	keys := strings.Split(input, "_")
+	for k, v := range keys {
+		upper := strings.ToUpper(v)
+		if Contains(stylecheck.DefaultConfig.Initialisms, upper) {
+			keys[k] = upper
+			continue
+		}
+		keys[k] = upper[0:1] + v[1:]
+	}
+
+	return strings.Join(keys, "_")
 }
 
 func Contains(set []string, value string) bool {
