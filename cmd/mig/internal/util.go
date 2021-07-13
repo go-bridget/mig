@@ -23,7 +23,7 @@ func Camel(input string) string {
 		keys[k] = upper[0:1] + v[1:]
 	}
 
-	return strings.Join(keys, "_")
+	return strings.Join(keys, "")
 }
 
 func Contains(set []string, value string) bool {
