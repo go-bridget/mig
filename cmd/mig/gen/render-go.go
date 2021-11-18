@@ -37,6 +37,7 @@ var simpleTypes map[string]string = map[string]string{
 	"tinytext":   "string",
 	"longblob":   "[]byte",
 	"blob":       "[]byte",
+	"binary":     "[]byte",
 	"varbinary":  "[]byte",
 	// `float` and `double` are here since they don't have unsigned modifiers
 	"float":  "float32",
