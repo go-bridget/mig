@@ -10,6 +10,10 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
+var (
+	errNoCommand = errors.New("no command found")
+)
+
 // NewApp creates a new App instance
 func NewApp(name string) *App {
 	return &App{
@@ -29,7 +33,9 @@ func (app *App) RunWithArgs(args []string) error {
 	commands := parseCommands(args)
 	command, err := app.findCommand(commands, "start")
 	if err != nil {
-		app.Help()
+		if !errors.Is(err, errNoCommand) {
+			app.Help()
+		}
 		return err
 	}
 
@@ -138,7 +144,7 @@ func (app *App) findCommand(commands []string, fallback string) (*Command, error
 	if info, ok := app.commands[fallback]; ok {
 		return spawn(info)
 	}
-	return nil, errors.New("no command found")
+	return nil, fmt.Errorf("Can't find commands: [%s, default=%s], err=%w", errNoCommand)
 }
 
 // parseCommand cleans up args[], returning only commands

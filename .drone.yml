@@ -3,7 +3,7 @@ name: migrations
 
 steps:
 - name: migrate
-  image: bridget/mig:latest
+  image: gobridget/mig:latest
   pull: never
   commands:
   - sleep 10
@@ -15,7 +15,7 @@ steps:
   - mig version
 
 - name: migrate-env
-  image: bridget/mig:latest
+  image: gobridget/mig:latest
   pull: never
   environment:
     DB_DSN: root:test@tcp(migration-db:3306)/mysql
