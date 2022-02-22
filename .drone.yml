@@ -1,17 +1,24 @@
 kind: pipeline
 name: migrations
 
+global-variables:
+  db_env: &db_env
+    DB_DSN: 'root:test@tcp(migration-db:3306)/stats'
+
 steps:
 - name: migrate
   image: gobridget/mig:latest
-  pull: never
+  pull: always
+  environment:
+    <<: *db_env
   commands:
   - sleep 10
-  - mig create --migrate-path test/schema --db-dsn "root:test@tcp(migration-db:3306)/mysql" --apply
-  - mig migrate --migrate-path test/schema --project=stats --db-dsn "root:test@tcp(migration-db:3306)/stats" --apply
-  - mig docs --schema=stats --db-dsn "root:test@tcp(migration-db:3306)/stats"
-  - mig gen --schema=stats --db-dsn "root:test@tcp(migration-db:3306)/stats"
-  - mig lint --schema=stats --db-dsn "root:test@tcp(migration-db:3306)/stats"
+  - mig create --migrate-path example/schema --db-dsn "root:test@tcp(migration-db:3306)/mysql" --apply
+  - mig migrate --migrate-path example/schema --project=stats --apply
+  - mig docs --schema=stats
+  - mig gen --schema=stats --lang=go --output=example/gen_go
+  - mig gen --schema=stats --lang=php81 --output=example/gen_php81
+  - mig lint --schema=stats
   - mig version
 
 - name: migrate-env
@@ -20,8 +27,8 @@ steps:
   environment:
     DB_DSN: root:test@tcp(migration-db:3306)/mysql
   commands:
-  - mig create --migrate-path test/schema --apply
-  - mig migrate --migrate-path test/schema --project=stats --apply
+  - mig create --migrate-path example/schema --apply
+  - mig migrate --migrate-path example/schema --project=stats --apply
   - mig version
 
 services:
