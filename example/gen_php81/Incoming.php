@@ -8,7 +8,7 @@ class Incoming
 		public $id ?int = 0;
 
 		/** Property name (human readable, a-z) */
-		public $property ?mixed = null;
+		public $property ?string = "";
 
 		/** Property Section ID */
 		public $property_section ?int = 0;
@@ -17,7 +17,7 @@ class Incoming
 		public $property_id ?int = 0;
 
 		/** Remote IP from user making request */
-		public $remote_ip ?mixed = null;
+		public $remote_ip ?string = "";
 
 		/** Timestamp of request */
 		public $stamp ?string = "";
