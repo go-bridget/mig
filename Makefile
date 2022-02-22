@@ -2,7 +2,7 @@
 
 IMAGE := gobridget/mig
 
-all: docker test
+all: docker push test
 
 export BUILD_VERSION := $(shell git describe --always --tags --abbrev=8)
 export BUILD_TIME := $(shell date +%Y-%m-%dT%T%z)
