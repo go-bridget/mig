@@ -15,7 +15,10 @@ func Render(basePath string, service string, tables []*internal.Table) error {
 		tableName := internal.Camel(strings.TrimPrefix(table.Name, service+"_"))
 		filename := path.Join(basePath, tableName+".php")
 
-		output, err := RenderTable(table)
+		tmpTable := *table
+		tmpTable.Name = tableName
+
+		output, err := RenderTable(&tmpTable)
 		if err != nil {
 			return fmt.Errorf("Error rendering table template: %w", err)
 		}
