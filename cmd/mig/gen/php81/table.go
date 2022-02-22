@@ -10,11 +10,11 @@ import (
 )
 
 func columnDefaultValue(column *internal.Column) string {
-	return typeAlias(column.Type).Default
+	return typeAlias(column.DataType).Default
 }
 
 func columnToNativeType(column *internal.Column) string {
-	return typeAlias(column.Type).Type
+	return typeAlias(column.DataType).Type
 }
 
 func RenderTable(data *internal.Table) (string, error) {

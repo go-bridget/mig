@@ -1,9 +1,5 @@
 package php81
 
-import (
-	"strings"
-)
-
 type Field struct {
 	Type    string
 	Format  string
@@ -54,16 +50,10 @@ var typeAliases = map[string]Field{
 	"timestamp":  Int,
 }
 
-func typeAlias(kinder string) Field {
-	// kinder may be "unsigned int" or something
-	for _, kind := range strings.Fields(strings.ToLower(kinder)) {
-		if kind == "unsigned" {
-			continue
-		}
-		if val, ok := typeAliases[kind]; ok {
-			val.Format = kind
-			return val
-		}
+func typeAlias(kind string) Field {
+	if val, ok := typeAliases[kind]; ok {
+		val.Format = kind
+		return val
 	}
 	return Mixed
 }
