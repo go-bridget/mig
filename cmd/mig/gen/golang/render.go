@@ -1,4 +1,4 @@
-package gen
+package golang
 
 import (
 	"bytes"
@@ -90,7 +90,7 @@ func resolveTypeGo(column *internal.Column) (string, error) {
 	return "", errors.Errorf("Unsupported SQL type: %s", column.DataType)
 }
 
-func renderGo(basePath string, service string, tables []*internal.Table) error {
+func Render(basePath string, service string, tables []*internal.Table) error {
 	imports := []string{}
 
 	// Loop through tables/columns, return type error if any

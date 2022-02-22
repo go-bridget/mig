@@ -5,12 +5,15 @@ import (
 
 	"github.com/pkg/errors"
 
+	"github.com/go-bridget/mig/cmd/mig/gen/golang"
+	"github.com/go-bridget/mig/cmd/mig/gen/php81"
 	"github.com/go-bridget/mig/cmd/mig/internal"
 )
 
 func render(language string, schema string, basePath string, tables []*internal.Table) error {
 	languages := []string{
 		"go",
+		"php81",
 	}
 	if !internal.Contains(languages, language) {
 		return errors.Errorf("invalid language: %s", language)
@@ -23,9 +26,9 @@ func render(language string, schema string, basePath string, tables []*internal.
 
 	switch language {
 	case "go":
-		if err := renderGo(basePath, schema, tables); err != nil {
-			return err
-		}
+		return golang.Render(basePath, schema, tables)
+	case "php81":
+		return php81.Render(basePath, schema, tables)
 	}
 	return nil
 }
