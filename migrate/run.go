@@ -80,14 +80,20 @@ func Run(options Options, db *sqlx.DB) error {
 		err := up()
 		if filename != migrationsFile {
 			// log the migration status into the database
-			set := func(fields []string) string {
+			mapFn := func(fields []string, fn func(string) string) string {
 				sql := make([]string, len(fields))
 				for k, v := range fields {
-					sql[k] = v + "=:" + v
+					sql[k] = fn(v)
 				}
 				return strings.Join(sql, ", ")
 			}
-			if _, err := db.NamedExec("replace into migrations set "+set(MigrationFields), status); err != nil {
+			saveQuery := "replace into migrations (%s) values (%s)"
+			fieldNames := strings.Join(MigrationFields, ",")
+			fieldValues := mapFn(MigrationFields, func(in string) string {
+				return ":" + in
+			})
+
+			if _, err := db.NamedExec(fmt.Sprintf(saveQuery, fieldNames, fieldValues), status); err != nil {
 				return errors.Wrap(err, "updating migration state failed")
 			}
 		}
