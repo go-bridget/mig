@@ -5,15 +5,15 @@ class Migrations
 {
 	public function __construct(
 		/** Microservice or project name */
-		public $project ?string = "";
+		public ?string $project = "",
 
 		/** yyyy-mm-dd-HHMMSS.sql */
-		public $filename ?string = "";
+		public ?string $filename = "",
 
 		/** Statement number from SQL file */
-		public $statement_index ?int = 0;
+		public ?int $statement_index = 0,
 
 		/** ok or full error message */
-		public $status ?string = "";
+		public ?string $status = "",
 	) {}
 }
