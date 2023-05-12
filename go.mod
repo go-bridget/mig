@@ -12,6 +12,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	go.elastic.co/apm/module/apmsql v1.15.0
 	honnef.co/go/tools v0.2.2
+	modernc.org/sqlite v1.17.3
 )
 
 require (
@@ -32,7 +33,7 @@ require (
 	go.elastic.co/fastjson v1.1.0 // indirect
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/mod v0.5.1 // indirect
-	golang.org/x/sys v0.0.0-20220209214540-3681064d5158 // indirect
+	golang.org/x/sys v0.1.0 // indirect
 	golang.org/x/tools v0.1.9 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	howett.net/plist v1.0.0 // indirect
@@ -43,7 +44,6 @@ require (
 	modernc.org/mathutil v1.4.1 // indirect
 	modernc.org/memory v1.1.1 // indirect
 	modernc.org/opt v0.1.1 // indirect
-	modernc.org/sqlite v1.17.3 // indirect
 	modernc.org/strutil v1.1.1 // indirect
 	modernc.org/token v1.0.0 // indirect
 )
