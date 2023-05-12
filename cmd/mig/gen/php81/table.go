@@ -53,7 +53,7 @@ class {{ .Name | Camel }}
 	public function __construct(
 -{{range .Columns}}
 		/** {{ .Comment }} */
-		public ${{.Name}} ?{{. | ToNativeType}} = {{. | DefaultValue}};
+		public ?{{. | ToNativeType}} ${{.Name}} = {{. | DefaultValue}},
 {{end}}
 -	) {}
 }

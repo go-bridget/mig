@@ -5,21 +5,21 @@ class IncomingProc
 {
 	public function __construct(
 		/** Tracking ID */
-		public $id ?int = 0;
+		public ?int $id = 0,
 
 		/** Property name (human readable, a-z) */
-		public $property ?string = "";
+		public ?string $property = "",
 
 		/** Property Section ID */
-		public $property_section ?int = 0;
+		public ?int $property_section = 0,
 
 		/** Property Item ID */
-		public $property_id ?int = 0;
+		public ?int $property_id = 0,
 
 		/** Remote IP from user making request */
-		public $remote_ip ?string = "";
+		public ?string $remote_ip = "",
 
 		/** Timestamp of request */
-		public $stamp ?string = "";
+		public ?string $stamp = "",
 	) {}
 }
