@@ -9,7 +9,7 @@ import (
 	"github.com/go-bridget/mig/cmd/mig/internal"
 )
 
-func Render(basePath string, service string, tables []*internal.Table) error {
+func Render(basePath string, service string, ns string, tables []*internal.Table) error {
 	// Loop through tables/columns, return type error if any
 	for _, table := range tables {
 		tableName := internal.Camel(strings.TrimPrefix(table.Name, service+"_"))
@@ -18,7 +18,7 @@ func Render(basePath string, service string, tables []*internal.Table) error {
 		tmpTable := *table
 		tmpTable.Name = tableName
 
-		output, err := RenderTable(&tmpTable)
+		output, err := RenderTable(&tmpTable, ns)
 		if err != nil {
 			return fmt.Errorf("Error rendering table template: %w", err)
 		}

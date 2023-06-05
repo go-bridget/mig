@@ -14,9 +14,10 @@ func New() *cli.Command {
 	var config struct {
 		db db.Options
 
-		lang   string
-		schema string
-		output string
+		lang          string
+		schema        string
+		output        string
+		php_namespace string
 	}
 
 	return &cli.Command{
@@ -25,13 +26,14 @@ func New() *cli.Command {
 			cli.StringVar(&config.lang, "lang", "go", "Programming language")
 			cli.StringVar(&config.schema, "schema", "", "Database schema to list")
 			cli.StringVar(&config.output, "output", "types", "Output folder where to generate types")
+			cli.StringVar(&config.php_namespace, "php_namespace", "", "Namespace of the generated PHP classes")
 		},
 		Run: func(ctx context.Context, commands []string) error {
 			tables, err := internal.ListTables(ctx, config.db, config.schema)
 			if err != nil {
 				return err
 			}
-			return render(config.lang, config.schema, config.output, tables)
+			return render(config.lang, config.schema, config.output, config.php_namespace, tables)
 		},
 	}
 }

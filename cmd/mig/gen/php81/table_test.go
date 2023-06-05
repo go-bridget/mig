@@ -19,7 +19,7 @@ func TestTableRendering(t *testing.T) {
 			{Name: "title", Type: "varchar", Comment: "Title"},
 		},
 	}
-	output, err := RenderTable(&tab)
+	output, err := RenderTable(&tab, "")
 	if err != nil {
 		t.Error(err)
 	}

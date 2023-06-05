@@ -10,7 +10,7 @@ import (
 	"github.com/go-bridget/mig/cmd/mig/internal"
 )
 
-func render(language string, schema string, basePath string, tables []*internal.Table) error {
+func render(language string, schema string, basePath string, ns string, tables []*internal.Table) error {
 	languages := []string{
 		"go",
 		"php81",
@@ -28,7 +28,7 @@ func render(language string, schema string, basePath string, tables []*internal.
 	case "go":
 		return golang.Render(basePath, schema, tables)
 	case "php81":
-		return php81.Render(basePath, schema, tables)
+		return php81.Render(basePath, schema, ns, tables)
 	}
 	return nil
 }
