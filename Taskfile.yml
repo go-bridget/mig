@@ -2,14 +2,19 @@
 version: "3"
 
 vars:
+  version:
+    sh: git describe --always --tags --abbrev=8
+  time:
+    sh: date +%Y-%m-%dT%T%z
   package:
     sh: go mod edit -json | jq .Module.Path -r
+  ldflags: -ldflags "-X 'main.BuildVersion={{.version}}' -X 'main.BuildTime={{.time}}'"
 
 tasks:
   default:
     cmds:
       - go mod tidy
       - goimports -w -local {{.package}} .
-      - go install ./cmd/...
+      - go install {{.ldflags}} ./cmd/...
       - mig migrate --migrate-path example/sqlite --project=stats --db-driver sqlite --db-dsn "file:test.db" --apply --verbose
       - mig gen --lang=go --schema=stats --db-driver sqlite --db-dsn "file:test.db" --output example/sqlite/model
