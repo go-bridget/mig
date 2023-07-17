@@ -4,11 +4,14 @@
 
 Mig is a database SQL statement based migration utility. It's short for migrate.
 
-It's used in production on several of my projects, both personal and
-professional. We use it to lint database schema as well as provide
-controlled migrations for production environments.
+It's used in production on several projects, both personal and
+professional. The tool provides controlled migrations for production
+environments.
 
-The API isn't 100% stable, as the tool is under active use and development.
+- Well tested and used: mysql.
+- Early, but functional: sqlite.
+
+Status: active use, maintained on occasion.
 
 ## Goals
 
