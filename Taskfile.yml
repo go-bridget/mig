@@ -1,0 +1,15 @@
+---
+version: "3"
+
+vars:
+  package:
+    sh: go mod edit -json | jq .Module.Path -r
+
+tasks:
+  default:
+    cmds:
+      - go mod tidy
+      - goimports -w -local {{.package}} .
+      - go install ./cmd/...
+      - mig migrate --migrate-path example/sqlite --project=stats --db-driver sqlite --db-dsn "file:test.db" --apply --verbose
+      - mig gen --lang=go --schema=stats --db-driver sqlite --db-dsn "file:test.db" --output example/sqlite/model

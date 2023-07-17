@@ -168,7 +168,10 @@ func Render(basePath string, service string, tables []*internal.Table) error {
 				}
 				fmt.Fprintf(buf, "	// %s\n", column.Comment)
 			}
-			columnType, _ := resolveTypeGo(column)
+			columnType, err := resolveTypeGo(column)
+			if err != nil {
+				return err
+			}
 			fmt.Fprintf(buf, "	%s %s `db:\"%s\" json:\"-\"`\n", columnName, columnType, column.Name)
 			if columnType == "*time.Time" {
 				receiver := strings.ToLower(string(tableName[0]))

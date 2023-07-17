@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/go-bridget/mig/cli"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/joho/godotenv/autoload"
 	_ "modernc.org/sqlite"
+
+	"github.com/go-bridget/mig/cli"
 
 	"github.com/go-bridget/mig/cmd/mig/create"
 	"github.com/go-bridget/mig/cmd/mig/docs"

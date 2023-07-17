@@ -18,6 +18,8 @@ func New() *cli.Command {
 		schema string
 		output string
 	}
+	config.lang = "go"
+	config.output = "types"
 
 	return &cli.Command{
 		Bind: func(_ context.Context) {
