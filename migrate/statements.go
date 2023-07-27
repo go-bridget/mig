@@ -3,7 +3,18 @@ package migrate
 import (
 	"regexp"
 	"strings"
+
+	"github.com/gofrs/uuid"
 )
+
+func builtins(s string) string {
+	r := regexp.MustCompile(`(?i)uuid\(\)`)
+	s = r.ReplaceAllStringFunc(s, func(_ string) string {
+		val := uuid.Must(uuid.NewV4())
+		return `'` + val.String() + `'`
+	})
+	return s
+}
 
 func statements(contents []byte, err error) ([]string, error) {
 	result := []string{}
@@ -20,7 +31,7 @@ func statements(contents []byte, err error) ([]string, error) {
 	for _, stmt := range stmts {
 		stmt = strings.TrimSpace(stmt)
 		if stmt != "" {
-			result = append(result, stmt)
+			result = append(result, builtins(stmt))
 		}
 	}
 
