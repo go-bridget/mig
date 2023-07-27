@@ -6,11 +6,13 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/go-bridget/mig/cmd/mig/gen/golang"
+	"github.com/go-bridget/mig/cmd/mig/gen/model"
 	"github.com/go-bridget/mig/cmd/mig/gen/php81"
 	"github.com/go-bridget/mig/cmd/mig/internal"
 )
 
-func render(language string, schema string, basePath string, tables []*internal.Table) error {
+func render(options model.Options, tables []*internal.Table) error {
+	language := options.Language
 	languages := []string{
 		"go",
 		"php81",
@@ -20,15 +22,15 @@ func render(language string, schema string, basePath string, tables []*internal.
 	}
 
 	// create output folder
-	if err := os.MkdirAll(basePath, 0755); err != nil {
+	if err := os.MkdirAll(options.Output, 0755); err != nil {
 		return err
 	}
 
 	switch language {
 	case "go":
-		return golang.Render(basePath, schema, tables)
+		return golang.Render(options, tables)
 	case "php81":
-		return php81.Render(basePath, schema, tables)
+		return php81.Render(options, tables)
 	}
 	return nil
 }

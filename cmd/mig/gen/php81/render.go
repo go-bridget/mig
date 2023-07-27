@@ -6,10 +6,16 @@ import (
 	"path"
 	"strings"
 
+	"github.com/go-bridget/mig/cmd/mig/gen/model"
 	"github.com/go-bridget/mig/cmd/mig/internal"
 )
 
-func Render(basePath string, service string, tables []*internal.Table) error {
+func Render(options model.Options, tables []*internal.Table) error {
+	var (
+		basePath = options.Output
+		service  = options.Schema
+	)
+
 	// Loop through tables/columns, return type error if any
 	for _, table := range tables {
 		tableName := internal.Camel(strings.TrimPrefix(table.Name, service+"_"))

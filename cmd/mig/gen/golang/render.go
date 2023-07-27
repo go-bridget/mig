@@ -11,6 +11,7 @@ import (
 	"github.com/apex/log"
 	"github.com/pkg/errors"
 
+	"github.com/go-bridget/mig/cmd/mig/gen/model"
 	"github.com/go-bridget/mig/cmd/mig/internal"
 )
 
@@ -90,7 +91,12 @@ func resolveTypeGo(column *internal.Column) (string, error) {
 	return "", errors.Errorf("Unsupported SQL type: %s", column.DataType)
 }
 
-func Render(basePath string, service string, tables []*internal.Table) error {
+func Render(options model.Options, tables []*internal.Table) error {
+	var (
+		basePath = options.Output
+		service  = options.Schema
+	)
+
 	imports := []string{}
 
 	// Loop through tables/columns, return type error if any
@@ -172,7 +178,11 @@ func Render(basePath string, service string, tables []*internal.Table) error {
 			if err != nil {
 				return err
 			}
-			fmt.Fprintf(buf, "	%s %s `db:\"%s\" json:\"-\"`\n", columnName, columnType, column.Name)
+			jsonTag := "-"
+			if options.FillJSON {
+				jsonTag = column.Name
+			}
+			fmt.Fprintf(buf, "	%s %s `db:\"%s\" json:\"%s\"`\n", columnName, columnType, column.Name, jsonTag)
 			if columnType == "*time.Time" {
 				receiver := strings.ToLower(string(tableName[0]))
 				setters = append(setters, []string{
