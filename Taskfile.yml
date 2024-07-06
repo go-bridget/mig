@@ -16,5 +16,30 @@ tasks:
       - go mod tidy
       - goimports -w -local {{.package}} .
       - go install {{.ldflags}} ./cmd/...
-      - mig migrate --migrate-path example/sqlite --project=stats --db-driver sqlite --db-dsn "file:test.db" --apply --verbose
-      - mig gen --lang=go --schema=stats --db-driver sqlite --db-dsn "file:test.db" --output example/sqlite/model
+      - task: test
+
+  test:
+    deps: [test:sqlite, test:mysql]
+
+  test:sqlite:
+    desc: "Test with sqlite"
+    cmds:
+      - mig migrate --migrate-path testdata/sqlite --project=stats --db-driver sqlite --db-dsn ":memory:" --apply --verbose
+      - mig migrate --migrate-path testdata/sqlite --project=stats --db-driver sqlite --db-dsn "file:test.db" --apply --verbose
+      - mig gen --lang=go --schema=stats --db-driver sqlite --db-dsn "file:test.db" --output testdata/sqlite/model
+
+  test:mysql:
+    desc: "Test with mysql"
+    env:
+      DB_DSN: 'root:test@tcp(localhost:3306)/stats'
+    cmds:
+      - defer: docker compose down
+      - docker compose up -d --wait --remove-orphans
+      - mig create --migrate-path testdata/schema --db-dsn "root:test@tcp(localhost:3306)/mysql" --apply
+      - mig migrate --migrate-path testdata/schema --project=stats --apply
+      - rm -rf testdata/gen_* docs/*
+      - mig docs --schema=stats --output=testdata/docs
+      - mig gen --schema=stats --lang=go --output=testdata/gen_go
+      - mig gen --schema=stats --lang=php81 --output=testdata/gen_php81
+      - mig lint --schema=stats
+      - mig version
