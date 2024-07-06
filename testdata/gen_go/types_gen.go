@@ -104,6 +104,9 @@ type Commit struct {
 
 	// Record update timestamp
 	UpdatedAt *time.Time `db:"updated_at" json:"-"`
+
+	// Repository ID
+	RepositoryID int32 `db:"repository_id" json:"-"`
 }
 
 // SetCommittedAt sets CommittedAt which requires a *time.Time
@@ -119,7 +122,7 @@ func (c *Commit) SetUpdatedAt(stamp time.Time) { c.UpdatedAt = &stamp }
 const CommitTable = "`commit`"
 
 // CommitFields are all the field names in the DB table
-var CommitFields = []string{"id", "branch_id", "commit_hash", "author", "message", "committed_at", "created_at", "updated_at"}
+var CommitFields = []string{"id", "branch_id", "commit_hash", "author", "message", "committed_at", "created_at", "updated_at", "repository_id"}
 
 // CommitPrimaryFields are the primary key fields in the DB table
 var CommitPrimaryFields = []string{"id"}
