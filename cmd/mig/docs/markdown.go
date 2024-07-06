@@ -72,10 +72,36 @@ func renderMarkdownTable(table *internal.Table) []byte {
 	return buf.Bytes()
 }
 
-func renderMarkdown(basePath string, tables []*internal.Table) error {
+func renderMarkdown(basePath string, filename string, tables []*internal.Table) error {
 	// create output folder
 	if err := os.MkdirAll(basePath, 0755); err != nil {
 		return err
+	}
+
+	// Write out single file
+	if filename != "" {
+		wr, err := os.Create(path.Join(basePath, filename))
+		if err != nil {
+			return err
+		}
+		defer wr.Close()
+
+		for k, table := range tables {
+			if table.Ignore() {
+				continue
+			}
+			contents := renderMarkdownTable(table)
+			if k > 0 {
+				contents = append([]byte("\n"), contents...)
+			}
+
+			_, err := wr.Write(contents)
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
 	}
 
 	// generate individual markdown files with service
@@ -86,6 +112,7 @@ func renderMarkdown(basePath string, tables []*internal.Table) error {
 
 		filename := path.Join(basePath, table.Name+".md")
 		contents := renderMarkdownTable(table)
+
 		if err := ioutil.WriteFile(filename, contents, 0644); err != nil {
 			return err
 		}
