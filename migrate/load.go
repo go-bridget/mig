@@ -21,7 +21,22 @@ func assertDir(location string) error {
 }
 
 // Load reads migrations from disk
-func Load(options Options) error {
+func Load(options *Options) error {
+	if options.Filename != "" {
+		filename := options.Filename
+		project := options.Project
+
+		base := filepath.Base(filename)
+		contents, err := ioutil.ReadFile(filename)
+		if err != nil {
+			return err
+		}
+
+		migrations[project] = NewFS()
+		migrations[project][base] = contents
+		return nil
+	}
+
 	if err := assertDir(options.Path); err != nil {
 		return err
 	}

@@ -1,21 +1,34 @@
 package migrate
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
 
 	"database/sql"
 
-	"github.com/jmoiron/sqlx"
-	"github.com/pkg/errors"
+	"github.com/go-bridget/mig/db"
 )
 
 // Run takes migrations for a project and executes them against a database
-func Run(options Options, db *sqlx.DB) error {
+func Run(options *Options, dbOptions *db.Options) error {
+	ctx := context.Background()
+
+	db, err := db.ConnectWithRetry(ctx, dbOptions)
+	if err != nil {
+		return fmt.Errorf("error connecting to database: %w", err)
+	}
+
 	fs, ok := migrations[options.Project]
 	if !ok {
-		return errors.Errorf("Migrations for '%s' don't exist", options.Project)
+		return fmt.Errorf("Migrations for '%s' don't exist", options.Project)
+	}
+
+	migrationFile := fmt.Sprintf("migrations-%s.sql", dbOptions.Credentials.Driver)
+	migrationTable, err := statements(migrationsFS.ReadFile(migrationFile))
+	if err != nil {
+		return fmt.Errorf("error reading %s: %w", migrationFile, err)
 	}
 
 	printQuery := func(idx int, query string) {
@@ -52,7 +65,7 @@ func Run(options Options, db *sqlx.DB) error {
 		up := func() error {
 			stmts, err := statements(fs.ReadFile(filename))
 			if err != nil {
-				return errors.Wrap(err, fmt.Sprintf("Error reading migration: %s", filename))
+				return fmt.Errorf("Error reading %s: %w", filename, err)
 			}
 
 			var isApplied bool
@@ -94,7 +107,7 @@ func Run(options Options, db *sqlx.DB) error {
 			})
 
 			if _, err := db.NamedExec(fmt.Sprintf(saveQuery, fieldNames, fieldValues), status); err != nil {
-				return errors.Wrap(err, "updating migration state failed")
+				return fmt.Errorf("updating migration state failed: %w", err)
 			}
 		}
 		log.Println(filename, strings.ToUpper(status.Status))
@@ -102,8 +115,10 @@ func Run(options Options, db *sqlx.DB) error {
 	}
 
 	// run main migration
-	if err := migrate(migrationsFile); err != nil {
-		return err
+	for idx, stmt := range migrationTable {
+		if err := execQuery(idx, stmt); err != nil {
+			return err
+		}
 	}
 
 	// run service migrations

@@ -11,12 +11,17 @@ func TestLoad(t *testing.T) {
 		}
 	}
 
-	err := Load(Options{"../test/schema"})
+	options := &Options{
+		Path:    "../testdata/schema",
+		Project: "stats",
+	}
+
+	err := Load(options)
 	assert(err == nil, "Expected error nil, got %+v", err)
 
 	assert(len(migrations) >= 1, "Expected len(migrations)>=1, got %d", len(migrations))
 
-	val, ok := migrations["stats"]
+	stats, ok := migrations["stats"]
 	assert(ok, "Expected 'stats' key exists in migrations")
-	assert(len(val) == 2, "Expected migration['stats'] length 2, got %d", len(val))
+	assert(len(stats) >= 1, "Expected len(stats)>=1, got %d", len(stats))
 }

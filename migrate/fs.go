@@ -7,15 +7,15 @@ import (
 	"path/filepath"
 )
 
-// FS represents a mapping between filename => contents
+// FS represents a mapping between filename => contents.
 type FS map[string][]byte
 
-// NewFS returns a new FS instance
+// NewFS returns a new FS instance.
 func NewFS() FS {
 	return make(FS)
 }
 
-// Migrations returns list of SQL files to execute
+// Migrations returns list of SQL files to execute.
 func (fs FS) Migrations() []string {
 	result := []string{}
 	for filename, contents := range fs {
@@ -31,7 +31,7 @@ func (fs FS) Migrations() []string {
 	return result
 }
 
-// ReadFile returns decoded file contents from FS
+// ReadFile returns decoded file contents from FS.
 func (fs FS) ReadFile(filename string) ([]byte, error) {
 	if val, ok := fs[filename]; ok {
 		return val, nil

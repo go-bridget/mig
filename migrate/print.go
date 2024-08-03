@@ -8,7 +8,7 @@ import (
 )
 
 // Print outputs database migrations for a project to log output
-func Print(options Options) error {
+func Print(options *Options) error {
 	fs, ok := migrations[options.Project]
 	if !ok {
 		return errors.Errorf("Migrations for '%s' don't exist", options.Project)
