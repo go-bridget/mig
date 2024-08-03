@@ -2,8 +2,8 @@ package migrate
 
 import (
 	"context"
-
-	"github.com/pkg/errors"
+	"errors"
+	"fmt"
 
 	"github.com/go-bridget/mig/cli"
 	"github.com/go-bridget/mig/db"
@@ -31,11 +31,11 @@ func New() *cli.Command {
 			}
 
 			if config.migrate.Project == "" {
-				return errors.Errorf("Specify project name as first argument to migrate")
+				return errors.New("Specify project name as first argument to migrate")
 			}
 
 			if err := migrate.Load(config.migrate); err != nil {
-				return errors.Wrap(err, "error loading migrations")
+				return fmt.Errorf("error loading migrations: %w", err)
 			}
 
 			switch {

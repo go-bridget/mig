@@ -74,6 +74,15 @@ func Parse() error {
 
 		// convert DB_DSN to db-dsn (pflag like)
 		flagName := vals[0]
+
+		// only consider scoped envs, e.g. if you have DSN with
+		// no scope, then this skips parsing it from env. A
+		// common unwanted side effect was parsing `HOME`,
+		// `PATH`, `USER` and a few other default envs.
+		if !strings.Contains(flagName, "_") {
+			continue
+		}
+
 		flagName = strings.ToLower(flagName)
 		flagName = strings.Replace(flagName, "_", "-", -1)
 
