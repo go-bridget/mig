@@ -22,9 +22,9 @@ func assertDir(location string) error {
 
 // Load reads migrations from disk
 func Load(options *Options) error {
+	project := options.Project
 	if options.Filename != "" {
 		filename := options.Filename
-		project := options.Project
 
 		base := filepath.Base(filename)
 		contents, err := ioutil.ReadFile(filename)
@@ -41,7 +41,6 @@ func Load(options *Options) error {
 		return err
 	}
 
-	project := filepath.Base(options.Path)
 	files, err := filepath.Glob(path.Join(options.Path, "*.sql"))
 	if err != nil {
 		return err
