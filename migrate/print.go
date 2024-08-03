@@ -38,11 +38,6 @@ func Print(options *Options) error {
 		return nil
 	}
 
-	// print main migration
-	if err := migrate("migrations.sql"); err != nil {
-		return err
-	}
-
 	// print service migrations
 	for _, filename := range fs.Migrations() {
 		if err := migrate(filename); err != nil {
