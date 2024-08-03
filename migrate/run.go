@@ -55,11 +55,8 @@ func Run(options *Options, dbOptions *db.Options) error {
 			StatementIndex: -1,
 		}
 
-		// we can't log the main migrations table
-		if filename != migrationsFile {
-			if err := db.Get(&status, "select * from migrations where project=? and filename=?", status.Project, status.Filename); err != nil && err != sql.ErrNoRows {
-				return err
-			}
+		if err := db.Get(&status, "select * from migrations where project=? and filename=?", status.Project, status.Filename); err != nil && err != sql.ErrNoRows {
+			return err
 		}
 
 		up := func() error {
@@ -91,25 +88,25 @@ func Run(options *Options, dbOptions *db.Options) error {
 		}
 
 		err := up()
-		if filename != migrationsFile {
-			// log the migration status into the database
-			mapFn := func(fields []string, fn func(string) string) string {
-				sql := make([]string, len(fields))
-				for k, v := range fields {
-					sql[k] = fn(v)
-				}
-				return strings.Join(sql, ", ")
-			}
-			saveQuery := "replace into migrations (%s) values (%s)"
-			fieldNames := strings.Join(MigrationFields, ",")
-			fieldValues := mapFn(MigrationFields, func(in string) string {
-				return ":" + in
-			})
 
-			if _, err := db.NamedExec(fmt.Sprintf(saveQuery, fieldNames, fieldValues), status); err != nil {
-				return fmt.Errorf("updating migration state failed: %w", err)
+		// log the migration status into the database
+		mapFn := func(fields []string, fn func(string) string) string {
+			sql := make([]string, len(fields))
+			for k, v := range fields {
+				sql[k] = fn(v)
 			}
+			return strings.Join(sql, ", ")
 		}
+		saveQuery := "replace into migrations (%s) values (%s)"
+		fieldNames := strings.Join(MigrationFields, ",")
+		fieldValues := mapFn(MigrationFields, func(in string) string {
+			return ":" + in
+		})
+
+		if _, err := db.NamedExec(fmt.Sprintf(saveQuery, fieldNames, fieldValues), status); err != nil {
+			return fmt.Errorf("updating migration state failed: %w", err)
+		}
+
 		log.Println(filename, strings.ToUpper(status.Status))
 		return err
 	}

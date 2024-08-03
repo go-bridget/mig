@@ -12,7 +12,7 @@ func TestLoad(t *testing.T) {
 	}
 
 	options := &Options{
-		Path:    "../testdata/schema",
+		Path:    "../testdata/schema/stats",
 		Project: "stats",
 	}
 

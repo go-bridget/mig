@@ -41,29 +41,21 @@ func Load(options *Options) error {
 		return err
 	}
 
-	source := path.Join(options.Path, "*", migrationsFile)
-	matches, err := filepath.Glob(source)
+	project := filepath.Base(options.Path)
+	files, err := filepath.Glob(path.Join(options.Path, "*.sql"))
 	if err != nil {
 		return err
 	}
 
-	for _, match := range matches {
-		location := filepath.Dir(match)
-		project := filepath.Base(location)
-		files, err := filepath.Glob(path.Join(location, "*.sql"))
+	migrations[project] = NewFS()
+	for _, filename := range files {
+		base := filepath.Base(filename)
+		contents, err := ioutil.ReadFile(filename)
 		if err != nil {
 			return err
 		}
-
-		migrations[project] = NewFS()
-		for _, filename := range files {
-			base := filepath.Base(filename)
-			contents, err := ioutil.ReadFile(filename)
-			if err != nil {
-				return err
-			}
-			migrations[project][base] = contents
-		}
+		migrations[project][base] = contents
 	}
+
 	return nil
 }

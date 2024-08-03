@@ -24,8 +24,8 @@ tasks:
   test:sqlite:
     desc: "Test with sqlite"
     cmds:
-      - mig migrate --migrate-path testdata/sqlite --project=stats --db-driver sqlite --db-dsn ":memory:" --apply --verbose
-      - mig migrate --migrate-path testdata/sqlite --project=stats --db-driver sqlite --db-dsn "file:test.db" --apply --verbose
+      - mig migrate --path testdata/sqlite/stats --project=stats --db-driver sqlite --db-dsn ":memory:" --apply --verbose
+      - mig migrate --path testdata/sqlite/stats --project=stats --db-driver sqlite --db-dsn "file:test.db" --apply --verbose
       - mig gen --lang=go --schema=stats --db-driver sqlite --db-dsn "file:test.db" --output testdata/sqlite/model
 
   test:mysql:
@@ -35,8 +35,8 @@ tasks:
     cmds:
       - defer: docker compose down
       - docker compose up -d --wait --remove-orphans
-      - mig create --migrate-path testdata/schema --db-dsn "root:test@tcp(localhost:3306)/mysql" --apply
-      - mig migrate --migrate-path testdata/schema --project=stats --apply
+      - mig create --path testdata/schema/stats --db-dsn "root:test@tcp(localhost:3306)/mysql" --apply
+      - mig migrate --path testdata/schema/stats --project=stats --apply
       - rm -rf testdata/gen_* docs/*
       - mig docs --schema=stats --output=testdata/docs
       - mig docs --schema=stats --output=testdata/docs --output-file=README.md

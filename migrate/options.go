@@ -14,8 +14,8 @@ func (options *Options) Init() *Options {
 }
 
 func (options *Options) Bind() {
-	cli.StringVar(&options.Path, "migrate-path", options.Path, "Project path for database migrations")
-	cli.StringVar(&options.Project, "project", options.Project, "Project name for migrations")
+	cli.StringVar(&options.Path, "path", options.Path, "Project path for database migrations")
+	cli.StringVar(&options.Project, "project", options.Project, "Project name for migrations (db key)")
 	cli.StringVarP(&options.Filename, "filename", "f", options.Filename, "Single file sql for migrations")
 	cli.BoolVar(&options.Apply, "apply", options.Apply, "false = print migrations, true = run migrations")
 	cli.BoolVar(&options.Verbose, "verbose", options.Verbose, "false = print summary, true = print details")
