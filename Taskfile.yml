@@ -35,7 +35,7 @@ tasks:
     cmds:
       - defer: docker compose down
       - docker compose up -d --wait --remove-orphans
-      - mig create --path testdata/schema/stats --db-dsn "root:test@tcp(localhost:3306)/mysql" --apply
+      - mig create --path testdata/schema/stats --project=stats --db-dsn "root:test@tcp(localhost:3306)/mysql" --apply
       - mig migrate --path testdata/schema/stats --project=stats --apply
       - rm -rf testdata/gen_* docs/*
       - mig docs --schema=stats --output=testdata/docs
