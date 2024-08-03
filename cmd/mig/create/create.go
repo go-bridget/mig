@@ -26,18 +26,17 @@ func New() *cli.Command {
 			config.migrate = migrate.NewOptions()
 			config.migrate.Bind()
 		},
-		Init: func(_ context.Context) error {
-			if err := migrate.Load(config.migrate); err != nil {
-				return errors.Wrap(err, "error loading migrations")
-			}
-			return nil
-		},
 		Run: func(ctx context.Context, commands []string) error {
-			queries := []string{}
-			schemas := migrate.List()
-			for _, schema := range schemas {
-				queries = append(queries, fmt.Sprintf("CREATE DATABASE IF NOT EXISTS `%s`;", schema))
+			if len(commands) > 1 {
+				config.migrate.Project = commands[1]
 			}
+
+			if config.migrate.Project == "" {
+				return errors.Errorf("Specify project name as first argument to migrate")
+			}
+
+			queries := []string{}
+			queries = append(queries, fmt.Sprintf("CREATE DATABASE IF NOT EXISTS `%s`;", config.migrate.Project))
 
 			if config.migrate.Apply {
 				handle, err := db.ConnectWithRetry(ctx, config.db)

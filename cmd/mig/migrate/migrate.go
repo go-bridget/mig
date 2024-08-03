@@ -2,7 +2,6 @@ package migrate
 
 import (
 	"context"
-	"strings"
 
 	"github.com/pkg/errors"
 
@@ -26,18 +25,21 @@ func New() *cli.Command {
 			config.migrate = migrate.NewOptions()
 			config.migrate.Bind()
 		},
-		Init: func(_ context.Context) error {
+		Run: func(ctx context.Context, commands []string) error {
+			if len(commands) > 1 {
+				config.migrate.Project = commands[1]
+			}
+
+			if config.migrate.Project == "" {
+				return errors.Errorf("Specify project name as first argument to migrate")
+			}
+
 			if err := migrate.Load(config.migrate); err != nil {
 				return errors.Wrap(err, "error loading migrations")
 			}
-			if config.migrate.Project == "" {
-				return errors.Errorf("Available migration projects: [%s]", strings.Join(migrate.List(), ", "))
-			}
-			return nil
-		},
-		Run: func(ctx context.Context, commands []string) error {
-			switch config.migrate.Apply {
-			case true:
+
+			switch {
+			case config.migrate.Apply:
 				return migrate.Run(config.migrate, config.db)
 			default:
 				return migrate.Print(config.migrate)
