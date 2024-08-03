@@ -1,0 +1,10 @@
+---
+version: "3"
+
+tasks:
+  default:
+    desc: "Run everything"
+    cmds:
+      - goimports -w .
+      - go fmt .
+      - go test -v ./...
