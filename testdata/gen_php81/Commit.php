@@ -27,8 +27,5 @@ class Commit
 
 		/** Record update timestamp */
 		public $updated_at ?int = 0;
-
-		/** Repository ID */
-		public $repository_id ?int = 0;
 	) {}
 }

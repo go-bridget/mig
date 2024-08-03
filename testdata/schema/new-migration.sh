@@ -11,5 +11,3 @@ if [ ! -d "$service" ]; then
 else
 	touch $service/$(date +%Y-%m-%d-%H%M%S)-description-here.up.sql
 fi
-
-cp migrations.sql $service/
