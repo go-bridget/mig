@@ -13,9 +13,8 @@ Status: active use, maintained on occasion.
 
 ## Goals
 
-1. Define schemas, users and permissions,
-2. One way automatic or on-demand SQL migrations,
-3. Documentation and Code generation from DB schema
+- One way automatic or on-demand SQL migrations,
+- Documentation and Code generation from DB schema
 
 The intent of the tool is to provide a simple configuration file based
 setup for database schema and access, so it may be deployed in CI jobs
@@ -31,7 +30,6 @@ source code and documentation for the final schema.
 Usage: mig (command) [--flags]
 Available commands:
 
-   grants     Create schemas, users and grant permissions
    create     Create database schema SQL
    migrate    Apply SQL migrations to database
    docs       Generate markdown docs from DB schema
