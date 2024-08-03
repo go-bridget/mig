@@ -17,7 +17,7 @@ import (
 
 // Connect connects to a database and produces the handle for injection
 func Connect(ctx context.Context) (*sqlx.DB, error) {
-	options := Options{
+	options := &Options{
 		Connector: func(ctx context.Context, credentials Credentials) (*sql.DB, error) {
 			db, err := apmsql.Open(credentials.Driver, credentials.DSN)
 			if err != nil {
@@ -36,7 +36,7 @@ func Connect(ctx context.Context) (*sqlx.DB, error) {
 }
 
 // ConnectWithOptions connect to host based on Options{}
-func ConnectWithOptions(ctx context.Context, options Options) (*sqlx.DB, error) {
+func ConnectWithOptions(ctx context.Context, options *Options) (*sqlx.DB, error) {
 	credentials := options.Credentials
 	if credentials.DSN == "" {
 		return nil, errors.New("DSN not provided")

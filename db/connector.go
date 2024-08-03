@@ -10,7 +10,7 @@ import (
 )
 
 // ConnectWithRetry uses retry options set in Options{}
-func ConnectWithRetry(ctx context.Context, options Options) (db *sqlx.DB, err error) {
+func ConnectWithRetry(ctx context.Context, options *Options) (db *sqlx.DB, err error) {
 	dsn := maskDSN(options.Credentials.DSN)
 
 	// by default, retry for 5 minutes, 5 seconds between retries
