@@ -15,14 +15,16 @@ const Name = "Apply SQL migrations to database"
 
 func New() *cli.Command {
 	var config struct {
-		db      db.Options
-		migrate migrate.Options
+		db      *db.Options
+		migrate *migrate.Options
 	}
 
 	return &cli.Command{
 		Bind: func(_ context.Context) {
-			(&config.db).Init().Bind()
-			(&config.migrate).Init().Bind()
+			config.db = db.NewOptions()
+			config.db.Bind()
+			config.migrate = migrate.NewOptions()
+			config.migrate.Bind()
 		},
 		Init: func(_ context.Context) error {
 			if err := migrate.Load(config.migrate); err != nil {
@@ -36,11 +38,7 @@ func New() *cli.Command {
 		Run: func(ctx context.Context, commands []string) error {
 			switch config.migrate.Apply {
 			case true:
-				handle, err := db.ConnectWithRetry(ctx, config.db)
-				if err != nil {
-					return errors.Wrap(err, "error connecting to database")
-				}
-				return migrate.Run(config.migrate, handle)
+				return migrate.Run(config.migrate, config.db)
 			default:
 				return migrate.Print(config.migrate)
 			}

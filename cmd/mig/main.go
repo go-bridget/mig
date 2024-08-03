@@ -14,7 +14,6 @@ import (
 	"github.com/go-bridget/mig/cmd/mig/create"
 	"github.com/go-bridget/mig/cmd/mig/docs"
 	"github.com/go-bridget/mig/cmd/mig/gen"
-	"github.com/go-bridget/mig/cmd/mig/grants"
 	"github.com/go-bridget/mig/cmd/mig/lint"
 	"github.com/go-bridget/mig/cmd/mig/migrate"
 )
@@ -28,7 +27,6 @@ var (
 func main() {
 	app := cli.NewApp("mig")
 
-	app.AddCommand("grants", grants.Name, grants.New)
 	app.AddCommand("create", create.Name, create.New)
 	app.AddCommand("migrate", migrate.Name, migrate.New)
 	app.AddCommand("docs", docs.Name, docs.New)

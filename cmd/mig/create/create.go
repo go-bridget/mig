@@ -15,14 +15,16 @@ const Name = "Create database schema SQL"
 
 func New() *cli.Command {
 	var config struct {
-		db      db.Options
-		migrate migrate.Options
+		db      *db.Options
+		migrate *migrate.Options
 	}
 
 	return &cli.Command{
 		Bind: func(_ context.Context) {
-			(&config.db).Init().Bind()
-			(&config.migrate).Init().Bind()
+			config.db = db.NewOptions()
+			config.db.Bind()
+			config.migrate = migrate.NewOptions()
+			config.migrate.Bind()
 		},
 		Init: func(_ context.Context) error {
 			if err := migrate.Load(config.migrate); err != nil {

@@ -12,7 +12,7 @@ const Name = "Generate markdown docs from DB schema"
 
 func New() *cli.Command {
 	var config struct {
-		db db.Options
+		db *db.Options
 
 		schema   string
 		output   string
@@ -21,7 +21,9 @@ func New() *cli.Command {
 
 	return &cli.Command{
 		Bind: func(_ context.Context) {
-			(&config.db).Init().Bind()
+			config.db = db.NewOptions()
+			config.db.Bind()
+
 			cli.StringVar(&config.schema, "schema", "", "Database schema to list")
 			cli.StringVar(&config.output, "output", "docs", "Output folder where to generate docs")
 			cli.StringVar(&config.filename, "output-file", "", "Output as single filename")

@@ -13,7 +13,7 @@ import (
 const Name = "Check schema for best practices and comments"
 
 type Options struct {
-	db db.Options
+	db *db.Options
 
 	schema string
 
@@ -26,7 +26,9 @@ func New() *cli.Command {
 
 	return &cli.Command{
 		Bind: func(_ context.Context) {
-			(&config.db).Init().Bind()
+			config.db = db.NewOptions()
+			config.db.Bind()
+
 			cli.StringVar(&config.schema, "schema", "", "Database schema to list")
 			cli.BoolVar(&config.skipComments, "skip-comments", false, "Skip validating table/column comments")
 			cli.BoolVar(&config.skipPlural, "skip-plural", false, "Skip validating table name for singular form")

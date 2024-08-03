@@ -23,7 +23,7 @@ var sqliteTypeMapping = map[string]string{
 	"text":    "varchar",
 }
 
-func ListTables(ctx context.Context, config db.Options, schema string) ([]*Table, error) {
+func ListTables(ctx context.Context, config *db.Options, schema string) ([]*Table, error) {
 	handle, err := db.ConnectWithRetry(ctx, config)
 	if err != nil {
 		return nil, errors.Wrap(err, "error connecting to database")

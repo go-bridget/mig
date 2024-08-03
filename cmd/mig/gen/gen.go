@@ -13,7 +13,7 @@ const Name = "Generate source code from DB schema"
 
 func New() *cli.Command {
 	var config struct {
-		db      db.Options
+		db      *db.Options
 		options model.Options
 	}
 	config.options.Language = "go"
@@ -21,7 +21,9 @@ func New() *cli.Command {
 
 	return &cli.Command{
 		Bind: func(_ context.Context) {
-			(&config.db).Init().Bind()
+			config.db = db.NewOptions()
+			config.db.Bind()
+
 			cli.StringVar(&config.options.Language, "lang", "go", "Programming language")
 			cli.StringVar(&config.options.Schema, "schema", "", "Database schema to list")
 			cli.StringVar(&config.options.Output, "output", "types", "Output folder where to generate types")
