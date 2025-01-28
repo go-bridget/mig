@@ -14,7 +14,11 @@ func columnDefaultValue(column *internal.Column) string {
 }
 
 func columnToNativeType(column *internal.Column) string {
-	return typeAlias(column.DataType).Type
+	nt := typeAlias(column.DataType).Type
+	if nt == "mixed" {
+		return nt
+	}
+	return "?" + nt
 }
 
 func RenderTable(data *internal.Table, ns string) (string, error) {
@@ -61,7 +65,7 @@ class {{ .Name | Camel }}
 	public function __construct(
 -{{range .Columns}}
 		/** {{ .Comment }} */
-		public ?{{. | ToNativeType}} ${{.Name}} = {{. | DefaultValue}},
+		public {{. | ToNativeType}} ${{.Name}} = {{. | DefaultValue}},
 {{end}}
 -	) {}
 }

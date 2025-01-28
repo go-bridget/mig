@@ -48,6 +48,7 @@ var typeAliases = map[string]Field{
 	"datetime":   String,
 	"time":       String,
 	"timestamp":  Int,
+	"set":        String,
 }
 
 func typeAlias(kind string) Field {
