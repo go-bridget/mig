@@ -1,4 +1,4 @@
-# commit
+# Commit
 
 Stores information about commits in branches
 

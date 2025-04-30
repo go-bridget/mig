@@ -12,6 +12,10 @@ type Table struct {
 	Columns []*Column
 }
 
+func (t *Table) Title() string {
+	return Title(t.Name)
+}
+
 func (t *Table) Ignore() bool {
 	return strings.TrimSpace(strings.ToLower(t.Comment)) == "ignore"
 }

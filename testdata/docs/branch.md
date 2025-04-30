@@ -1,4 +1,4 @@
-# branch
+# Branch
 
 Stores information about branches in repositories
 

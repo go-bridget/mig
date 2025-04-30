@@ -1,4 +1,4 @@
-# asset
+# Asset
 
 Stores asset information for each commit
 

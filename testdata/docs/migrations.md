@@ -1,4 +1,4 @@
-# migrations
+# Migrations
 
 Migration log of applied migrations
 

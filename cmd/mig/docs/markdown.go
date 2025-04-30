@@ -47,7 +47,7 @@ func renderMarkdownTable(table *internal.Table) []byte {
 	format = fmt.Sprintf(format, paddings...)
 
 	// create initial buffer with table name
-	buf := bytes.NewBufferString(fmt.Sprintf("# %s\n\n", table.Name))
+	buf := bytes.NewBufferString(fmt.Sprintf("# %s\n\n", table.Title()))
 
 	// and comment
 	if table.Comment != "" {
@@ -110,7 +110,7 @@ func renderMarkdown(basePath string, filename string, tables []*internal.Table) 
 			continue
 		}
 
-		filename := path.Join(basePath, table.Name+".md")
+		filename := path.Join(basePath, internal.Filename(table.Title())+".md")
 		contents := renderMarkdownTable(table)
 
 		if err := ioutil.WriteFile(filename, contents, 0644); err != nil {

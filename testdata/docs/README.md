@@ -1,4 +1,4 @@
-# asset
+# Asset
 
 Stores asset information for each commit
 
@@ -11,7 +11,7 @@ Stores asset information for each commit
 | created_at | timestamp    |     | Record creation timestamp |
 | updated_at | timestamp    |     | Record update timestamp   |
 
-# branch
+# Branch
 
 Stores information about branches in repositories
 
@@ -23,7 +23,7 @@ Stores information about branches in repositories
 | created_at    | timestamp    |     | Record creation timestamp |
 | updated_at    | timestamp    |     | Record update timestamp   |
 
-# commit
+# Commit
 
 Stores information about commits in branches
 
@@ -38,7 +38,7 @@ Stores information about commits in branches
 | created_at   | timestamp    |     | Record creation timestamp |
 | updated_at   | timestamp    |     | Record update timestamp   |
 
-# migrations
+# Migrations
 
 Migration log of applied migrations
 
@@ -49,7 +49,7 @@ Migration log of applied migrations
 | statement_index | int          |     | Statement number from SQL file |
 | status          | text         |     | ok or full error message       |
 
-# repository
+# Repository
 
 Stores basic information about repositories
 

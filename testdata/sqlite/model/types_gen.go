@@ -8,7 +8,7 @@ type Migrations struct {
 	// Filename
 	Filename string `db:"filename" json:"-"`
 
-	// Statement index
+	// Statement Index
 	StatementIndex int64 `db:"statement_index" json:"-"`
 
 	// Status
@@ -26,7 +26,7 @@ var MigrationsPrimaryFields = []string{"project"}
 
 // Stats generated for db table `stats`
 type Stats struct {
-	// Id
+	// ID
 	ID int64 `db:"id" json:"-"`
 
 	// Payload

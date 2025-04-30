@@ -6,7 +6,6 @@ import (
 	"unicode"
 
 	"github.com/pkg/errors"
-	"github.com/stoewer/go-strcase"
 
 	"github.com/go-bridget/mig/db"
 )
@@ -50,8 +49,7 @@ func ListTables(ctx context.Context, config *db.Options, schema string) ([]*Tabl
 			for _, column := range table.Columns {
 				column := column
 
-				comment := strcase.KebabCase(column.Name)
-				comment = strings.ReplaceAll(comment, "-", " ")
+				comment := Title(column.Name)
 				commentRune := []rune(comment)
 				commentRune[0] = unicode.ToUpper(commentRune[0])
 				comment = string(commentRune)

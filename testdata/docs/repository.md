@@ -1,4 +1,4 @@
-# repository
+# Repository
 
 Stores basic information about repositories
 
