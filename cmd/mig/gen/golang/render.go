@@ -40,6 +40,7 @@ var simpleTypes map[string]string = map[string]string{
 	"blob":       "[]byte",
 	"binary":     "[]byte",
 	"varbinary":  "[]byte",
+	"boolean":    "bool",
 	// `float` and `double` are here since they don't have unsigned modifiers
 	"float":  "float32",
 	"double": "float64",
