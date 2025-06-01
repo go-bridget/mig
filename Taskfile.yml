@@ -1,6 +1,9 @@
 ---
 version: "3"
 
+env:
+  CGO_ENABLED: 0
+
 vars:
   version:
     sh: git describe --always --tags --abbrev=8
@@ -17,6 +20,11 @@ tasks:
       - goimports -w -local {{.package}} .
       - go install {{.ldflags}} ./cmd/...
       - task: test
+
+  docker:
+    cmds:
+      - go build -o build/ {{.ldflags}} ./cmd/...
+      - docker build -t go-bridget/mig -f docker/Dockerfile .
 
   test:
     deps: [test:sqlite, test:mysql]
