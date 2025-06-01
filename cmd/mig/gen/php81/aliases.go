@@ -47,6 +47,7 @@ var typeAliases = map[string]Field{
 	"date":       String,
 	"datetime":   String,
 	"time":       String,
+	"set":        String,
 	"timestamp":  Int,
 }
 

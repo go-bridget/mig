@@ -5,21 +5,21 @@ class Asset
 {
 	public function __construct(
 		/** Asset ID */
-		public $id ?int = 0;
+		public int $id = 0,
 
 		/** Commit ID */
-		public $commit_id ?int = 0;
+		public int $commit_id = 0,
 
 		/** Filename */
-		public $filename ?string = "";
+		public string $filename = "",
 
 		/** File contents */
-		public $contents ?string = "";
+		public string $contents = "",
 
 		/** Record creation timestamp */
-		public $created_at ?int = 0;
+		public int $created_at = 0,
 
 		/** Record update timestamp */
-		public $updated_at ?int = 0;
+		public int $updated_at = 0,
 	) {}
 }

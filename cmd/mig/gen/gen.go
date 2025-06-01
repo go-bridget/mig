@@ -28,7 +28,8 @@ func New() *cli.Command {
 			cli.StringVar(&config.options.Schema, "schema", "", "Database schema to list")
 			cli.StringVar(&config.options.Output, "output", "model", "Output folder where to generate types")
 
-			cli.BoolVar(&config.options.FillJSON, "go.fill-json", false, "Fill JSON tags (go)")
+			cli.BoolVar(&config.options.Go.FillJSON, "go.fill-json", false, "Fill JSON tags (go)")
+			cli.StringVar(&config.options.PHP.Namespace, "php.namespace", "", "Namespace for generated code (php)")
 		},
 		Run: func(ctx context.Context, commands []string) error {
 			tables, err := internal.ListTables(ctx, config.db, config.options.Schema)

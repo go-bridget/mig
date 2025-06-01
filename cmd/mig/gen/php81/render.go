@@ -24,7 +24,7 @@ func Render(options model.Options, tables []*internal.Table) error {
 		tmpTable := *table
 		tmpTable.Name = tableName
 
-		output, err := RenderTable(&tmpTable)
+		output, err := RenderTable(&tmpTable, options.PHP.Namespace)
 		if err != nil {
 			return fmt.Errorf("Error rendering table template: %w", err)
 		}

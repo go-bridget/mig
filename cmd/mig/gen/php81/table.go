@@ -17,7 +17,7 @@ func columnToNativeType(column *internal.Column) string {
 	return typeAlias(column.DataType).Type
 }
 
-func RenderTable(data *internal.Table) (string, error) {
+func RenderTable(data *internal.Table, namespace string) (string, error) {
 	funcMap := template.FuncMap{
 		"NL":           func() string { return "\n" },
 		"Camel":        internal.Camel,
@@ -41,11 +41,19 @@ func RenderTable(data *internal.Table) (string, error) {
 	sOut = strings.ReplaceAll(sOut, "\n-", "")
 	sOut = strings.TrimSpace(sOut) + "\n"
 
+	if namespace != "" {
+		sOut = strings.ReplaceAll(sOut, "%NS%", "namespace "+namespace+";")
+	} else {
+		sOut = strings.ReplaceAll(sOut, "\n%NS%\n", "")
+	}
+
 	return sOut, nil
 }
 
 const tableTemplate = `
 <?php
+
+%NS%
 
 /** {{ .Comment }} */
 class {{ .Name | Camel }}
@@ -53,7 +61,7 @@ class {{ .Name | Camel }}
 	public function __construct(
 -{{range .Columns}}
 		/** {{ .Comment }} */
-		public ${{.Name}} ?{{. | ToNativeType}} = {{. | DefaultValue}};
+		public {{. | ToNativeType}} ${{.Name}} = {{. | DefaultValue}},
 {{end}}
 -	) {}
 }

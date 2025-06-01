@@ -1,6 +1,6 @@
 # Asset
 
-Stores asset information for each commit
+Stores asset information for each commit.
 
 | Name       | Type         | Key | Comment                   |
 |------------|--------------|-----|---------------------------|
@@ -13,7 +13,7 @@ Stores asset information for each commit
 
 # Branch
 
-Stores information about branches in repositories
+Stores information about branches in repositories.
 
 | Name          | Type         | Key | Comment                   |
 |---------------|--------------|-----|---------------------------|
@@ -25,7 +25,7 @@ Stores information about branches in repositories
 
 # Commit
 
-Stores information about commits in branches
+Stores information about commits in branches.
 
 | Name         | Type         | Key | Comment                   |
 |--------------|--------------|-----|---------------------------|
@@ -40,7 +40,7 @@ Stores information about commits in branches
 
 # Migrations
 
-Migration log of applied migrations
+Migration log of applied migrations.
 
 | Name            | Type         | Key | Comment                        |
 |-----------------|--------------|-----|--------------------------------|
@@ -51,7 +51,7 @@ Migration log of applied migrations
 
 # Repository
 
-Stores basic information about repositories
+Stores basic information about repositories.
 
 | Name       | Type         | Key | Comment                   |
 |------------|--------------|-----|---------------------------|

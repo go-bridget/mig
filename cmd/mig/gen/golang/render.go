@@ -187,7 +187,7 @@ func Render(options model.Options, tables []*internal.Table) error {
 				return err
 			}
 			jsonTag := "-"
-			if options.FillJSON {
+			if options.Go.FillJSON {
 				jsonTag = column.Name
 			}
 			fmt.Fprintf(buf, "	%s %s `db:\"%s\" json:\"%s\"`\n", columnName, columnType, column.Name, jsonTag)

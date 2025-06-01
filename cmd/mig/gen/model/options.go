@@ -4,5 +4,12 @@ type Options struct {
 	Language string
 	Schema   string
 	Output   string
-	FillJSON bool
+
+	Go struct {
+		FillJSON bool
+	}
+
+	PHP struct {
+		Namespace string
+	}
 }

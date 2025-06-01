@@ -1,6 +1,6 @@
 # Repository
 
-Stores basic information about repositories
+Stores basic information about repositories.
 
 | Name       | Type         | Key | Comment                   |
 |------------|--------------|-----|---------------------------|

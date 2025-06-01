@@ -5,18 +5,18 @@ class Repository
 {
 	public function __construct(
 		/** Repository ID */
-		public $id ?int = 0;
+		public int $id = 0,
 
 		/** Repository name */
-		public $name ?string = "";
+		public string $name = "",
 
 		/** Repository URL */
-		public $url ?string = "";
+		public string $url = "",
 
 		/** Record creation timestamp */
-		public $created_at ?int = 0;
+		public int $created_at = 0,
 
 		/** Record update timestamp */
-		public $updated_at ?int = 0;
+		public int $updated_at = 0,
 	) {}
 }
