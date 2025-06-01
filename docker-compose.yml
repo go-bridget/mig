@@ -1,7 +1,7 @@
 ---
 services:
   percona-mysql:
-    image: percona:8.0
+    image: percona
     ports:
       - "3306:3306"
     environment:

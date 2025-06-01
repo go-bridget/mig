@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"os"
 	"time"
 
 	"database/sql"
@@ -40,6 +41,8 @@ func (options *Options) Init() *Options {
 	options.Retries = 100
 	options.RetryDelay = 2 * time.Second
 	options.ConnectTimeout = 2 * time.Minute
+	options.Credentials.DSN = os.Getenv("MIG_DB_DSN")
+	options.Credentials.Driver = os.Getenv("MIG_DB_DRIVER")
 	return options
 }
 
