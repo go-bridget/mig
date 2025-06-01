@@ -26,7 +26,8 @@ func New() *cli.Command {
 
 			cli.StringVar(&config.options.Language, "lang", "go", "Programming language")
 			cli.StringVar(&config.options.Schema, "schema", "", "Database schema to list")
-			cli.StringVar(&config.options.Output, "output", "types", "Output folder where to generate types")
+			cli.StringVar(&config.options.Output, "output", "model", "Output folder where to generate types")
+
 			cli.BoolVar(&config.options.FillJSON, "go.fill-json", false, "Fill JSON tags (go)")
 		},
 		Run: func(ctx context.Context, commands []string) error {

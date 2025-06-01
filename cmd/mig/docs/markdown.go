@@ -28,6 +28,9 @@ func renderMarkdownTable(table *internal.Table) []byte {
 
 	// calculate max length for columns for padding
 	for _, column := range table.Columns {
+		if column.Comment == "" {
+			column.Comment = internal.Title(column.Name)
+		}
 		padding["Name"] = max(padding["Name"], len(column.Name))
 		padding["Type"] = max(padding["Type"], len(column.Type))
 		padding["Key"] = max(padding["Key"], len(column.Key))
@@ -51,6 +54,11 @@ func renderMarkdownTable(table *internal.Table) []byte {
 
 	// and comment
 	if table.Comment != "" {
+		// add trailing dot (godoc)
+		if !strings.HasSuffix(table.Comment, ".") {
+			table.Comment += "."
+		}
+
 		buf.WriteString(fmt.Sprintf("%s\n\n", table.Comment))
 	}
 

@@ -57,7 +57,8 @@ Go code, "table_name" will be generated as `TableName`.
 
 In order to generate documentation and have the database schema readable
 without that documentation at hand, comments are enforced on tables and
-columns.
+columns. If a column doesn't have a comment, `mig docs` will convert the
+column name into a readable title.
 
 ### Table names
 

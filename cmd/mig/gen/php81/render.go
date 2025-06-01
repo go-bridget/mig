@@ -29,7 +29,7 @@ func Render(options model.Options, tables []*internal.Table) error {
 			return fmt.Errorf("Error rendering table template: %w", err)
 		}
 
-		if err := ioutil.WriteFile(filename, []byte(output), 0640); err != nil {
+		if err := ioutil.WriteFile(filename, []byte(output), 0644); err != nil {
 			return fmt.Errorf("error writing file %s: %w", filename, err)
 		}
 	}
