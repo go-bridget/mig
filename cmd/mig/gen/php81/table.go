@@ -21,6 +21,7 @@ func RenderTable(data *internal.Table, namespace string) (string, error) {
 	funcMap := template.FuncMap{
 		"NL":           func() string { return "\n" },
 		"Camel":        internal.Camel,
+		"Title":        internal.Title,
 		"DefaultValue": columnDefaultValue,
 		"ToNativeType": columnToNativeType,
 	}
@@ -60,7 +61,7 @@ class {{ .Name | Camel }}
 {
 	public function __construct(
 -{{range .Columns}}
-		/** {{ .Comment }} */
+		/** {{if ne .Comment ""}}{{ .Comment }}{{else}}{{ .Name | Title }}{{end}} */
 		public {{. | ToNativeType}} ${{.Name}} = {{. | DefaultValue}},
 {{end}}
 -	) {}

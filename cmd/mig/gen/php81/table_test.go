@@ -17,6 +17,7 @@ func TestTableRendering(t *testing.T) {
 		Columns: []*internal.Column{
 			{Name: "id", Type: "int", Comment: "ID"},
 			{Name: "title", Type: "varchar", Comment: "Title"},
+			{Name: "created_at", Type: "datetime"},
 		},
 	}
 
