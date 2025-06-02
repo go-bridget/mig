@@ -15,6 +15,7 @@ func render(options model.Options, tables []*internal.Table) error {
 	language := options.Language
 	languages := []string{
 		"go",
+		"php",
 		"php81",
 	}
 	if !internal.Contains(languages, language) {
@@ -29,7 +30,7 @@ func render(options model.Options, tables []*internal.Table) error {
 	switch language {
 	case "go":
 		return golang.Render(options, tables)
-	case "php81":
+	case "php", "php81":
 		return php81.Render(options, tables)
 	}
 	return nil
