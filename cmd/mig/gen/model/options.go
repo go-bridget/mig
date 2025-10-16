@@ -7,6 +7,7 @@ type Options struct {
 
 	Go struct {
 		FillJSON bool
+		SkipJSON bool
 	}
 
 	PHP struct {

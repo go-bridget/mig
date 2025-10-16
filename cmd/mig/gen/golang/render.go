@@ -190,7 +190,11 @@ func Render(options model.Options, tables []*internal.Table) error {
 			if options.Go.FillJSON {
 				jsonTag = column.Name
 			}
-			fmt.Fprintf(buf, "	%s %s `db:\"%s\" json:\"%s\"`\n", columnName, columnType, column.Name, jsonTag)
+			if options.Go.SkipJSON {
+				fmt.Fprintf(buf, "	%s %s `db:\"%s\"`\n", columnName, columnType, column.Name)
+			} else {
+				fmt.Fprintf(buf, "	%s %s `db:\"%s\" json:\"%s\"`\n", columnName, columnType, column.Name, jsonTag)
+			}
 			if columnType == "*time.Time" {
 				receiver := strings.ToLower(string(tableName[0]))
 				setters = append(setters, []string{
