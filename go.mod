@@ -1,6 +1,6 @@
 module github.com/go-bridget/mig
 
-go 1.24.3
+go 1.25.3
 
 require (
 	github.com/SentimensRG/sigctx v0.0.0-20171003180858-c19b774db63b

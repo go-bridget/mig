@@ -104,7 +104,7 @@ func Render(options model.Options, tables []*internal.Table) error {
 	// This also builds the `imports` slice for codegen lower
 	for _, table := range tables {
 		// add trailing dot (godoc)
-		if !strings.HasSuffix(table.Comment, ".") {
+		if table.Comment != "" && !strings.HasSuffix(table.Comment, ".") {
 			table.Comment += "."
 		}
 
@@ -156,13 +156,36 @@ func Render(options model.Options, tables []*internal.Table) error {
 	for _, table := range tables {
 		fields := []string{}
 		primary := []string{}
-		setters := []string{}
+		helpers := []string{}
 
 		if table.Ignore() {
 			continue
 		}
 
 		tableName := internal.Camel(strings.TrimPrefix(table.Name, service+"_"))
+
+		// Take care of the helpers (getters, limited setters).
+		for _, column := range table.Columns {
+			columnName := internal.Camel(column.Name)
+			columnType, err := resolveTypeGo(column)
+			if err != nil {
+				return err
+			}
+
+			receiver := strings.ToLower(string(tableName[0]))
+			helpers = append(helpers, []string{
+				fmt.Sprintf("// Get%s will return the value of %s.", columnName, columnName),
+				fmt.Sprintf("func (%s *%s) Get%s() %s { return %s.%s }", receiver, tableName, columnName, columnType, receiver, columnName),
+			}...)
+
+			if columnType == "*time.Time" {
+				receiver := strings.ToLower(string(tableName[0]))
+				helpers = append(helpers, []string{
+					fmt.Sprintf("// Set%s sets %s to the provided value.", columnName, columnName),
+					fmt.Sprintf("func (%s *%s) Set%s(stamp time.Time) { %s.%s = &stamp }", receiver, tableName, columnName, receiver, columnName),
+				}...)
+			}
+		}
 
 		fmt.Fprintf(buf, "// %s generated for db table `%s`.\n", tableName, table.Name)
 		if table.Comment != "" {
@@ -195,20 +218,13 @@ func Render(options model.Options, tables []*internal.Table) error {
 			} else {
 				fmt.Fprintf(buf, "	%s %s `db:\"%s\" json:\"%s\"`\n", columnName, columnType, column.Name, jsonTag)
 			}
-			if columnType == "*time.Time" {
-				receiver := strings.ToLower(string(tableName[0]))
-				setters = append(setters, []string{
-					fmt.Sprintf("// Set%s sets %s to the provided value.", columnName, columnName),
-					fmt.Sprintf("func (%s *%s) Set%s(stamp time.Time) { %s.%s = &stamp }", receiver, tableName, columnName, receiver, columnName),
-				}...)
-			}
 		}
 		fmt.Fprintln(buf, "}")
 		fmt.Fprintln(buf)
-		for _, v := range setters {
+		for _, v := range helpers {
 			fmt.Fprintln(buf, v)
 		}
-		if len(setters) > 0 {
+		if len(helpers) > 0 {
 			fmt.Fprintln(buf)
 		}
 		// Table name
