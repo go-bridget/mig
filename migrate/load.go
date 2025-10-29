@@ -20,7 +20,7 @@ func assertDir(location string) error {
 	return errors.Errorf("path is not a directory: '%s'", location)
 }
 
-// Load reads migrations from disk
+// Load reads migrations from disk.
 func Load(options *Options) error {
 	project := options.Project
 	if options.Filename != "" {

@@ -8,6 +8,8 @@ import (
 
 	"database/sql"
 
+	"github.com/jmoiron/sqlx"
+
 	"github.com/go-bridget/mig/db"
 )
 
@@ -20,12 +22,22 @@ func Run(options *Options, dbOptions *db.Options) error {
 		return fmt.Errorf("error connecting to database: %w", err)
 	}
 
+	return RunWithDB(db, options)
+}
+
+// RunWithDB runs the registered migrations from options against a *sqlx.DB.
+func RunWithDB(db *sqlx.DB, options *Options) error {
 	fs, ok := migrations[options.Project]
 	if !ok {
 		return fmt.Errorf("Migrations for '%s' don't exist", options.Project)
 	}
 
-	migrationFile := fmt.Sprintf("migrations-%s.sql", dbOptions.Credentials.Driver)
+	return RunWithFS(db, fs, options)
+}
+
+// RunWithFS runs the passed migrations against a *sqlx.DB.
+func RunWithFS(db *sqlx.DB, fs FS, options *Options) error {
+	migrationFile := fmt.Sprintf("migrations-%s.sql", db.DriverName())
 	migrationTable, err := statements(migrationsFS.ReadFile(migrationFile))
 	if err != nil {
 		return fmt.Errorf("error reading %s: %w", migrationFile, err)
