@@ -4,6 +4,25 @@ import (
 	"github.com/go-bridget/mig/cli"
 )
 
+// Options include migration options.
+type Options struct {
+	// Path contains sql files with your projects migrations.
+	Path string
+
+	// Project contains the project name for tracking migrations.
+	Project string
+
+	// Filename imports a single file as a migration source.
+	// If filled, it's preferred over path.
+	Filename string
+
+	// Apply will apply the migration to the configured database.
+	Apply bool
+
+	// Verbose will output more details about migration execution.
+	Verbose bool
+}
+
 func NewOptions() *Options {
 	return (&Options{}).Init()
 }
