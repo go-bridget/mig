@@ -2,24 +2,18 @@ package db
 
 import (
 	"context"
-	"os"
-
 	"database/sql"
+	"os"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
-
-	"go.elastic.co/apm/module/apmsql"
-
-	// apm specific wrapper for the go mysql driver
-	_ "go.elastic.co/apm/module/apmsql/mysql"
 )
 
 // Connect connects to a database and produces the handle for injection
 func Connect(ctx context.Context) (*sqlx.DB, error) {
 	options := &Options{
 		Connector: func(ctx context.Context, credentials Credentials) (*sql.DB, error) {
-			db, err := apmsql.Open(credentials.Driver, credentials.DSN)
+			db, err := sql.Open(credentials.Driver, credentials.DSN)
 			if err != nil {
 				return nil, err
 			}
