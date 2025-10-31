@@ -3,8 +3,9 @@ package migrate_test
 import (
 	"testing"
 
-	"github.com/go-bridget/mig/migrate"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/go-bridget/mig/migrate"
 )
 
 func TestFS(t *testing.T) {
