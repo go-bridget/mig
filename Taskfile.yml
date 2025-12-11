@@ -39,11 +39,11 @@ tasks:
   test:mysql:
     desc: "Test with mysql"
     env:
-      DB_DSN: 'root:test@tcp(localhost:3306)/stats'
+      DB_DSN: 'root:test@tcp(localhost:13306)/stats'
     cmds:
       - defer: docker compose down
       - docker compose up -d --wait --remove-orphans
-      - mig create stats --db-dsn "root:test@tcp(localhost:3306)/mysql" --apply
+      - mig create stats --db-dsn "root:test@tcp(localhost:13306)/mysql" --apply
       - mig migrate stats --path testdata/schema/stats --apply
       - rm -rf testdata/gen_* docs/*
       - mig docs --schema=stats --output=testdata/docs

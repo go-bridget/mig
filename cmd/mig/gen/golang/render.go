@@ -25,7 +25,14 @@ var numericTypes map[string]string = map[string]string{
 }
 
 func isNumeric(column *internal.Column) (string, bool) {
-	val, ok := numericTypes[column.DataType]
+	typeName := column.DataType
+
+	// sized datatype, remove size hint
+	if idx := strings.Index(typeName, "("); idx != -1 {
+		typeName = typeName[:idx]
+	}
+
+	val, ok := numericTypes[typeName]
 	return val, ok
 }
 
@@ -52,7 +59,14 @@ var simpleTypes map[string]string = map[string]string{
 }
 
 func isSimple(column *internal.Column) (string, bool) {
-	val, ok := simpleTypes[column.DataType]
+	typeName := column.DataType
+
+	// sized datatype, remove size hint
+	if idx := strings.Index(typeName, "("); idx != -1 {
+		typeName = typeName[:idx]
+	}
+
+	val, ok := simpleTypes[typeName]
 	return val, ok
 }
 
@@ -94,11 +108,13 @@ func resolveTypeGo(column *internal.Column) (string, error) {
 
 func Render(options model.Options, tables []*internal.Table) error {
 	var (
-		output  = options.Output
-		service = options.Schema
+		output = options.Output
 	)
 
-	imports := []string{}
+	imports := []string{
+		"\"fmt\"",
+		"\"strings\"",
+	}
 
 	// Loop through tables/columns, return type error if any
 	// This also builds the `imports` slice for codegen lower
@@ -153,6 +169,8 @@ func Render(options model.Options, tables []*internal.Table) error {
 		fmt.Fprintln(buf)
 	}
 
+	renderQueryBuilders(buf)
+
 	for _, table := range tables {
 		fields := []string{}
 		primary := []string{}
@@ -162,7 +180,7 @@ func Render(options model.Options, tables []*internal.Table) error {
 			continue
 		}
 
-		tableName := internal.Camel(strings.TrimPrefix(table.Name, service+"_"))
+		tableName := internal.Camel(table.Name)
 
 		// Take care of the helpers (getters, limited setters).
 		for _, column := range table.Columns {
@@ -251,6 +269,22 @@ func Render(options model.Options, tables []*internal.Table) error {
 		fmt.Fprintln(buf)
 	}
 
+	for _, table := range tables {
+		if table.Ignore() {
+			continue
+		}
+
+		tableName := internal.Camel(table.Name)
+		receiver := strings.ToLower(string(tableName[0]))
+		fields := []string{}
+
+		for _, column := range table.Columns {
+			fields = append(fields, column.Name)
+		}
+
+		renderQueryMethods(buf, tableName, receiver, table.Name, fields)
+	}
+
 	filename := path.Join(output, "types.mig.go")
 	contents := buf.Bytes()
 
@@ -265,4 +299,167 @@ func Render(options model.Options, tables []*internal.Table) error {
 	log.Info(filename)
 
 	return ioutil.WriteFile(filename, formatted, 0644)
+}
+
+func renderQueryBuilders(buf *bytes.Buffer) {
+	fmt.Fprintln(buf, "type QueryOption interface {")
+	fmt.Fprintln(buf, "	WithTable(name string) QueryOption")
+	fmt.Fprintln(buf, "	WithColumns(cols []string) QueryOption")
+	fmt.Fprintln(buf, "	WithWhere(clause string) QueryOption")
+	fmt.Fprintln(buf, "	WithOrderBy(clause string) QueryOption")
+	fmt.Fprintln(buf, "	WithLimit(start, offset int) QueryOption")
+	fmt.Fprintln(buf, "	WithStatement(stmt string) QueryOption")
+	fmt.Fprintln(buf, "}")
+	fmt.Fprintln(buf)
+
+	fmt.Fprintln(buf, "type QueryConfig struct {")
+	fmt.Fprintln(buf, "	Table       string")
+	fmt.Fprintln(buf, "	Columns     []string")
+	fmt.Fprintln(buf, "	Where       string")
+	fmt.Fprintln(buf, "	OrderBy     string")
+	fmt.Fprintln(buf, "	LimitStart  int")
+	fmt.Fprintln(buf, "	LimitOffset int")
+	fmt.Fprintln(buf, "	Statement   string")
+	fmt.Fprintln(buf, "}")
+	fmt.Fprintln(buf)
+
+	fmt.Fprintln(buf, "func (q *QueryConfig) WithTable(name string) QueryOption {")
+	fmt.Fprintln(buf, "	q.Table = name")
+	fmt.Fprintln(buf, "	return q")
+	fmt.Fprintln(buf, "}")
+	fmt.Fprintln(buf)
+
+	fmt.Fprintln(buf, "func (q *QueryConfig) WithColumns(cols []string) QueryOption {")
+	fmt.Fprintln(buf, "	q.Columns = cols")
+	fmt.Fprintln(buf, "	return q")
+	fmt.Fprintln(buf, "}")
+	fmt.Fprintln(buf)
+
+	fmt.Fprintln(buf, "func (q *QueryConfig) WithWhere(clause string) QueryOption {")
+	fmt.Fprintln(buf, "	q.Where = clause")
+	fmt.Fprintln(buf, "	return q")
+	fmt.Fprintln(buf, "}")
+	fmt.Fprintln(buf)
+
+	fmt.Fprintln(buf, "func (q *QueryConfig) WithOrderBy(clause string) QueryOption {")
+	fmt.Fprintln(buf, "	q.OrderBy = clause")
+	fmt.Fprintln(buf, "	return q")
+	fmt.Fprintln(buf, "}")
+	fmt.Fprintln(buf)
+
+	fmt.Fprintln(buf, "func (q *QueryConfig) WithLimit(start, offset int) QueryOption {")
+	fmt.Fprintln(buf, "	q.LimitStart = start")
+	fmt.Fprintln(buf, "	q.LimitOffset = offset")
+	fmt.Fprintln(buf, "	return q")
+	fmt.Fprintln(buf, "}")
+	fmt.Fprintln(buf)
+
+	fmt.Fprintln(buf, "func (q *QueryConfig) WithStatement(stmt string) QueryOption {")
+	fmt.Fprintln(buf, "	q.Statement = stmt")
+	fmt.Fprintln(buf, "	return q")
+	fmt.Fprintln(buf, "}")
+	fmt.Fprintln(buf)
+
+	fmt.Fprintln(buf, "func WithTable(name string) QueryOption {")
+	fmt.Fprintln(buf, "	return &QueryConfig{Table: name}")
+	fmt.Fprintln(buf, "}")
+	fmt.Fprintln(buf)
+
+	fmt.Fprintln(buf, "func WithColumns(cols []string) QueryOption {")
+	fmt.Fprintln(buf, "	return &QueryConfig{Columns: cols}")
+	fmt.Fprintln(buf, "}")
+	fmt.Fprintln(buf)
+
+	fmt.Fprintln(buf, "func WithWhere(clause string) QueryOption {")
+	fmt.Fprintln(buf, "	return &QueryConfig{Where: clause}")
+	fmt.Fprintln(buf, "}")
+	fmt.Fprintln(buf)
+
+	fmt.Fprintln(buf, "func WithOrderBy(clause string) QueryOption {")
+	fmt.Fprintln(buf, "	return &QueryConfig{OrderBy: clause}")
+	fmt.Fprintln(buf, "}")
+	fmt.Fprintln(buf)
+
+	fmt.Fprintln(buf, "func WithLimit(start, offset int) QueryOption {")
+	fmt.Fprintln(buf, "	return &QueryConfig{LimitStart: start, LimitOffset: offset}")
+	fmt.Fprintln(buf, "}")
+	fmt.Fprintln(buf)
+
+	fmt.Fprintln(buf, "func WithStatement(stmt string) QueryOption {")
+	fmt.Fprintln(buf, "	return &QueryConfig{Statement: stmt}")
+	fmt.Fprintln(buf, "}")
+	fmt.Fprintln(buf)
+
+	fmt.Fprintln(buf, "func (q *QueryConfig) Apply(opts ...QueryOption) *QueryConfig {")
+	fmt.Fprintln(buf, "	cfg := *q")
+	fmt.Fprintln(buf, "	for _, opt := range opts {")
+	fmt.Fprintln(buf, "		o := opt.(*QueryConfig)")
+	fmt.Fprintln(buf, "		if o.Table != \"\" {")
+	fmt.Fprintln(buf, "			cfg.Table = o.Table")
+	fmt.Fprintln(buf, "		}")
+	fmt.Fprintln(buf, "		if len(o.Columns) > 0 {")
+	fmt.Fprintln(buf, "			cfg.Columns = o.Columns")
+	fmt.Fprintln(buf, "		}")
+	fmt.Fprintln(buf, "		if o.Where != \"\" {")
+	fmt.Fprintln(buf, "			cfg.Where = o.Where")
+	fmt.Fprintln(buf, "		}")
+	fmt.Fprintln(buf, "		if o.OrderBy != \"\" {")
+	fmt.Fprintln(buf, "			cfg.OrderBy = o.OrderBy")
+	fmt.Fprintln(buf, "		}")
+	fmt.Fprintln(buf, "		if o.LimitOffset > 0 {")
+	fmt.Fprintln(buf, "			cfg.LimitStart = o.LimitStart")
+	fmt.Fprintln(buf, "			cfg.LimitOffset = o.LimitOffset")
+	fmt.Fprintln(buf, "		}")
+	fmt.Fprintln(buf, "		if o.Statement != \"\" {")
+	fmt.Fprintln(buf, "			cfg.Statement = o.Statement")
+	fmt.Fprintln(buf, "		}")
+	fmt.Fprintln(buf, "	}")
+	fmt.Fprintln(buf, "	return &cfg")
+	fmt.Fprintln(buf, "}")
+	fmt.Fprintln(buf)
+}
+
+func renderQueryMethods(buf *bytes.Buffer, typeName, receiver, tableName string, fields []string) {
+	fmt.Fprintf(buf, "func (%s *%s) Insert(opts ...QueryOption) string {\n", receiver, typeName)
+	fmt.Fprintf(buf, "	cfg := (&QueryConfig{Table: %sTable, Statement: \"INSERT INTO\"}).Apply(opts...)\n", typeName)
+	fmt.Fprintf(buf, "	cols := %sFields\n", typeName)
+	fmt.Fprintf(buf, "	if len(cfg.Columns) > 0 { cols = cfg.Columns }\n")
+	fmt.Fprintf(buf, "	return fmt.Sprintf(\"%%s %%s (%%s) VALUES (:%%s)\", cfg.Statement, cfg.Table, strings.Join(cols, \", \"), strings.Join(cols, \", :\"))\n")
+	fmt.Fprintf(buf, "}\n")
+	fmt.Fprintln(buf)
+
+	fmt.Fprintf(buf, "func (%s *%s) Select(opts ...QueryOption) string {\n", receiver, typeName)
+	fmt.Fprintf(buf, "	cfg := (&QueryConfig{Table: %sTable}).Apply(opts...)\n", typeName)
+	fmt.Fprintf(buf, "	cols := \"*\"\n")
+	fmt.Fprintf(buf, "	if len(cfg.Columns) > 0 { cols = strings.Join(cfg.Columns, \", \") }\n")
+	fmt.Fprintf(buf, "	query := fmt.Sprintf(\"SELECT %%s FROM %%s\", cols, cfg.Table)\n")
+	fmt.Fprintf(buf, "	if cfg.Where != \"\" { query += \" WHERE \" + cfg.Where }\n")
+	fmt.Fprintf(buf, "	if cfg.OrderBy != \"\" { query += \" ORDER BY \" + cfg.OrderBy }\n")
+	fmt.Fprintf(buf, "	if cfg.LimitOffset > 0 { query += fmt.Sprintf(\" LIMIT %%d, %%d\", cfg.LimitStart, cfg.LimitOffset) }\n")
+	fmt.Fprintf(buf, "	return query\n")
+	fmt.Fprintf(buf, "}\n")
+	fmt.Fprintln(buf)
+
+	fmt.Fprintf(buf, "func (%s *%s) Update(opts ...QueryOption) string {\n", receiver, typeName)
+	fmt.Fprintf(buf, "	cfg := (&QueryConfig{Table: %sTable}).Apply(opts...)\n", typeName)
+	fmt.Fprintf(buf, "	cols := %sFields\n", typeName)
+	fmt.Fprintf(buf, "	if len(cfg.Columns) > 0 { cols = cfg.Columns }\n")
+	fmt.Fprintf(buf, "	setClause := \"\"\n")
+	fmt.Fprintf(buf, "	for i, col := range cols {\n")
+	fmt.Fprintf(buf, "		if i > 0 { setClause += \", \" }\n")
+	fmt.Fprintf(buf, "		setClause += col + \"=:\" + col\n")
+	fmt.Fprintf(buf, "	}\n")
+	fmt.Fprintf(buf, "	query := fmt.Sprintf(\"UPDATE %%s SET %%s\", cfg.Table, setClause)\n")
+	fmt.Fprintf(buf, "	if cfg.Where != \"\" { query += \" WHERE \" + cfg.Where }\n")
+	fmt.Fprintf(buf, "	return query\n")
+	fmt.Fprintf(buf, "}\n")
+	fmt.Fprintln(buf)
+
+	fmt.Fprintf(buf, "func (%s *%s) Delete(opts ...QueryOption) string {\n", receiver, typeName)
+	fmt.Fprintf(buf, "	cfg := (&QueryConfig{Table: %sTable}).Apply(opts...)\n", typeName)
+	fmt.Fprintf(buf, "	query := fmt.Sprintf(\"DELETE FROM %%s\", cfg.Table)\n")
+	fmt.Fprintf(buf, "	if cfg.Where != \"\" { query += \" WHERE \" + cfg.Where }\n")
+	fmt.Fprintf(buf, "	return query\n")
+	fmt.Fprintf(buf, "}\n")
+	fmt.Fprintln(buf)
 }
