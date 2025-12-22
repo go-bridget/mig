@@ -172,11 +172,11 @@ func (d *sqliteDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tableN
 }
 
 // ListTables returns all tables in the database (excluding system tables)
-func (d *sqliteDescriber) ListTables(ctx context.Context, db *sqlx.DB, _ string) ([]*model.Table, error) {
+func (d *sqliteDescriber) ListTables(ctx context.Context, db *sqlx.DB) ([]*model.Table, error) {
 	tables := []*model.Table{}
 
 	// Get all user-defined tables (excluding sqlite internal tables)
-	if err := db.SelectContext(ctx, &tables, "SELECT name as TABLE_NAME, name as TABLE_COMMENT FROM sqlite_schema WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name ASC"); err != nil {
+	if err := db.SelectContext(ctx, &tables, "SELECT name as TABLE_NAME, '' as TABLE_COMMENT FROM sqlite_schema WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name ASC"); err != nil {
 		return nil, errors.Wrap(err, "failed to list tables")
 	}
 

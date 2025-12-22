@@ -25,7 +25,7 @@ type Describer interface {
 
 	// ListTables returns all tables in the database (excluding system/temporary tables).
 	// Each table includes its columns with full metadata.
-	ListTables(ctx context.Context, db *sqlx.DB, schema string) ([]*model.Table, error)
+	ListTables(ctx context.Context, db *sqlx.DB) ([]*model.Table, error)
 }
 
 // NewDescriber returns a Describer implementation for the given database driver name

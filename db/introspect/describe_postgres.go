@@ -146,7 +146,7 @@ func (d *postgresDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tabl
 }
 
 // ListTables returns all tables in the current schema with their columns
-func (d *postgresDescriber) ListTables(ctx context.Context, db *sqlx.DB, schema string) ([]*model.Table, error) {
+func (d *postgresDescriber) ListTables(ctx context.Context, db *sqlx.DB) ([]*model.Table, error) {
 	tables := []*model.Table{}
 
 	// Get all tables in current schema (excluding system tables)

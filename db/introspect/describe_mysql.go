@@ -155,13 +155,13 @@ func (d *mysqlDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tableNa
 }
 
 // ListTables returns all tables in the current database with their columns
-func (d *mysqlDescriber) ListTables(ctx context.Context, db *sqlx.DB, schema string) ([]*model.Table, error) {
+func (d *mysqlDescriber) ListTables(ctx context.Context, db *sqlx.DB) ([]*model.Table, error) {
 	const tableType = "BASE TABLE"
 
 	tables := []*model.Table{}
 
 	// Get all base tables (excluding views)
-	if err := db.SelectContext(ctx, &tables, "SELECT TABLE_NAME, TABLE_COMMENT FROM information_schema.tables WHERE table_schema=? AND table_type=? ORDER BY table_name ASC", schema, tableType); err != nil {
+	if err := db.SelectContext(ctx, &tables, "SELECT TABLE_NAME, TABLE_COMMENT FROM information_schema.tables WHERE table_schema=DATABASE() AND table_type=? ORDER BY table_name ASC", tableType); err != nil {
 		return nil, errors.Wrap(err, "failed to list tables")
 	}
 

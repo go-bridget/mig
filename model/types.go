@@ -1,6 +1,7 @@
 package model
 
 import (
+	"slices"
 	"strings"
 
 	stylecheck "honnef.co/go/tools/config"
@@ -12,6 +13,14 @@ type Table struct {
 	Comment string `db:"TABLE_COMMENT"`
 
 	Columns []*Column
+}
+
+// Map returns a typed map of the Table. Comment may be empty.
+func (t *Table) Map() map[string]string {
+	return map[string]string{
+		"table_name": t.Name,
+		"table_comment": t.Comment,
+	}
 }
 
 // Title returns a human-readable title for the table
@@ -57,7 +66,7 @@ func Title(input string) string {
 	keys := strings.Split(input, "_")
 	for k, v := range keys {
 		upper := strings.ToUpper(v)
-		if contains(stylecheck.DefaultConfig.Initialisms, upper) {
+		if slices.Contains(stylecheck.DefaultConfig.Initialisms, upper) {
 			keys[k] = upper
 			continue
 		}
@@ -67,14 +76,4 @@ func Title(input string) string {
 	}
 
 	return strings.Join(keys, " ")
-}
-
-// contains checks if a string slice contains a value
-func contains(set []string, value string) bool {
-	for _, v := range set {
-		if v == value {
-			return true
-		}
-	}
-	return false
 }
