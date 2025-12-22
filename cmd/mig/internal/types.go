@@ -2,37 +2,23 @@ package internal
 
 import (
 	"strings"
+
+	"github.com/go-bridget/mig/model"
 )
 
-// Table is an information_schema record
-type Table struct {
-	Name    string `db:"TABLE_NAME"`
-	Comment string `db:"TABLE_COMMENT"`
+// Table is an alias for model.Table for backward compatibility
+type Table = model.Table
 
-	Columns []*Column
-}
+// Column is an alias for model.Column for backward compatibility
+type Column = model.Column
 
-func (t *Table) Title() string {
-	return Title(t.Name)
-}
+// TableFields is an alias for model.TableFields for backward compatibility
+var TableFields = model.TableFields
 
-func (t *Table) Ignore() bool {
+// ColumnFields is an alias for model.ColumnFields for backward compatibility
+var ColumnFields = model.ColumnFields
+
+// Ignore returns true if the table comment indicates it should be ignored
+func Ignore(t *Table) bool {
 	return strings.TrimSpace(strings.ToLower(t.Comment)) == "ignore"
 }
-
-// TableFields lists database columns from Table{}
-var TableFields = []string{"TABLE_NAME", "TABLE_COMMENT"}
-
-// Column is an information_schema record
-type Column struct {
-	Name    string `db:"COLUMN_NAME"`
-	Type    string `db:"COLUMN_TYPE"`
-	Key     string `db:"COLUMN_KEY"`
-	Comment string `db:"COLUMN_COMMENT"`
-
-	// Holds the clean data type
-	DataType string `db:"DATA_TYPE"`
-}
-
-// ColumnFields lists database columns from Column{}
-var ColumnFields = []string{"COLUMN_NAME", "COLUMN_TYPE", "COLUMN_KEY", "COLUMN_COMMENT", "DATA_TYPE"}

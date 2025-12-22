@@ -144,7 +144,11 @@ func (app *App) findCommand(commands []string, fallback string) (*Command, error
 	if info, ok := app.commands[fallback]; ok {
 		return spawn(info)
 	}
-	return nil, fmt.Errorf("Can't find commands: [%s, default=%s], err=%w", errNoCommand)
+	cmdsStr := ""
+	if len(commands) > 0 {
+		cmdsStr = fmt.Sprintf("[%v] ", commands)
+	}
+	return nil, fmt.Errorf("can't find command %s(fallback=%s): %w", cmdsStr, fallback, errNoCommand)
 }
 
 // parseCommand cleans up args[], returning only commands

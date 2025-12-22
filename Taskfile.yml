@@ -1,6 +1,9 @@
 ---
 version: "3"
 
+includes:
+  docker: Taskfile.docker.yml
+
 env:
   CGO_ENABLED: 0
 
@@ -21,13 +24,18 @@ tasks:
       - go install {{.ldflags}} ./cmd/...
       - task: test
 
-  docker:
+  build:
     cmds:
       - go build -o build/ {{.ldflags}} ./cmd/...
       - docker build -t go-bridget/mig -f docker/Dockerfile .
 
   test:
-    deps: [test:sqlite, test:mysql]
+    desc: "Run tests"
+    deps: [docker:up]
+    cmds:
+      - defer: { task: docker:down }
+      - task: test:sqlite
+      - task: test:mysql
 
   test:sqlite:
     desc: "Test with sqlite"
@@ -45,6 +53,7 @@ tasks:
       - docker compose up -d --wait --remove-orphans
       - mig create stats --db-dsn "root:test@tcp(localhost:13306)/mysql" --apply
       - mig migrate stats --path testdata/schema/stats --apply
+      - go test -v -tags integration ./...
       - rm -rf testdata/gen_* docs/*
       - mig docs --schema=stats --output=testdata/docs
       - mig docs --schema=stats --output=testdata/docs --output-file=README.md
