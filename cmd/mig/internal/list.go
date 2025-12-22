@@ -10,7 +10,7 @@ import (
 	"github.com/go-bridget/mig/model"
 )
 
-func ListTables(ctx context.Context, config *db.Options, schema string) ([]*model.Table, error) {
+func ListTables(ctx context.Context, config *db.Options) ([]*model.Table, error) {
 	handle, err := db.ConnectWithRetry(ctx, config)
 	if err != nil {
 		return nil, errors.Wrap(err, "error connecting to database")
@@ -21,5 +21,5 @@ func ListTables(ctx context.Context, config *db.Options, schema string) ([]*mode
 		return nil, err
 	}
 
-	return desc.ListTables(ctx, handle, schema)
+	return desc.ListTables(ctx, handle)
 }

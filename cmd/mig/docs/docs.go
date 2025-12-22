@@ -14,7 +14,6 @@ func New() *cli.Command {
 	var config struct {
 		db *db.Options
 
-		schema   string
 		output   string
 		filename string
 	}
@@ -24,12 +23,11 @@ func New() *cli.Command {
 			config.db = db.NewOptions()
 			config.db.Bind()
 
-			cli.StringVar(&config.schema, "schema", "", "Database schema to list")
 			cli.StringVar(&config.output, "output", "docs", "Output folder where to generate docs")
 			cli.StringVar(&config.filename, "output-file", "", "Output as single filename")
 		},
 		Run: func(ctx context.Context, commands []string) error {
-			tables, err := internal.ListTables(ctx, config.db, config.schema)
+			tables, err := internal.ListTables(ctx, config.db)
 			if err != nil {
 				return err
 			}

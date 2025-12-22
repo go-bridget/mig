@@ -15,8 +15,6 @@ const Name = "Check schema for best practices and comments"
 type Options struct {
 	db *db.Options
 
-	schema string
-
 	skipComments bool
 	skipPlural   bool
 }
@@ -29,12 +27,11 @@ func New() *cli.Command {
 			config.db = db.NewOptions()
 			config.db.Bind()
 
-			cli.StringVar(&config.schema, "schema", "", "Database schema to list")
 			cli.BoolVar(&config.skipComments, "skip-comments", false, "Skip validating table/column comments")
 			cli.BoolVar(&config.skipPlural, "skip-plural", false, "Skip validating table name for singular form")
 		},
 		Run: func(ctx context.Context, commands []string) error {
-			tables, err := internal.ListTables(ctx, config.db, config.schema)
+			tables, err := internal.ListTables(ctx, config.db)
 			if err != nil {
 				return err
 			}

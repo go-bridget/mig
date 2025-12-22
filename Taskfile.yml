@@ -42,7 +42,7 @@ tasks:
     cmds:
       - mig migrate stats --path testdata/sqlite/stats --db-driver sqlite --db-dsn ":memory:" --apply --verbose
       - mig migrate stats --path testdata/sqlite/stats --db-driver sqlite --db-dsn "file:test.db" --apply --verbose
-      - mig gen --lang=go --schema=stats --db-driver sqlite --db-dsn "file:test.db" --output testdata/sqlite/model
+      - mig gen --lang=go --db-driver sqlite --db-dsn "file:test.db" --output testdata/sqlite/model
 
   test:mysql:
     desc: "Test with mysql"
@@ -55,8 +55,8 @@ tasks:
       - mig migrate stats --path testdata/schema/stats --apply
       - go test -v -tags integration ./...
       - rm -rf testdata/gen_* docs/*
-      - mig docs --schema=stats --output=testdata/docs
-      - mig docs --schema=stats --output=testdata/docs --output-file=README.md
-      - mig gen --schema=stats --lang=go --output=testdata/gen_go
-      - mig lint --schema=stats
+      - mig docs --output=testdata/docs
+      - mig docs --output=testdata/docs --output-file=README.md
+      - mig gen --lang=go --output=testdata/gen_go
+      - mig lint
       - mig version

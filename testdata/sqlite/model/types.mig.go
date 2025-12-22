@@ -109,8 +109,6 @@ func (q *QueryConfig) Apply(opts ...QueryOption) *QueryConfig {
 }
 
 // Migrations generated for db table `migrations`.
-//
-// migrations.
 type Migrations struct {
 }
 
@@ -124,8 +122,6 @@ var MigrationsFields = []string{}
 var MigrationsPrimaryFields = []string{}
 
 // Stats generated for db table `stats`.
-//
-// stats.
 type Stats struct {
 }
 

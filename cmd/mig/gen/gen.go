@@ -25,14 +25,13 @@ func New() *cli.Command {
 			config.db.Bind()
 
 			cli.StringVar(&config.options.Language, "lang", "go", "Programming language")
-			cli.StringVar(&config.options.Schema, "schema", "", "Database schema to list")
 			cli.StringVar(&config.options.Output, "output", "model", "Output folder where to generate types")
 
 			cli.BoolVar(&config.options.Go.FillJSON, "go.fill-json", false, "Fill JSON tags (go)")
 			cli.BoolVar(&config.options.Go.SkipJSON, "go.skip-json", false, "Skip JSON tags (go)")
 		},
 		Run: func(ctx context.Context, commands []string) error {
-			tables, err := internal.ListTables(ctx, config.db, config.options.Schema)
+			tables, err := internal.ListTables(ctx, config.db)
 			if err != nil {
 				return err
 			}

@@ -18,7 +18,7 @@ type Table struct {
 // Map returns a typed map of the Table. Comment may be empty.
 func (t *Table) Map() map[string]string {
 	return map[string]string{
-		"table_name": t.Name,
+		"table_name":    t.Name,
 		"table_comment": t.Comment,
 	}
 }
