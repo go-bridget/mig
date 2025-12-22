@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/go-bridget/mig/cmd/mig/internal"
+	"github.com/go-bridget/mig/model"
 )
 
 const (
@@ -16,7 +16,7 @@ const (
 )
 
 // validateTable checks individual columns
-func validateTable(table *internal.Table, options Options) []error {
+func validateTable(table *model.Table, options Options) []error {
 	errs := []error{}
 	validComments := map[string]bool{
 		"id": true,
@@ -34,7 +34,7 @@ func validateTable(table *internal.Table, options Options) []error {
 }
 
 // validate checks each table has a set comment
-func validate(tables []*internal.Table, options Options) []error {
+func validate(tables []*model.Table, options Options) []error {
 	errs := []error{}
 	for _, table := range tables {
 		if table.Ignore() {

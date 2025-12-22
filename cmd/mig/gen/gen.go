@@ -30,8 +30,6 @@ func New() *cli.Command {
 
 			cli.BoolVar(&config.options.Go.FillJSON, "go.fill-json", false, "Fill JSON tags (go)")
 			cli.BoolVar(&config.options.Go.SkipJSON, "go.skip-json", false, "Skip JSON tags (go)")
-
-			cli.StringVar(&config.options.PHP.Namespace, "php.namespace", "", "Namespace for generated code (php)")
 		},
 		Run: func(ctx context.Context, commands []string) error {
 			tables, err := internal.ListTables(ctx, config.db, config.options.Schema)

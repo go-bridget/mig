@@ -58,6 +58,5 @@ tasks:
       - mig docs --schema=stats --output=testdata/docs
       - mig docs --schema=stats --output=testdata/docs --output-file=README.md
       - mig gen --schema=stats --lang=go --output=testdata/gen_go
-      - mig gen --schema=stats --lang=php --output=testdata/gen_php
       - mig lint --schema=stats
       - mig version

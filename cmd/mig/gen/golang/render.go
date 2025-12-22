@@ -6,6 +6,7 @@ import (
 	"go/format"
 	"io/ioutil"
 	"path"
+	"slices"
 	"strings"
 
 	"github.com/apex/log"
@@ -13,6 +14,12 @@ import (
 
 	"github.com/go-bridget/mig/cmd/mig/gen/model"
 	"github.com/go-bridget/mig/cmd/mig/internal"
+	migmodel "github.com/go-bridget/mig/model"
+)
+
+type (
+	Column = migmodel.Column
+	Table  = migmodel.Table
 )
 
 var numericTypes map[string]string = map[string]string{
@@ -24,7 +31,7 @@ var numericTypes map[string]string = map[string]string{
 	"bigint":    "int64",
 }
 
-func isNumeric(column *internal.Column) (string, bool) {
+func isNumeric(column *Column) (string, bool) {
 	typeName := column.DataType
 
 	// sized datatype, remove size hint
@@ -58,7 +65,7 @@ var simpleTypes map[string]string = map[string]string{
 	"enum": "string",
 }
 
-func isSimple(column *internal.Column) (string, bool) {
+func isSimple(column *Column) (string, bool) {
 	typeName := column.DataType
 
 	// sized datatype, remove size hint
@@ -84,12 +91,12 @@ var specialTypes map[string]specialType = map[string]specialType{
 	"json": specialType{"sqlxTypes github.com/jmoiron/sqlx/types", "sqlxTypes.JSONText"},
 }
 
-func isSpecial(column *internal.Column) (specialType, bool) {
+func isSpecial(column *Column) (specialType, bool) {
 	val, ok := specialTypes[column.DataType]
 	return val, ok
 }
 
-func resolveTypeGo(column *internal.Column) (string, error) {
+func resolveTypeGo(column *Column) (string, error) {
 	if val, ok := isSimple(column); ok {
 		return val, nil
 	}
@@ -106,7 +113,7 @@ func resolveTypeGo(column *internal.Column) (string, error) {
 	return "", errors.Errorf("Unsupported SQL type: %s", column.DataType)
 }
 
-func Render(options model.Options, tables []*internal.Table) error {
+func Render(options model.Options, tables []*Table) error {
 	var (
 		output = options.Output
 	)
@@ -132,7 +139,7 @@ func Render(options model.Options, tables []*internal.Table) error {
 					parts := strings.Split(val.Import, " ")
 					importString = fmt.Sprintf("%s \"%s\"", parts[0], parts[1])
 				}
-				if !internal.Contains(imports, importString) {
+				if !slices.Contains(imports, importString) {
 					imports = append(imports, importString)
 				}
 			}

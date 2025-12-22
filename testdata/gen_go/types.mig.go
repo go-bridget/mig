@@ -5,7 +5,6 @@ package gen_go
 import (
 	"fmt"
 	"strings"
-	"time"
 )
 
 type QueryOption interface {
@@ -113,266 +112,76 @@ func (q *QueryConfig) Apply(opts ...QueryOption) *QueryConfig {
 //
 // Stores asset information for each commit.
 type Asset struct {
-	// Asset ID
-	ID int32 `db:"id" json:"-"`
-
-	// Commit ID
-	CommitID int32 `db:"commit_id" json:"-"`
-
-	// Filename
-	Filename string `db:"filename" json:"-"`
-
-	// File contents
-	Contents string `db:"contents" json:"-"`
-
-	// Record creation timestamp
-	CreatedAt *time.Time `db:"created_at" json:"-"`
-
-	// Record update timestamp
-	UpdatedAt *time.Time `db:"updated_at" json:"-"`
 }
-
-// GetID will return the value of ID.
-func (a *Asset) GetID() int32 { return a.ID }
-
-// GetCommitID will return the value of CommitID.
-func (a *Asset) GetCommitID() int32 { return a.CommitID }
-
-// GetFilename will return the value of Filename.
-func (a *Asset) GetFilename() string { return a.Filename }
-
-// GetContents will return the value of Contents.
-func (a *Asset) GetContents() string { return a.Contents }
-
-// GetCreatedAt will return the value of CreatedAt.
-func (a *Asset) GetCreatedAt() *time.Time { return a.CreatedAt }
-
-// SetCreatedAt sets CreatedAt to the provided value.
-func (a *Asset) SetCreatedAt(stamp time.Time) { a.CreatedAt = &stamp }
-
-// GetUpdatedAt will return the value of UpdatedAt.
-func (a *Asset) GetUpdatedAt() *time.Time { return a.UpdatedAt }
-
-// SetUpdatedAt sets UpdatedAt to the provided value.
-func (a *Asset) SetUpdatedAt(stamp time.Time) { a.UpdatedAt = &stamp }
 
 // AssetTable is the name of the table in the DB.
 const AssetTable = "`asset`"
 
 // AssetFields is a list of all columns in the DB table.
-var AssetFields = []string{"id", "commit_id", "filename", "contents", "created_at", "updated_at"}
+var AssetFields = []string{}
 
 // AssetPrimaryFields are the primary key fields in the DB table.
-var AssetPrimaryFields = []string{"id"}
+var AssetPrimaryFields = []string{}
 
 // Branch generated for db table `branch`.
 //
 // Stores information about branches in repositories.
 type Branch struct {
-	// Branch ID
-	ID int32 `db:"id" json:"-"`
-
-	// Repository ID
-	RepositoryID int32 `db:"repository_id" json:"-"`
-
-	// Branch name
-	Name string `db:"name" json:"-"`
-
-	// Record creation timestamp
-	CreatedAt *time.Time `db:"created_at" json:"-"`
-
-	// Record update timestamp
-	UpdatedAt *time.Time `db:"updated_at" json:"-"`
 }
-
-// GetID will return the value of ID.
-func (b *Branch) GetID() int32 { return b.ID }
-
-// GetRepositoryID will return the value of RepositoryID.
-func (b *Branch) GetRepositoryID() int32 { return b.RepositoryID }
-
-// GetName will return the value of Name.
-func (b *Branch) GetName() string { return b.Name }
-
-// GetCreatedAt will return the value of CreatedAt.
-func (b *Branch) GetCreatedAt() *time.Time { return b.CreatedAt }
-
-// SetCreatedAt sets CreatedAt to the provided value.
-func (b *Branch) SetCreatedAt(stamp time.Time) { b.CreatedAt = &stamp }
-
-// GetUpdatedAt will return the value of UpdatedAt.
-func (b *Branch) GetUpdatedAt() *time.Time { return b.UpdatedAt }
-
-// SetUpdatedAt sets UpdatedAt to the provided value.
-func (b *Branch) SetUpdatedAt(stamp time.Time) { b.UpdatedAt = &stamp }
 
 // BranchTable is the name of the table in the DB.
 const BranchTable = "`branch`"
 
 // BranchFields is a list of all columns in the DB table.
-var BranchFields = []string{"id", "repository_id", "name", "created_at", "updated_at"}
+var BranchFields = []string{}
 
 // BranchPrimaryFields are the primary key fields in the DB table.
-var BranchPrimaryFields = []string{"id"}
+var BranchPrimaryFields = []string{}
 
 // Commit generated for db table `commit`.
 //
 // Stores information about commits in branches.
 type Commit struct {
-	// Commit ID
-	ID int32 `db:"id" json:"-"`
-
-	// Branch ID
-	BranchID int32 `db:"branch_id" json:"-"`
-
-	// Commit hash
-	CommitHash string `db:"commit_hash" json:"-"`
-
-	// Commit author
-	Author string `db:"author" json:"-"`
-
-	// Commit message
-	Message string `db:"message" json:"-"`
-
-	// Commit timestamp
-	CommittedAt *time.Time `db:"committed_at" json:"-"`
-
-	// Record creation timestamp
-	CreatedAt *time.Time `db:"created_at" json:"-"`
-
-	// Record update timestamp
-	UpdatedAt *time.Time `db:"updated_at" json:"-"`
 }
-
-// GetID will return the value of ID.
-func (c *Commit) GetID() int32 { return c.ID }
-
-// GetBranchID will return the value of BranchID.
-func (c *Commit) GetBranchID() int32 { return c.BranchID }
-
-// GetCommitHash will return the value of CommitHash.
-func (c *Commit) GetCommitHash() string { return c.CommitHash }
-
-// GetAuthor will return the value of Author.
-func (c *Commit) GetAuthor() string { return c.Author }
-
-// GetMessage will return the value of Message.
-func (c *Commit) GetMessage() string { return c.Message }
-
-// GetCommittedAt will return the value of CommittedAt.
-func (c *Commit) GetCommittedAt() *time.Time { return c.CommittedAt }
-
-// SetCommittedAt sets CommittedAt to the provided value.
-func (c *Commit) SetCommittedAt(stamp time.Time) { c.CommittedAt = &stamp }
-
-// GetCreatedAt will return the value of CreatedAt.
-func (c *Commit) GetCreatedAt() *time.Time { return c.CreatedAt }
-
-// SetCreatedAt sets CreatedAt to the provided value.
-func (c *Commit) SetCreatedAt(stamp time.Time) { c.CreatedAt = &stamp }
-
-// GetUpdatedAt will return the value of UpdatedAt.
-func (c *Commit) GetUpdatedAt() *time.Time { return c.UpdatedAt }
-
-// SetUpdatedAt sets UpdatedAt to the provided value.
-func (c *Commit) SetUpdatedAt(stamp time.Time) { c.UpdatedAt = &stamp }
 
 // CommitTable is the name of the table in the DB.
 const CommitTable = "`commit`"
 
 // CommitFields is a list of all columns in the DB table.
-var CommitFields = []string{"id", "branch_id", "commit_hash", "author", "message", "committed_at", "created_at", "updated_at"}
+var CommitFields = []string{}
 
 // CommitPrimaryFields are the primary key fields in the DB table.
-var CommitPrimaryFields = []string{"id"}
+var CommitPrimaryFields = []string{}
 
 // Migrations generated for db table `migrations`.
 //
 // Migration log of applied migrations.
 type Migrations struct {
-	// Microservice or project name
-	Project string `db:"project" json:"-"`
-
-	// yyyy-mm-dd-HHMMSS.sql
-	Filename string `db:"filename" json:"-"`
-
-	// Statement number from SQL file
-	StatementIndex int32 `db:"statement_index" json:"-"`
-
-	// ok or full error message
-	Status string `db:"status" json:"-"`
 }
-
-// GetProject will return the value of Project.
-func (m *Migrations) GetProject() string { return m.Project }
-
-// GetFilename will return the value of Filename.
-func (m *Migrations) GetFilename() string { return m.Filename }
-
-// GetStatementIndex will return the value of StatementIndex.
-func (m *Migrations) GetStatementIndex() int32 { return m.StatementIndex }
-
-// GetStatus will return the value of Status.
-func (m *Migrations) GetStatus() string { return m.Status }
 
 // MigrationsTable is the name of the table in the DB.
 const MigrationsTable = "`migrations`"
 
 // MigrationsFields is a list of all columns in the DB table.
-var MigrationsFields = []string{"project", "filename", "statement_index", "status"}
+var MigrationsFields = []string{}
 
 // MigrationsPrimaryFields are the primary key fields in the DB table.
-var MigrationsPrimaryFields = []string{"project", "filename"}
+var MigrationsPrimaryFields = []string{}
 
 // Repository generated for db table `repository`.
 //
 // Stores basic information about repositories.
 type Repository struct {
-	// Repository ID
-	ID int32 `db:"id" json:"-"`
-
-	// Repository name
-	Name string `db:"name" json:"-"`
-
-	// Repository URL
-	URL string `db:"url" json:"-"`
-
-	// Record creation timestamp
-	CreatedAt *time.Time `db:"created_at" json:"-"`
-
-	// Record update timestamp
-	UpdatedAt *time.Time `db:"updated_at" json:"-"`
 }
-
-// GetID will return the value of ID.
-func (r *Repository) GetID() int32 { return r.ID }
-
-// GetName will return the value of Name.
-func (r *Repository) GetName() string { return r.Name }
-
-// GetURL will return the value of URL.
-func (r *Repository) GetURL() string { return r.URL }
-
-// GetCreatedAt will return the value of CreatedAt.
-func (r *Repository) GetCreatedAt() *time.Time { return r.CreatedAt }
-
-// SetCreatedAt sets CreatedAt to the provided value.
-func (r *Repository) SetCreatedAt(stamp time.Time) { r.CreatedAt = &stamp }
-
-// GetUpdatedAt will return the value of UpdatedAt.
-func (r *Repository) GetUpdatedAt() *time.Time { return r.UpdatedAt }
-
-// SetUpdatedAt sets UpdatedAt to the provided value.
-func (r *Repository) SetUpdatedAt(stamp time.Time) { r.UpdatedAt = &stamp }
 
 // RepositoryTable is the name of the table in the DB.
 const RepositoryTable = "`repository`"
 
 // RepositoryFields is a list of all columns in the DB table.
-var RepositoryFields = []string{"id", "name", "url", "created_at", "updated_at"}
+var RepositoryFields = []string{}
 
 // RepositoryPrimaryFields are the primary key fields in the DB table.
-var RepositoryPrimaryFields = []string{"id"}
+var RepositoryPrimaryFields = []string{}
 
 func (a *Asset) Insert(opts ...QueryOption) string {
 	cfg := (&QueryConfig{Table: AssetTable, Statement: "INSERT INTO"}).Apply(opts...)

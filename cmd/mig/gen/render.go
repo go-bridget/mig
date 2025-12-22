@@ -2,23 +2,21 @@ package gen
 
 import (
 	"os"
+	"slices"
 
 	"github.com/pkg/errors"
 
 	"github.com/go-bridget/mig/cmd/mig/gen/golang"
 	"github.com/go-bridget/mig/cmd/mig/gen/model"
-	"github.com/go-bridget/mig/cmd/mig/gen/php81"
-	"github.com/go-bridget/mig/cmd/mig/internal"
+	migmodel "github.com/go-bridget/mig/model"
 )
 
-func render(options model.Options, tables []*internal.Table) error {
+func render(options model.Options, tables []*migmodel.Table) error {
 	language := options.Language
 	languages := []string{
 		"go",
-		"php",
-		"php81",
 	}
-	if !internal.Contains(languages, language) {
+	if !slices.Contains(languages, language) {
 		return errors.Errorf("invalid language: %s", language)
 	}
 
@@ -30,8 +28,6 @@ func render(options model.Options, tables []*internal.Table) error {
 	switch language {
 	case "go":
 		return golang.Render(options, tables)
-	case "php", "php81":
-		return php81.Render(options, tables)
 	}
 	return nil
 }

@@ -9,9 +9,10 @@ import (
 	"strings"
 
 	"github.com/go-bridget/mig/cmd/mig/internal"
+	"github.com/go-bridget/mig/model"
 )
 
-func renderMarkdownTable(table *internal.Table) []byte {
+func renderMarkdownTable(table *model.Table) []byte {
 	// calculate initial padding from table header
 	titles := []string{"Name", "Type", "Key", "Comment"}
 	padding := map[string]int{}
@@ -80,7 +81,7 @@ func renderMarkdownTable(table *internal.Table) []byte {
 	return buf.Bytes()
 }
 
-func renderMarkdown(basePath string, filename string, tables []*internal.Table) error {
+func renderMarkdown(basePath string, filename string, tables []*model.Table) error {
 	// create output folder
 	if err := os.MkdirAll(basePath, 0755); err != nil {
 		return err
