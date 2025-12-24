@@ -36,7 +36,12 @@ func renderMarkdownTable(table *model.Table) []byte {
 			column.Comment = internal.Title(column.Name)
 		}
 		padding["Name"] = max(padding["Name"], len(column.Name))
-		padding["Type"] = max(padding["Type"], len(column.Type))
+		// Use DataType for display (normalized type)
+		typeStr := column.DataType
+		if typeStr == "" {
+			typeStr = column.Type
+		}
+		padding["Type"] = max(padding["Type"], len(typeStr))
 		padding["Key"] = max(padding["Key"], len(column.Key))
 		padding["Comment"] = max(padding["Comment"], len(column.Comment))
 	}
@@ -76,11 +81,15 @@ func renderMarkdownTable(table *model.Table) []byte {
 
 	// table body
 	for _, column := range table.Columns {
-		row := []interface{}{column.Name, column.Type, column.Key, column.Comment}
+		// Use DataType for display (normalized type)
+		typeStr := column.DataType
+		if typeStr == "" {
+			typeStr = column.Type
+		}
+		row := []interface{}{column.Name, typeStr, column.Key, column.Comment}
 		buf.WriteString(fmt.Sprintf(format, row...))
 	}
 
-	// return byte slice for writing to file
 	return buf.Bytes()
 }
 

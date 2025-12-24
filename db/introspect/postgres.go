@@ -13,11 +13,11 @@ import (
 	"github.com/go-bridget/mig/model"
 )
 
-// postgresDescriber implements Describer for PostgreSQL
-type postgresDescriber struct{}
+// PostgresDescriber implements Describer for PostgreSQL
+type PostgresDescriber struct{}
 
-// Describe returns column metadata for a PostgreSQL query by creating a temporary view
-func (d *postgresDescriber) Describe(ctx context.Context, db *sqlx.DB, query string) ([]*model.Column, error) {
+// Describe returns column metadata from a query.
+func (d *PostgresDescriber) Describe(ctx context.Context, db *sqlx.DB, query string) ([]*model.Column, error) {
 	var err error
 
 	// Normalize query
@@ -101,8 +101,8 @@ func (d *postgresDescriber) Describe(ctx context.Context, db *sqlx.DB, query str
 	return columns, nil
 }
 
-// DescribeTable returns the structure of a specific table from the database schema
-func (d *postgresDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tableName string) (*model.Table, error) {
+// DescribeTable returns the structure of a table.
+func (d *PostgresDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tableName string) (*model.Table, error) {
 	table := &model.Table{
 		Name: tableName,
 	}
@@ -144,11 +144,19 @@ func (d *postgresDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tabl
 
 	// Enrich columns with normalized type and extract ENUM values
 	for _, col := range columns {
+		// Parse PostgreSQL type aliases (int2, int4, int8) to extract size
+		// Keep the original type (e.g., int8, int4) but extract the size in bytes
+		_, sizeBytes := ParsePostgresIntType(col.Type)
+		if sizeBytes > 0 {
+			col.Size = sizeBytes
+		}
+
 		// Try to extract ENUM values for all columns (custom types and enum types)
 		// extractPostgresEnumValues will return nil if the type is not an enum
 		enumVals := extractPostgresEnumValues(ctx, db, col.Type)
 		if enumVals != nil && len(enumVals) > 0 {
-			col.EnumValues = enumVals
+			col.Values = enumVals
+			col.EnumValues = enumVals // Keep for backward compatibility
 		}
 		// Normalize the type
 		NormalizeColumnType(col, "postgres")
@@ -168,9 +176,8 @@ func (d *postgresDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tabl
 	return table, nil
 }
 
-// ListTables returns all tables in the current schema.
-// Note: Columns are not populated. Use DescribeTable to fetch columns for a specific table.
-func (d *postgresDescriber) ListTables(ctx context.Context, db *sqlx.DB) ([]*model.Table, error) {
+// ListTables returns all tables without columns populated.
+func (d *PostgresDescriber) ListTables(ctx context.Context, db *sqlx.DB) ([]*model.Table, error) {
 	tables := []*model.Table{}
 
 	// Get all tables in current schema (excluding system tables)
@@ -190,8 +197,8 @@ func (d *postgresDescriber) ListTables(ctx context.Context, db *sqlx.DB) ([]*mod
 	return tables, nil
 }
 
-// TableIndexes returns all indexes for a PostgreSQL table
-func (d *postgresDescriber) TableIndexes(ctx context.Context, db *sqlx.DB, tableName string) ([]*model.Index, error) {
+// TableIndexes returns all indexes for a table.
+func (d *PostgresDescriber) TableIndexes(ctx context.Context, db *sqlx.DB, tableName string) ([]*model.Index, error) {
 	type indexInfo struct {
 		Name    string         `db:"name"`
 		Columns pq.StringArray `db:"columns"`
@@ -232,7 +239,7 @@ func (d *postgresDescriber) TableIndexes(ctx context.Context, db *sqlx.DB, table
 	return indexes, nil
 }
 
-// extractPostgresEnumValues fetches the allowed values for a PostgreSQL ENUM type
+// extractPostgresEnumValues fetches the allowed values for an ENUM type.
 func extractPostgresEnumValues(ctx context.Context, db *sqlx.DB, enumTypeName string) []string {
 	var values []string
 

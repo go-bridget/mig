@@ -5,11 +5,12 @@ import (
 	"os"
 	"slices"
 
+	"github.com/pkg/errors"
+
 	"github.com/go-bridget/mig/cli"
 	"github.com/go-bridget/mig/cmd/mig/internal"
 	"github.com/go-bridget/mig/db"
 	"github.com/go-bridget/mig/model"
-	"github.com/pkg/errors"
 )
 
 const Name = "Generate source code from DB schema"

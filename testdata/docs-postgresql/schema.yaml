@@ -2,33 +2,34 @@
   comment: Core event table for distributed job queue system
   columns:
     - name: id
-      type: int8
+      type: integer
       key: PRI
       comment: Unique event identifier
-      datatype: int8
-      normalized_type: integer
+      datatype: integer
+      size: 8
     - name: title
       type: varchar
       comment: Event title or job name
-      datatype: varchar
-      normalized_type: text
+      datatype: text
     - name: description
       type: text
       comment: Detailed event description
       datatype: text
-      normalized_type: text
     - name: tags
       type: text
       key: MUL
       comment: Comma-separated tags for routing
       datatype: text
-      normalized_type: text
     - name: status
       type: event_status
       key: MUL
       comment: Current event state
-      datatype: event_status
-      normalized_type: enum
+      datatype: enum
+      values:
+        - COMPLETED
+        - FAILED
+        - PENDING
+        - PROCESSING
       enum_values:
         - COMPLETED
         - FAILED
@@ -37,34 +38,30 @@
     - name: payload
       type: jsonb
       comment: Event payload with job-specific data
-      datatype: jsonb
-      normalized_type: text
+      datatype: text
     - name: retry_count
-      type: int4
+      type: integer
       comment: Number of failed attempts
-      datatype: int4
-      normalized_type: integer
+      datatype: integer
+      size: 4
     - name: max_retries
-      type: int4
+      type: integer
       comment: Maximum allowed retry attempts
-      datatype: int4
-      normalized_type: integer
+      datatype: integer
+      size: 4
     - name: next_retry_at
       type: timestamp
       key: MUL
       comment: When to retry after failure
       datatype: timestamp
-      normalized_type: timestamp
     - name: created_at
       type: timestamp
       comment: Event creation timestamp
       datatype: timestamp
-      normalized_type: timestamp
     - name: updated_at
       type: timestamp
       comment: Last update timestamp
       datatype: timestamp
-      normalized_type: timestamp
   indexes:
     - name: event_pkey
       columns:
@@ -84,49 +81,45 @@
   comment: Audit trail of worker actions on events
   columns:
     - name: id
-      type: int8
+      type: integer
       key: PRI
       comment: Log entry identifier
-      datatype: int8
-      normalized_type: integer
+      datatype: integer
+      size: 8
     - name: event_id
-      type: int8
+      type: integer
       key: MUL
       comment: Reference to event
-      datatype: int8
-      normalized_type: integer
+      datatype: integer
+      size: 8
     - name: worker_id
       type: varchar
       key: MUL
       comment: Unique worker identifier
-      datatype: varchar
-      normalized_type: text
+      datatype: text
     - name: action
       type: varchar
       comment: Action performed PICKED STARTED COMPLETED FAILED
-      datatype: varchar
-      normalized_type: text
+      datatype: text
     - name: status_code
-      type: int4
+      type: integer
       comment: HTTP-like status code for outcome
-      datatype: int4
-      normalized_type: integer
+      datatype: integer
+      size: 4
     - name: error_message
       type: text
       comment: Error details if action failed
       datatype: text
-      normalized_type: text
     - name: execution_time_ms
-      type: int4
+      type: integer
       comment: Milliseconds taken to execute
-      datatype: int4
-      normalized_type: integer
+      datatype: integer
+      size: 4
     - name: created_at
       type: timestamp
       key: MUL
       comment: When action occurred
       datatype: timestamp
-      normalized_type: timestamp
   indexes:
     - name: event_log_pkey
       columns:
@@ -149,24 +142,21 @@
       type: varchar
       key: PRI
       comment: Microservice or project name
-      datatype: varchar
-      normalized_type: text
+      datatype: text
     - name: filename
       type: varchar
       key: PRI
       comment: yyyy-mm-dd-HHMMSS.sql
-      datatype: varchar
-      normalized_type: text
+      datatype: text
     - name: statement_index
-      type: int4
+      type: integer
       comment: Statement number from SQL file
-      datatype: int4
-      normalized_type: integer
+      datatype: integer
+      size: 4
     - name: status
       type: text
       comment: ok or full error message
       datatype: text
-      normalized_type: text
   indexes:
     - name: migrations_pkey
       columns:

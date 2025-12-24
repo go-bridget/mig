@@ -29,7 +29,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Filter to keep only name, normalized_type, and enum_values
+	// Filter to keep only name, datatype, size, and values
 	filtered := make([]*model.Table, 0, len(tables))
 	for _, table := range tables {
 		newTable := &model.Table{
@@ -37,9 +37,10 @@ func main() {
 		}
 		for _, col := range table.Columns {
 			newTable.Columns = append(newTable.Columns, &model.Column{
-				Name:           col.Name,
-				NormalizedType: col.NormalizedType,
-				EnumValues:     col.EnumValues,
+				Name:     col.Name,
+				DataType: col.DataType,
+				Size:     col.Size,
+				Values:   col.Values,
 			})
 		}
 		if table.Indexes != nil {

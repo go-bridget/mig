@@ -5,30 +5,32 @@
       type: bigint
       key: PRI
       comment: Unique event identifier
-      datatype: bigint
-      normalized_type: integer
+      datatype: integer
     - name: title
-      type: varchar(255)
+      type: varchar
       comment: Event title or job name
-      datatype: varchar
-      normalized_type: text
+      datatype: text
+      size: 255
     - name: description
       type: text
       comment: Detailed event description
       datatype: text
-      normalized_type: text
     - name: tags
-      type: varchar(1000)
+      type: varchar
       key: MUL
       comment: Comma-separated tags for routing
-      datatype: varchar
-      normalized_type: text
+      datatype: text
+      size: 1000
     - name: status
-      type: enum('PENDING','PROCESSING','COMPLETED','FAILED')
+      type: enum
       key: MUL
       comment: Current event state
       datatype: enum
-      normalized_type: enum
+      values:
+        - COMPLETED
+        - FAILED
+        - PENDING
+        - PROCESSING
       enum_values:
         - COMPLETED
         - FAILED
@@ -37,34 +39,28 @@
     - name: payload
       type: json
       comment: Event payload with job-specific data
-      datatype: json
-      normalized_type: text
+      datatype: text
     - name: retry_count
       type: int
       comment: Number of failed attempts
-      datatype: int
-      normalized_type: integer
+      datatype: integer
     - name: max_retries
       type: int
       comment: Maximum allowed retry attempts
-      datatype: int
-      normalized_type: integer
+      datatype: integer
     - name: next_retry_at
       type: timestamp
       key: MUL
       comment: When to retry after failure
       datatype: timestamp
-      normalized_type: timestamp
     - name: created_at
       type: timestamp
       comment: Event creation timestamp
       datatype: timestamp
-      normalized_type: timestamp
     - name: updated_at
       type: timestamp
       comment: Last update timestamp
       datatype: timestamp
-      normalized_type: timestamp
   indexes:
     - name: PRIMARY
       columns:
@@ -87,46 +83,40 @@
       type: bigint
       key: PRI
       comment: Log entry identifier
-      datatype: bigint
-      normalized_type: integer
+      datatype: integer
     - name: event_id
       type: bigint
       key: MUL
       comment: Reference to event
-      datatype: bigint
-      normalized_type: integer
+      datatype: integer
     - name: worker_id
-      type: varchar(255)
+      type: varchar
       key: MUL
       comment: Unique worker identifier
-      datatype: varchar
-      normalized_type: text
+      datatype: text
+      size: 255
     - name: action
-      type: varchar(50)
+      type: varchar
       comment: Action performed PICKED STARTED COMPLETED FAILED
-      datatype: varchar
-      normalized_type: text
+      datatype: text
+      size: 50
     - name: status_code
       type: int
       comment: HTTP-like status code for outcome
-      datatype: int
-      normalized_type: integer
+      datatype: integer
     - name: error_message
       type: text
       comment: Error details if action failed
       datatype: text
-      normalized_type: text
     - name: execution_time_ms
       type: int
       comment: Milliseconds taken to execute
-      datatype: int
-      normalized_type: integer
+      datatype: integer
     - name: created_at
       type: timestamp
       key: MUL
       comment: When action occurred
       datatype: timestamp
-      normalized_type: timestamp
   indexes:
     - name: PRIMARY
       columns:
@@ -146,27 +136,25 @@
   comment: Migration log of applied migrations
   columns:
     - name: project
-      type: varchar(16)
+      type: varchar
       key: PRI
       comment: Microservice or project name
-      datatype: varchar
-      normalized_type: text
+      datatype: text
+      size: 16
     - name: filename
-      type: varchar(255)
+      type: varchar
       key: PRI
       comment: yyyy-mm-dd-HHMMSS.sql
-      datatype: varchar
-      normalized_type: text
+      datatype: text
+      size: 255
     - name: statement_index
       type: int
       comment: Statement number from SQL file
-      datatype: int
-      normalized_type: integer
+      datatype: integer
     - name: status
       type: text
       comment: ok or full error message
       datatype: text
-      normalized_type: text
   indexes:
     - name: PRIMARY
       columns:

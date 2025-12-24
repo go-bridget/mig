@@ -31,11 +31,9 @@ func (app *App) Run() error {
 func (app *App) RunWithArgs(args []string) error {
 	ctx := sigctx.New()
 	commands := parseCommands(args)
-	command, err := app.findCommand(commands, "start")
+	command, err := app.findCommand(commands, "")
 	if err != nil {
-		if !errors.Is(err, errNoCommand) {
-			app.Help()
-		}
+		app.Help()
 		return err
 	}
 
@@ -144,11 +142,11 @@ func (app *App) findCommand(commands []string, fallback string) (*Command, error
 	if info, ok := app.commands[fallback]; ok {
 		return spawn(info)
 	}
-	cmdsStr := ""
 	if len(commands) > 0 {
-		cmdsStr = fmt.Sprintf("[%v] ", commands)
+		return nil, fmt.Errorf("unknown command: %q", commands[0])
 	}
-	return nil, fmt.Errorf("can't find command %s(fallback=%s): %w", cmdsStr, fallback, errNoCommand)
+	return nil, fmt.Errorf("no command specified")
+
 }
 
 // parseCommand cleans up args[], returning only commands

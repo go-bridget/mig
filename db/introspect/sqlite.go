@@ -14,10 +14,10 @@ import (
 )
 
 // sqliteDescriber implements Describer for SQLite
-type sqliteDescriber struct{}
+type SqliteDescriber struct{}
 
-// Describe returns column metadata for a SQLite query by creating a temporary view
-func (d *sqliteDescriber) Describe(ctx context.Context, db *sqlx.DB, query string) ([]*model.Column, error) {
+// Describe returns column metadata from a query.
+func (d *SqliteDescriber) Describe(ctx context.Context, db *sqlx.DB, query string) ([]*model.Column, error) {
 	var err error
 
 	// Normalize query
@@ -96,8 +96,8 @@ func (d *sqliteDescriber) Describe(ctx context.Context, db *sqlx.DB, query strin
 	return columns, nil
 }
 
-// DescribeTable returns the structure of a specific table from the database schema
-func (d *sqliteDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tableName string) (*model.Table, error) {
+// DescribeTable returns the structure of a table.
+func (d *SqliteDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tableName string) (*model.Table, error) {
 	table := &model.Table{
 		Name:    tableName,
 		Comment: "", // SQLite doesn't have table comments
@@ -160,7 +160,8 @@ func (d *sqliteDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tableN
 	for _, col := range columns {
 		// Check if this column has enum-like CHECK constraint
 		if constraints, ok := checkConstraints[col.Name]; ok && len(constraints) > 0 {
-			col.EnumValues = extractEnumValuesFromCheckConstraint(constraints[0])
+			col.Values = extractEnumValuesFromCheckConstraint(constraints[0])
+			col.EnumValues = col.Values // Keep for backward compatibility
 		}
 		// Normalize the type
 		NormalizeColumnType(col, "sqlite3")
@@ -180,9 +181,8 @@ func (d *sqliteDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tableN
 	return table, nil
 }
 
-// ListTables returns all tables in the database (excluding system tables).
-// Note: Columns are not populated. Use DescribeTable to fetch columns for a specific table.
-func (d *sqliteDescriber) ListTables(ctx context.Context, db *sqlx.DB) ([]*model.Table, error) {
+// ListTables returns all tables without columns populated.
+func (d *SqliteDescriber) ListTables(ctx context.Context, db *sqlx.DB) ([]*model.Table, error) {
 	tables := []*model.Table{}
 
 	// Get all user-defined tables (excluding sqlite internal tables)
@@ -193,9 +193,8 @@ func (d *sqliteDescriber) ListTables(ctx context.Context, db *sqlx.DB) ([]*model
 	return tables, nil
 }
 
-// TableIndexes returns all indexes for a SQLite table
-// SQLite doesn't expose the automatic PRIMARY KEY index, so we synthesize it from table_info
-func (d *sqliteDescriber) TableIndexes(ctx context.Context, db *sqlx.DB, tableName string) ([]*model.Index, error) {
+// TableIndexes returns all indexes for a table, synthesizing the primary key from table_info.
+func (d *SqliteDescriber) TableIndexes(ctx context.Context, db *sqlx.DB, tableName string) ([]*model.Index, error) {
 	// Get all indexes for the table (PRAGMA doesn't support parameterized queries)
 	type indexInfo struct {
 		Seq     int    `db:"seq"`

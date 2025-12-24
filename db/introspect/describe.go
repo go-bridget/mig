@@ -31,9 +31,10 @@ type Describer interface {
 	TableIndexes(ctx context.Context, db *sqlx.DB, tableName string) ([]*model.Index, error)
 }
 
-// ListTablesWithColumns returns all tables with their columns populated.
+// ListTablesWithColumns returns all tables with their columns populated and indexes sorted.
 // For each table returned by ListTables, it calls DescribeTable to fetch column information.
 // If a table comment is empty, it's filled with a title-cased version of the table name.
+// Indexes are sorted consistently: primary key first, then by column names.
 func ListTablesWithColumns(ctx context.Context, db *sqlx.DB, describer Describer) ([]*model.Table, error) {
 	// Get list of tables without columns
 	tables, err := describer.ListTables(ctx, db)
@@ -54,6 +55,11 @@ func ListTablesWithColumns(ctx context.Context, db *sqlx.DB, describer Describer
 		if table.Comment == "" {
 			table.Comment = model.Title(table.Name)
 		}
+
+		// Sort indexes for consistent output
+		if len(table.Indexes) > 0 {
+			sortIndexes(table.Indexes)
+		}
 	}
 
 	return tables, nil
@@ -63,11 +69,11 @@ func ListTablesWithColumns(ctx context.Context, db *sqlx.DB, describer Describer
 func NewDescriber(driverName string) (Describer, error) {
 	switch driverName {
 	case "sqlite":
-		return &sqliteDescriber{}, nil
+		return &SqliteDescriber{}, nil
 	case "postgres", "postgresql":
-		return &postgresDescriber{}, nil
+		return &PostgresDescriber{}, nil
 	case "mysql":
-		return &mysqlDescriber{}, nil
+		return &MysqlDescriber{}, nil
 	}
 	return nil, errors.New("Unknown describer: " + driverName)
 }

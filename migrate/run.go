@@ -13,31 +13,31 @@ import (
 	"github.com/go-bridget/mig/db"
 )
 
-// Run takes migrations for a project and executes them against a database
+// Run takes migrations for a project and executes them against a database.
 func Run(options *Options, dbOptions *db.Options) error {
 	ctx := context.Background()
 
-	db, err := db.ConnectWithRetry(ctx, dbOptions)
+	database, err := db.ConnectWithRetry(ctx, dbOptions)
 	if err != nil {
 		return fmt.Errorf("error connecting to database: %w", err)
 	}
 
-	return RunWithDB(db, options)
+	return RunWithDB(ctx, database, options)
 }
 
-// RunWithDB runs the registered migrations from options against a *sqlx.DB.
-func RunWithDB(db *sqlx.DB, options *Options) error {
+// RunWithDB runs the registered migrations from options against a *sqlx.DB with context.
+func RunWithDB(ctx context.Context, sqldb *sqlx.DB, options *Options) error {
 	fs, ok := migrations[options.Project]
 	if !ok {
 		return fmt.Errorf("Migrations for '%s' don't exist", options.Project)
 	}
 
-	return RunWithFS(db, fs, options)
+	return RunWithFS(ctx, sqldb, fs, options)
 }
 
-// RunWithFS runs the passed migrations against a *sqlx.DB.
-func RunWithFS(db *sqlx.DB, fs FS, options *Options) error {
-	migrationFile := fmt.Sprintf("migrations-%s.sql", db.DriverName())
+// RunWithFS runs the passed migrations against a *sqlx.DB with context.
+func RunWithFS(ctx context.Context, sqldb *sqlx.DB, fs FS, options *Options) error {
+	migrationFile := fmt.Sprintf("migrations-%s.sql", sqldb.DriverName())
 	migrationTable, err := statements(migrationsFS.ReadFile(migrationFile))
 	if err != nil {
 		return fmt.Errorf("error reading %s: %w", migrationFile, err)
@@ -54,7 +54,7 @@ func RunWithFS(db *sqlx.DB, fs FS, options *Options) error {
 
 	execQuery := func(idx int, query string) error {
 		printQuery(idx, query)
-		if _, err := db.Exec(query); err != nil && err != sql.ErrNoRows {
+		if _, err := sqldb.ExecContext(ctx, query); err != nil && err != sql.ErrNoRows {
 			return err
 		}
 		return nil
@@ -67,8 +67,37 @@ func RunWithFS(db *sqlx.DB, fs FS, options *Options) error {
 			StatementIndex: -1,
 		}
 
-		if err := db.Get(&status, "select * from migrations where project=? and filename=?", status.Project, status.Filename); err != nil && err != sql.ErrNoRows {
-			return err
+		// Use a transaction with advisory lock to handle concurrent migrations safely
+		tx, err := sqldb.BeginTxx(ctx, nil)
+		if err != nil {
+			return fmt.Errorf("failed to begin transaction: %w", err)
+		}
+		defer tx.Rollback()
+
+		// Acquire lock to prevent concurrent migrations from interfering
+		lockKey := fmt.Sprintf("%s:%s", status.Project, status.Filename)
+		if err := db.AcquireLock(ctx, tx, sqldb.DriverName(), lockKey); err != nil {
+			return fmt.Errorf("failed to acquire migration lock: %w", err)
+		}
+
+		// Re-check if migration record exists under lock
+		query := sqldb.Rebind("select * from migrations where project=? and filename=?")
+		exists := true
+		if err := tx.GetContext(ctx, &status, query, status.Project, status.Filename); err != nil {
+			if err == sql.ErrNoRows {
+				exists = false
+			} else {
+				return err
+			}
+		}
+
+		// If migration already exists and is marked ok, skip it
+		if exists && status.Status == "ok" {
+			if err := tx.Commit(); err != nil {
+				return fmt.Errorf("failed to commit transaction: %w", err)
+			}
+			log.Println(filename, "SKIPPED (already applied)")
+			return nil
 		}
 
 		up := func() error {
@@ -99,38 +128,39 @@ func RunWithFS(db *sqlx.DB, fs FS, options *Options) error {
 			return nil
 		}
 
-		err := up()
+		err = up()
 
-		// log the migration status into the database
-		mapFn := func(fields []string, fn func(string) string) string {
-			sql := make([]string, len(fields))
-			for k, v := range fields {
-				sql[k] = fn(v)
+		// Save migration status to database within transaction
+		if exists {
+			// UPDATE existing record
+			updateQuery := "UPDATE migrations SET statement_index=:statement_index, status=:status WHERE project=:project AND filename=:filename"
+			if _, err := tx.NamedExecContext(ctx, updateQuery, status); err != nil {
+				return fmt.Errorf("updating migration state failed: %w", err)
 			}
-			return strings.Join(sql, ", ")
+		} else {
+			// INSERT new record
+			insertQuery := "INSERT INTO migrations (project, filename, statement_index, status) VALUES (:project, :filename, :statement_index, :status)"
+			if _, err := tx.NamedExecContext(ctx, insertQuery, status); err != nil {
+				return fmt.Errorf("updating migration state failed: %w", err)
+			}
 		}
-		saveQuery := "replace into migrations (%s) values (%s)"
-		fieldNames := strings.Join(MigrationFields, ",")
-		fieldValues := mapFn(MigrationFields, func(in string) string {
-			return ":" + in
-		})
 
-		if _, err := db.NamedExec(fmt.Sprintf(saveQuery, fieldNames, fieldValues), status); err != nil {
-			return fmt.Errorf("updating migration state failed: %w", err)
+		if err := tx.Commit(); err != nil {
+			return fmt.Errorf("failed to commit transaction: %w", err)
 		}
 
 		log.Println(filename, strings.ToUpper(status.Status))
 		return err
 	}
 
-	// run main migration
+	// Run main migration (schema creation for migrations table itself)
 	for idx, stmt := range migrationTable {
 		if err := execQuery(idx, stmt); err != nil {
 			return err
 		}
 	}
 
-	// run service migrations
+	// Run service migrations
 	for _, filename := range fs.Migrations() {
 		if err := migrate(filename); err != nil {
 			return err
