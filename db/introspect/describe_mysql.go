@@ -154,7 +154,8 @@ func (d *mysqlDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tableNa
 	return table, nil
 }
 
-// ListTables returns all tables in the current database with their columns
+// ListTables returns all tables in the current database.
+// Note: Columns are not populated. Use DescribeTable to fetch columns for a specific table.
 func (d *mysqlDescriber) ListTables(ctx context.Context, db *sqlx.DB) ([]*model.Table, error) {
 	const tableType = "BASE TABLE"
 

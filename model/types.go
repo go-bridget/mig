@@ -9,10 +9,10 @@ import (
 
 // Table is a database table with its columns
 type Table struct {
-	Name    string `db:"TABLE_NAME"`
-	Comment string `db:"TABLE_COMMENT"`
+	Name    string `db:"TABLE_NAME" json:"name" yaml:"name"`
+	Comment string `db:"TABLE_COMMENT" json:"comment" yaml:"comment"`
 
-	Columns []*Column
+	Columns []*Column `json:"columns" yaml:"columns"`
 }
 
 // Map returns a typed map of the Table. Comment may be empty.
@@ -38,13 +38,11 @@ var TableFields = []string{"TABLE_NAME", "TABLE_COMMENT"}
 
 // Column is a database column with its metadata
 type Column struct {
-	Name    string `db:"COLUMN_NAME"`
-	Type    string `db:"COLUMN_TYPE"`
-	Key     string `db:"COLUMN_KEY"`
-	Comment string `db:"COLUMN_COMMENT"`
-
-	// Holds the clean data type
-	DataType string `db:"DATA_TYPE"`
+	Name     string `db:"COLUMN_NAME" json:"name" yaml:"name"`
+	Type     string `db:"COLUMN_TYPE" json:"type" yaml:"type"`
+	Key      string `db:"COLUMN_KEY" json:"key,omitempty" yaml:"key,omitempty"`
+	Comment  string `db:"COLUMN_COMMENT" json:"comment" yaml:"comment"`
+	DataType string `db:"DATA_TYPE" json:"datatype" yaml:"datatype"`
 }
 
 // ColumnFields lists database columns from Column{}

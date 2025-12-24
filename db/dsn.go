@@ -3,6 +3,15 @@ package db
 import "strings"
 
 func cleanDSN(dsn string) string {
+	return cleanDSNForDriver(dsn, "")
+}
+
+func cleanDSNForDriver(dsn, driver string) string {
+	// Only apply MySQL-specific options for MySQL driver
+	if driver != "mysql" {
+		return dsn
+	}
+
 	dsn = addOptionToDSN(dsn, "?", "?")
 	dsn = addOptionToDSN(dsn, "collation=", "&collation=utf8mb4_general_ci")
 	dsn = addOptionToDSN(dsn, "parseTime=", "&parseTime=true")

@@ -7,6 +7,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/joho/godotenv/autoload"
+	_ "github.com/lib/pq"
 	_ "modernc.org/sqlite"
 
 	"github.com/go-bridget/mig/cli"

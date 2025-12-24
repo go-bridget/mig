@@ -139,7 +139,7 @@ func (d *sqliteDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tableN
 		var sqliteTypeMapping = map[string]string{
 			"integer": "bigint",
 			"real":    "double",
-			"text":    "varchar",
+			"text":    "text",
 		}
 		if mapped, ok := sqliteTypeMapping[column.DataType]; ok {
 			column.DataType = mapped
@@ -171,7 +171,8 @@ func (d *sqliteDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tableN
 	return table, nil
 }
 
-// ListTables returns all tables in the database (excluding system tables)
+// ListTables returns all tables in the database (excluding system tables).
+// Note: Columns are not populated. Use DescribeTable to fetch columns for a specific table.
 func (d *sqliteDescriber) ListTables(ctx context.Context, db *sqlx.DB) ([]*model.Table, error) {
 	tables := []*model.Table{}
 

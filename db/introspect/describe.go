@@ -24,8 +24,35 @@ type Describer interface {
 	DescribeTable(ctx context.Context, db *sqlx.DB, tableName string) (*model.Table, error)
 
 	// ListTables returns all tables in the database (excluding system/temporary tables).
-	// Each table includes its columns with full metadata.
+	// Note: Columns are not populated. Use DescribeTable to fetch columns for a specific table.
 	ListTables(ctx context.Context, db *sqlx.DB) ([]*model.Table, error)
+}
+
+// ListTablesWithColumns returns all tables with their columns populated.
+// For each table returned by ListTables, it calls DescribeTable to fetch column information.
+// If a table comment is empty, it's filled with a title-cased version of the table name.
+func ListTablesWithColumns(ctx context.Context, db *sqlx.DB, describer Describer) ([]*model.Table, error) {
+	// Get list of tables without columns
+	tables, err := describer.ListTables(ctx, db)
+	if err != nil {
+		return nil, err
+	}
+
+	// Populate columns for each table
+	for _, table := range tables {
+		fullTable, err := describer.DescribeTable(ctx, db, table.Name)
+		if err != nil {
+			return nil, err
+		}
+		table.Columns = fullTable.Columns
+
+		// Fill in comment if empty
+		if table.Comment == "" {
+			table.Comment = model.Title(table.Name)
+		}
+	}
+
+	return tables, nil
 }
 
 // NewDescriber returns a Describer implementation for the given database driver name

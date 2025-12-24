@@ -2,11 +2,14 @@ package docs
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
 	"strings"
+
+	"gopkg.in/yaml.v3"
 
 	"github.com/go-bridget/mig/cmd/mig/internal"
 	"github.com/go-bridget/mig/model"
@@ -128,5 +131,73 @@ func renderMarkdown(basePath string, filename string, tables []*model.Table) err
 
 		fmt.Println(filename)
 	}
+	return nil
+}
+
+func renderYAML(basePath string, filename string, tables []*model.Table) error {
+	// create output folder
+	if err := os.MkdirAll(basePath, 0755); err != nil {
+		return err
+	}
+
+	// filter out ignored tables
+	var filtered []*model.Table
+	for _, table := range tables {
+		if !table.Ignore() {
+			filtered = append(filtered, table)
+		}
+	}
+
+	// marshal to YAML
+	data, err := yaml.Marshal(filtered)
+	if err != nil {
+		return err
+	}
+
+	// write to file or stdout
+	if filename != "" {
+		outputPath := path.Join(basePath, filename)
+		if err := ioutil.WriteFile(outputPath, data, 0644); err != nil {
+			return err
+		}
+		fmt.Println(outputPath)
+	} else {
+		fmt.Print(string(data))
+	}
+
+	return nil
+}
+
+func renderJSON(basePath string, filename string, tables []*model.Table) error {
+	// create output folder
+	if err := os.MkdirAll(basePath, 0755); err != nil {
+		return err
+	}
+
+	// filter out ignored tables
+	var filtered []*model.Table
+	for _, table := range tables {
+		if !table.Ignore() {
+			filtered = append(filtered, table)
+		}
+	}
+
+	// marshal to JSON with indentation
+	data, err := json.MarshalIndent(filtered, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	// write to file or stdout
+	if filename != "" {
+		outputPath := path.Join(basePath, filename)
+		if err := ioutil.WriteFile(outputPath, data, 0644); err != nil {
+			return err
+		}
+		fmt.Println(outputPath)
+	} else {
+		fmt.Print(string(data))
+	}
+
 	return nil
 }

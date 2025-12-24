@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/go-bridget/mig/cli"
-	"github.com/go-bridget/mig/cmd/mig/internal"
 	"github.com/go-bridget/mig/db"
+	"github.com/go-bridget/mig/db/introspect"
 )
 
 const Name = "Generate markdown docs from DB schema"
@@ -16,6 +16,8 @@ func New() *cli.Command {
 
 		output   string
 		filename string
+		yaml     bool
+		jsonOut  bool
 	}
 
 	return &cli.Command{
@@ -25,11 +27,30 @@ func New() *cli.Command {
 
 			cli.StringVar(&config.output, "output", "docs", "Output folder where to generate docs")
 			cli.StringVar(&config.filename, "output-file", "", "Output as single filename")
+			cli.BoolVar(&config.yaml, "yaml", false, "Output as YAML")
+			cli.BoolVar(&config.jsonOut, "json", false, "Output as JSON")
 		},
 		Run: func(ctx context.Context, commands []string) error {
-			tables, err := internal.ListTables(ctx, config.db)
+			handle, err := db.ConnectWithRetry(ctx, config.db)
 			if err != nil {
 				return err
+			}
+
+			desc, err := introspect.NewDescriber(config.db.Credentials.Driver)
+			if err != nil {
+				return err
+			}
+
+			tables, err := introspect.ListTablesWithColumns(ctx, handle, desc)
+			if err != nil {
+				return err
+			}
+
+			if config.yaml {
+				return renderYAML(config.output, config.filename, tables)
+			}
+			if config.jsonOut {
+				return renderJSON(config.output, config.filename, tables)
 			}
 			return renderMarkdown(config.output, config.filename, tables)
 		},

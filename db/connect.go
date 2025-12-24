@@ -38,7 +38,7 @@ func ConnectWithOptions(ctx context.Context, options *Options) (*sqlx.DB, error)
 	if credentials.Driver == "" {
 		credentials.Driver = "mysql"
 	}
-	credentials.DSN = cleanDSN(credentials.DSN)
+	credentials.DSN = cleanDSNForDriver(credentials.DSN, credentials.Driver)
 
 	connect := func() (*sqlx.DB, error) {
 		if options.Connector != nil {

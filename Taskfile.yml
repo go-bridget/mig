@@ -30,33 +30,55 @@ tasks:
       - docker build -t go-bridget/mig -f docker/Dockerfile .
 
   test:
-    desc: "Run tests"
+    desc: "Run tests for all databases"
     deps: [docker:up]
     cmds:
       - defer: { task: docker:down }
       - task: test:sqlite
       - task: test:mysql
+      - task: test:postgresql
 
   test:sqlite:
-    desc: "Test with sqlite"
+    desc: "Test with SQLite"
     cmds:
       - mig migrate stats --path testdata/sqlite/stats --db-driver sqlite --db-dsn ":memory:" --apply --verbose
       - mig migrate stats --path testdata/sqlite/stats --db-driver sqlite --db-dsn "file:test.db" --apply --verbose
+      - mkdir -p testdata/docs-sqlite
+      - mig docs --output=testdata/docs-sqlite --output-file=schema.yaml --yaml --db-driver sqlite --db-dsn "file:test.db"
       - mig gen --lang=go --db-driver sqlite --db-dsn "file:test.db" --output testdata/sqlite/model
 
   test:mysql:
-    desc: "Test with mysql"
+    desc: "Test with MySQL"
     env:
       DB_DSN: 'root:test@tcp(localhost:13306)/stats'
     cmds:
-      - defer: docker compose down
-      - docker compose up -d --wait --remove-orphans
       - mig create stats --db-dsn "root:test@tcp(localhost:13306)/mysql" --apply
       - mig migrate stats --path testdata/schema/stats --apply
       - go test -v -tags integration ./...
-      - rm -rf testdata/gen_* docs/*
-      - mig docs --output=testdata/docs
-      - mig docs --output=testdata/docs --output-file=README.md
+      - mkdir -p testdata/docs-mysql
+      - mig docs --output=testdata/docs-mysql --output-file=schema.yaml --yaml
       - mig gen --lang=go --output=testdata/gen_go
       - mig lint
       - mig version
+
+  test:postgresql:
+    desc: "Test with PostgreSQL"
+    env:
+      DB_DSN: 'postgres://postgres:mig@localhost:15432/stats?sslmode=disable'
+      DB_DRIVER: 'postgres'
+      PGPASSWORD: mig
+    cmds:
+      - psql -h localhost -p 15432 -U postgres -c "CREATE DATABASE IF NOT EXISTS stats" 2>/dev/null || psql -h localhost -p 15432 -U postgres -c "CREATE DATABASE stats" 2>/dev/null || true
+      - mig migrate stats --path testdata/schema/stats --apply
+      - mkdir -p testdata/docs-postgresql
+      - mig docs --output=testdata/docs-postgresql --output-file=schema.yaml --yaml
+
+  test:inspect:
+    desc: "Inspect differences between database outputs using dyff"
+    cmds:
+      - echo "=== SQLite vs MySQL ==="
+      - dyff between testdata/docs-sqlite/schema.yaml testdata/docs-mysql/schema.yaml || true
+      - echo "=== SQLite vs PostgreSQL ==="
+      - dyff between testdata/docs-sqlite/schema.yaml testdata/docs-postgresql/schema.yaml || true
+      - echo "=== MySQL vs PostgreSQL ==="
+      - dyff between testdata/docs-mysql/schema.yaml testdata/docs-postgresql/schema.yaml || true
