@@ -108,6 +108,32 @@ func (q *QueryConfig) Apply(opts ...QueryOption) *QueryConfig {
 	return &cfg
 }
 
+// Event generated for db table `event`.
+type Event struct {
+}
+
+// EventTable is the name of the table in the DB.
+const EventTable = "`event`"
+
+// EventFields is a list of all columns in the DB table.
+var EventFields = []string{}
+
+// EventPrimaryFields are the primary key fields in the DB table.
+var EventPrimaryFields = []string{}
+
+// EventLog generated for db table `event_log`.
+type EventLog struct {
+}
+
+// EventLogTable is the name of the table in the DB.
+const EventLogTable = "`event_log`"
+
+// EventLogFields is a list of all columns in the DB table.
+var EventLogFields = []string{}
+
+// EventLogPrimaryFields are the primary key fields in the DB table.
+var EventLogPrimaryFields = []string{}
+
 // Migrations generated for db table `migrations`.
 type Migrations struct {
 }
@@ -121,18 +147,119 @@ var MigrationsFields = []string{}
 // MigrationsPrimaryFields are the primary key fields in the DB table.
 var MigrationsPrimaryFields = []string{}
 
-// Stats generated for db table `stats`.
-type Stats struct {
+func (e *Event) Insert(opts ...QueryOption) string {
+	cfg := (&QueryConfig{Table: EventTable, Statement: "INSERT INTO"}).Apply(opts...)
+	cols := EventFields
+	if len(cfg.Columns) > 0 {
+		cols = cfg.Columns
+	}
+	return fmt.Sprintf("%s %s (%s) VALUES (:%s)", cfg.Statement, cfg.Table, strings.Join(cols, ", "), strings.Join(cols, ", :"))
 }
 
-// StatsTable is the name of the table in the DB.
-const StatsTable = "`stats`"
+func (e *Event) Select(opts ...QueryOption) string {
+	cfg := (&QueryConfig{Table: EventTable}).Apply(opts...)
+	cols := "*"
+	if len(cfg.Columns) > 0 {
+		cols = strings.Join(cfg.Columns, ", ")
+	}
+	query := fmt.Sprintf("SELECT %s FROM %s", cols, cfg.Table)
+	if cfg.Where != "" {
+		query += " WHERE " + cfg.Where
+	}
+	if cfg.OrderBy != "" {
+		query += " ORDER BY " + cfg.OrderBy
+	}
+	if cfg.LimitOffset > 0 {
+		query += fmt.Sprintf(" LIMIT %d, %d", cfg.LimitStart, cfg.LimitOffset)
+	}
+	return query
+}
 
-// StatsFields is a list of all columns in the DB table.
-var StatsFields = []string{}
+func (e *Event) Update(opts ...QueryOption) string {
+	cfg := (&QueryConfig{Table: EventTable}).Apply(opts...)
+	cols := EventFields
+	if len(cfg.Columns) > 0 {
+		cols = cfg.Columns
+	}
+	setClause := ""
+	for i, col := range cols {
+		if i > 0 {
+			setClause += ", "
+		}
+		setClause += col + "=:" + col
+	}
+	query := fmt.Sprintf("UPDATE %s SET %s", cfg.Table, setClause)
+	if cfg.Where != "" {
+		query += " WHERE " + cfg.Where
+	}
+	return query
+}
 
-// StatsPrimaryFields are the primary key fields in the DB table.
-var StatsPrimaryFields = []string{}
+func (e *Event) Delete(opts ...QueryOption) string {
+	cfg := (&QueryConfig{Table: EventTable}).Apply(opts...)
+	query := fmt.Sprintf("DELETE FROM %s", cfg.Table)
+	if cfg.Where != "" {
+		query += " WHERE " + cfg.Where
+	}
+	return query
+}
+
+func (e *EventLog) Insert(opts ...QueryOption) string {
+	cfg := (&QueryConfig{Table: EventLogTable, Statement: "INSERT INTO"}).Apply(opts...)
+	cols := EventLogFields
+	if len(cfg.Columns) > 0 {
+		cols = cfg.Columns
+	}
+	return fmt.Sprintf("%s %s (%s) VALUES (:%s)", cfg.Statement, cfg.Table, strings.Join(cols, ", "), strings.Join(cols, ", :"))
+}
+
+func (e *EventLog) Select(opts ...QueryOption) string {
+	cfg := (&QueryConfig{Table: EventLogTable}).Apply(opts...)
+	cols := "*"
+	if len(cfg.Columns) > 0 {
+		cols = strings.Join(cfg.Columns, ", ")
+	}
+	query := fmt.Sprintf("SELECT %s FROM %s", cols, cfg.Table)
+	if cfg.Where != "" {
+		query += " WHERE " + cfg.Where
+	}
+	if cfg.OrderBy != "" {
+		query += " ORDER BY " + cfg.OrderBy
+	}
+	if cfg.LimitOffset > 0 {
+		query += fmt.Sprintf(" LIMIT %d, %d", cfg.LimitStart, cfg.LimitOffset)
+	}
+	return query
+}
+
+func (e *EventLog) Update(opts ...QueryOption) string {
+	cfg := (&QueryConfig{Table: EventLogTable}).Apply(opts...)
+	cols := EventLogFields
+	if len(cfg.Columns) > 0 {
+		cols = cfg.Columns
+	}
+	setClause := ""
+	for i, col := range cols {
+		if i > 0 {
+			setClause += ", "
+		}
+		setClause += col + "=:" + col
+	}
+	query := fmt.Sprintf("UPDATE %s SET %s", cfg.Table, setClause)
+	if cfg.Where != "" {
+		query += " WHERE " + cfg.Where
+	}
+	return query
+}
+
+func (e *EventLog) Delete(opts ...QueryOption) string {
+	cfg := (&QueryConfig{Table: EventLogTable}).Apply(opts...)
+	query := fmt.Sprintf("DELETE FROM %s", cfg.Table)
+	if cfg.Where != "" {
+		query += " WHERE " + cfg.Where
+	}
+	return query
+}
 
 func (m *Migrations) Insert(opts ...QueryOption) string {
 	cfg := (&QueryConfig{Table: MigrationsTable, Statement: "INSERT INTO"}).Apply(opts...)
@@ -184,63 +311,6 @@ func (m *Migrations) Update(opts ...QueryOption) string {
 
 func (m *Migrations) Delete(opts ...QueryOption) string {
 	cfg := (&QueryConfig{Table: MigrationsTable}).Apply(opts...)
-	query := fmt.Sprintf("DELETE FROM %s", cfg.Table)
-	if cfg.Where != "" {
-		query += " WHERE " + cfg.Where
-	}
-	return query
-}
-
-func (s *Stats) Insert(opts ...QueryOption) string {
-	cfg := (&QueryConfig{Table: StatsTable, Statement: "INSERT INTO"}).Apply(opts...)
-	cols := StatsFields
-	if len(cfg.Columns) > 0 {
-		cols = cfg.Columns
-	}
-	return fmt.Sprintf("%s %s (%s) VALUES (:%s)", cfg.Statement, cfg.Table, strings.Join(cols, ", "), strings.Join(cols, ", :"))
-}
-
-func (s *Stats) Select(opts ...QueryOption) string {
-	cfg := (&QueryConfig{Table: StatsTable}).Apply(opts...)
-	cols := "*"
-	if len(cfg.Columns) > 0 {
-		cols = strings.Join(cfg.Columns, ", ")
-	}
-	query := fmt.Sprintf("SELECT %s FROM %s", cols, cfg.Table)
-	if cfg.Where != "" {
-		query += " WHERE " + cfg.Where
-	}
-	if cfg.OrderBy != "" {
-		query += " ORDER BY " + cfg.OrderBy
-	}
-	if cfg.LimitOffset > 0 {
-		query += fmt.Sprintf(" LIMIT %d, %d", cfg.LimitStart, cfg.LimitOffset)
-	}
-	return query
-}
-
-func (s *Stats) Update(opts ...QueryOption) string {
-	cfg := (&QueryConfig{Table: StatsTable}).Apply(opts...)
-	cols := StatsFields
-	if len(cfg.Columns) > 0 {
-		cols = cfg.Columns
-	}
-	setClause := ""
-	for i, col := range cols {
-		if i > 0 {
-			setClause += ", "
-		}
-		setClause += col + "=:" + col
-	}
-	query := fmt.Sprintf("UPDATE %s SET %s", cfg.Table, setClause)
-	if cfg.Where != "" {
-		query += " WHERE " + cfg.Where
-	}
-	return query
-}
-
-func (s *Stats) Delete(opts ...QueryOption) string {
-	cfg := (&QueryConfig{Table: StatsTable}).Apply(opts...)
 	query := fmt.Sprintf("DELETE FROM %s", cfg.Table)
 	if cfg.Where != "" {
 		query += " WHERE " + cfg.Where

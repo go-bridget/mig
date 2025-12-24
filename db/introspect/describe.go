@@ -26,6 +26,9 @@ type Describer interface {
 	// ListTables returns all tables in the database (excluding system/temporary tables).
 	// Note: Columns are not populated. Use DescribeTable to fetch columns for a specific table.
 	ListTables(ctx context.Context, db *sqlx.DB) ([]*model.Table, error)
+
+	// TableIndexes returns all indexes for a given table, including primary keys and unique constraints.
+	TableIndexes(ctx context.Context, db *sqlx.DB, tableName string) ([]*model.Index, error)
 }
 
 // ListTablesWithColumns returns all tables with their columns populated.
@@ -38,13 +41,14 @@ func ListTablesWithColumns(ctx context.Context, db *sqlx.DB, describer Describer
 		return nil, err
 	}
 
-	// Populate columns for each table
+	// Populate columns and indexes for each table
 	for _, table := range tables {
 		fullTable, err := describer.DescribeTable(ctx, db, table.Name)
 		if err != nil {
 			return nil, err
 		}
 		table.Columns = fullTable.Columns
+		table.Indexes = fullTable.Indexes
 
 		// Fill in comment if empty
 		if table.Comment == "" {

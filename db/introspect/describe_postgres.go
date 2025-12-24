@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 	"github.com/pkg/errors"
 
 	"github.com/go-bridget/mig/model"
@@ -124,15 +125,15 @@ func (d *postgresDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tabl
 	columns := []*model.Column{}
 	query := `
 		SELECT 
-			column_name as COLUMN_NAME,
-			udt_name as COLUMN_TYPE,
-			COALESCE(col_description(attrelid, attnum), '') as COLUMN_COMMENT,
-			udt_name as DATA_TYPE,
-			CASE WHEN ix.indexname LIKE 'idx_%' THEN '' ELSE '' END as COLUMN_KEY
+			c.column_name as "COLUMN_NAME",
+			c.udt_name as "COLUMN_TYPE",
+			COALESCE(col_description(cl.oid, c.ordinal_position), '') as "COLUMN_COMMENT",
+			c.udt_name as "DATA_TYPE",
+			CASE WHEN pk.conname IS NOT NULL AND a.attnum = ANY(pk.conkey) THEN 'PRI' ELSE '' END as "COLUMN_KEY"
 		FROM information_schema.columns c
-		LEFT JOIN pg_attribute ON c.table_name = pg_class.relname AND c.column_name = pg_attribute.attname
-		LEFT JOIN pg_class ON c.table_catalog = current_database() AND c.table_name = pg_class.relname
-		LEFT JOIN (SELECT tablename, indexname FROM pg_indexes) ix ON c.table_name = ix.tablename
+		LEFT JOIN pg_class cl ON c.table_name = cl.relname AND c.table_schema = cl.relnamespace::regnamespace::name
+		LEFT JOIN pg_attribute a ON cl.oid = a.attrelid AND c.column_name = a.attname
+		LEFT JOIN pg_constraint pk ON cl.oid = pk.conrelid AND pk.contype = 'p'
 		WHERE c.table_name = $1 AND c.table_schema = current_schema()
 		ORDER BY c.ordinal_position
 	`
@@ -141,7 +142,29 @@ func (d *postgresDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tabl
 		return nil, errors.Wrapf(err, "failed to get columns for table %s", tableName)
 	}
 
+	// Enrich columns with normalized type and extract ENUM values
+	for _, col := range columns {
+		// Try to extract ENUM values for all columns (custom types and enum types)
+		// extractPostgresEnumValues will return nil if the type is not an enum
+		enumVals := extractPostgresEnumValues(ctx, db, col.Type)
+		if enumVals != nil && len(enumVals) > 0 {
+			col.EnumValues = enumVals
+		}
+		// Normalize the type
+		NormalizeColumnType(col, "postgres")
+	}
+
+	// Get indexes for this table
+	indexes, err := d.TableIndexes(ctx, db, tableName)
+	if err != nil {
+		return nil, err
+	}
+
+	// Enrich key metadata based on naming conventions and indexes
+	EnrichKeyMetadata(columns, indexes)
+
 	table.Columns = columns
+	table.Indexes = indexes
 	return table, nil
 }
 
@@ -153,8 +176,8 @@ func (d *postgresDescriber) ListTables(ctx context.Context, db *sqlx.DB) ([]*mod
 	// Get all tables in current schema (excluding system tables)
 	if err := db.SelectContext(ctx, &tables, `
 		SELECT 
-			c.relname as NAME,
-			COALESCE(d.description, '') as COMMENT
+			c.relname as "TABLE_NAME",
+			COALESCE(d.description, '') as "TABLE_COMMENT"
 		FROM pg_class c
 		LEFT JOIN pg_description d ON c.oid = d.objoid AND d.objsubid = 0
 		WHERE c.relkind = 'r'
@@ -165,4 +188,65 @@ func (d *postgresDescriber) ListTables(ctx context.Context, db *sqlx.DB) ([]*mod
 	}
 
 	return tables, nil
+}
+
+// TableIndexes returns all indexes for a PostgreSQL table
+func (d *postgresDescriber) TableIndexes(ctx context.Context, db *sqlx.DB, tableName string) ([]*model.Index, error) {
+	type indexInfo struct {
+		Name    string         `db:"name"`
+		Columns pq.StringArray `db:"columns"`
+		Primary bool           `db:"primary"`
+		Unique  bool           `db:"unique"`
+	}
+
+	var indexInfos []indexInfo
+	query := `
+		SELECT 
+			i.relname as name,
+			ARRAY_AGG(a.attname ORDER BY a.attnum) as columns,
+			ix.indisprimary as primary,
+			ix.indisunique as unique
+		FROM pg_class t
+		JOIN pg_index ix ON t.oid = ix.indrelid
+		JOIN pg_class i ON i.oid = ix.indexrelid
+		JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = ANY(ix.indkey)
+		WHERE t.relname = $1 AND t.relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = current_schema())
+		GROUP BY i.relname, ix.indisprimary, ix.indisunique
+		ORDER BY i.relname
+	`
+
+	if err := db.SelectContext(ctx, &indexInfos, query, tableName); err != nil {
+		return nil, errors.Wrapf(err, "failed to get indexes for table %s", tableName)
+	}
+
+	var indexes []*model.Index
+	for _, info := range indexInfos {
+		indexes = append(indexes, &model.Index{
+			Name:    info.Name,
+			Columns: []string(info.Columns),
+			Primary: info.Primary,
+			Unique:  info.Unique,
+		})
+	}
+
+	return indexes, nil
+}
+
+// extractPostgresEnumValues fetches the allowed values for a PostgreSQL ENUM type
+func extractPostgresEnumValues(ctx context.Context, db *sqlx.DB, enumTypeName string) []string {
+	var values []string
+
+	// Query pg_enum to get all values for this enum type
+	query := `
+		SELECT enumlabel FROM pg_enum
+		WHERE enumtypid = (SELECT oid FROM pg_type WHERE typname = $1)
+		ORDER BY enumsortorder
+	`
+
+	if err := db.SelectContext(ctx, &values, query, enumTypeName); err != nil {
+		// Silently ignore if we can't fetch enum values
+		return nil
+	}
+
+	return values
 }

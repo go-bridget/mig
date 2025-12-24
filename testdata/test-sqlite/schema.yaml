@@ -1,0 +1,135 @@
+- name: event
+  comment: ""
+  columns:
+    - name: id
+      type: ""
+      key: PRI
+      comment: ""
+      datatype: ""
+      normalized_type: integer
+    - name: title
+      type: ""
+      comment: ""
+      datatype: ""
+      normalized_type: text
+    - name: description
+      type: ""
+      comment: ""
+      datatype: ""
+      normalized_type: text
+    - name: tags
+      type: ""
+      comment: ""
+      datatype: ""
+      normalized_type: text
+    - name: status
+      type: ""
+      comment: ""
+      datatype: ""
+      normalized_type: enum
+      enum_values:
+        - COMPLETED
+        - FAILED
+        - PENDING
+        - PROCESSING
+    - name: payload
+      type: ""
+      comment: ""
+      datatype: ""
+      normalized_type: text
+    - name: retry_count
+      type: ""
+      comment: ""
+      datatype: ""
+      normalized_type: integer
+    - name: max_retries
+      type: ""
+      comment: ""
+      datatype: ""
+      normalized_type: integer
+    - name: next_retry_at
+      type: ""
+      comment: ""
+      datatype: ""
+      normalized_type: timestamp
+    - name: created_at
+      type: ""
+      comment: ""
+      datatype: ""
+      normalized_type: timestamp
+    - name: updated_at
+      type: ""
+      comment: ""
+      datatype: ""
+      normalized_type: timestamp
+- name: event_log
+  comment: ""
+  columns:
+    - name: id
+      type: ""
+      key: PRI
+      comment: ""
+      datatype: ""
+      normalized_type: integer
+    - name: event_id
+      type: ""
+      key: MUL
+      comment: ""
+      datatype: ""
+      normalized_type: integer
+    - name: worker_id
+      type: ""
+      key: MUL
+      comment: ""
+      datatype: ""
+      normalized_type: text
+    - name: action
+      type: ""
+      comment: ""
+      datatype: ""
+      normalized_type: text
+    - name: status_code
+      type: ""
+      comment: ""
+      datatype: ""
+      normalized_type: integer
+    - name: error_message
+      type: ""
+      comment: ""
+      datatype: ""
+      normalized_type: text
+    - name: execution_time_ms
+      type: ""
+      comment: ""
+      datatype: ""
+      normalized_type: integer
+    - name: created_at
+      type: ""
+      comment: ""
+      datatype: ""
+      normalized_type: timestamp
+- name: migrations
+  comment: ""
+  columns:
+    - name: project
+      type: ""
+      key: PRI
+      comment: ""
+      datatype: ""
+      normalized_type: text
+    - name: filename
+      type: ""
+      key: PRI
+      comment: ""
+      datatype: ""
+      normalized_type: text
+    - name: statement_index
+      type: ""
+      comment: ""
+      datatype: ""
+      normalized_type: integer
+    - name: status
+      type: ""
+      comment: ""
+      datatype: ""
+      normalized_type: text

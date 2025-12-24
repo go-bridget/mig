@@ -150,7 +150,27 @@ func (d *mysqlDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tableNa
 		return nil, errors.Wrapf(err, "failed to get columns for table %s", tableName)
 	}
 
+	// Enrich columns with normalized type and extract ENUM values
+	for _, col := range columns {
+		// Extract ENUM values if present
+		if strings.Contains(strings.ToLower(col.Type), "enum") {
+			col.EnumValues = ExtractEnumValues(col.Type)
+		}
+		// Normalize the type
+		NormalizeColumnType(col, "mysql")
+	}
+
+	// Get indexes for this table
+	indexes, err := d.TableIndexes(ctx, db, tableName)
+	if err != nil {
+		return nil, err
+	}
+
+	// Enrich key metadata based on naming conventions and indexes
+	EnrichKeyMetadata(columns, indexes)
+
 	table.Columns = columns
+	table.Indexes = indexes
 	return table, nil
 }
 
@@ -167,4 +187,41 @@ func (d *mysqlDescriber) ListTables(ctx context.Context, db *sqlx.DB) ([]*model.
 	}
 
 	return tables, nil
+}
+
+// TableIndexes returns all indexes for a MySQL table
+func (d *mysqlDescriber) TableIndexes(ctx context.Context, db *sqlx.DB, tableName string) ([]*model.Index, error) {
+	type indexStatistic struct {
+		IndexName  string `db:"INDEX_NAME"`
+		ColumnList string `db:"COLUMN_LIST"`
+		NonUnique  int    `db:"NON_UNIQUE"`
+	}
+
+	var indexStats []indexStatistic
+	query := `
+		SELECT 
+			INDEX_NAME,
+			GROUP_CONCAT(COLUMN_NAME ORDER BY SEQ_IN_INDEX) as COLUMN_LIST,
+			MAX(NON_UNIQUE) as NON_UNIQUE
+		FROM information_schema.STATISTICS
+		WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?
+		GROUP BY INDEX_NAME
+		ORDER BY INDEX_NAME
+	`
+
+	if err := db.SelectContext(ctx, &indexStats, query, tableName); err != nil {
+		return nil, errors.Wrapf(err, "failed to get indexes for table %s", tableName)
+	}
+
+	var indexes []*model.Index
+	for _, stat := range indexStats {
+		indexes = append(indexes, &model.Index{
+			Name:    stat.IndexName,
+			Columns: strings.Split(stat.ColumnList, ","),
+			Primary: stat.IndexName == "PRIMARY",
+			Unique:  stat.NonUnique == 0,
+		})
+	}
+
+	return indexes, nil
 }

@@ -1,0 +1,85 @@
+- name: event
+  columns:
+    - name: id
+      normalized_type: integer
+    - name: title
+      normalized_type: text
+    - name: description
+      normalized_type: text
+    - name: tags
+      normalized_type: text
+    - name: status
+      normalized_type: enum
+      enum_values:
+        - COMPLETED
+        - FAILED
+        - PENDING
+        - PROCESSING
+    - name: payload
+      normalized_type: text
+    - name: retry_count
+      normalized_type: integer
+    - name: max_retries
+      normalized_type: integer
+    - name: next_retry_at
+      normalized_type: timestamp
+    - name: created_at
+      normalized_type: timestamp
+    - name: updated_at
+      normalized_type: timestamp
+  indexes:
+    - columns:
+        - id
+      primary: true
+      unique: true
+    - columns:
+        - next_retry_at
+    - columns:
+        - status
+    - columns:
+        - tags
+- name: event_log
+  columns:
+    - name: id
+      normalized_type: integer
+    - name: event_id
+      normalized_type: integer
+    - name: worker_id
+      normalized_type: text
+    - name: action
+      normalized_type: text
+    - name: status_code
+      normalized_type: integer
+    - name: error_message
+      normalized_type: text
+    - name: execution_time_ms
+      normalized_type: integer
+    - name: created_at
+      normalized_type: timestamp
+  indexes:
+    - columns:
+        - id
+      primary: true
+      unique: true
+    - columns:
+        - created_at
+    - columns:
+        - event_id
+    - columns:
+        - worker_id
+- name: migrations
+  columns:
+    - name: project
+      normalized_type: text
+    - name: filename
+      normalized_type: text
+    - name: statement_index
+      normalized_type: integer
+    - name: status
+      normalized_type: text
+  indexes:
+    - columns:
+        - project
+        - filename
+      primary: true
+      unique: true

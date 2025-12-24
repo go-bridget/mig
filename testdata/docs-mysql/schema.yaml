@@ -1,0 +1,176 @@
+- name: event
+  comment: Core event table for distributed job queue system
+  columns:
+    - name: id
+      type: bigint
+      key: PRI
+      comment: Unique event identifier
+      datatype: bigint
+      normalized_type: integer
+    - name: title
+      type: varchar(255)
+      comment: Event title or job name
+      datatype: varchar
+      normalized_type: text
+    - name: description
+      type: text
+      comment: Detailed event description
+      datatype: text
+      normalized_type: text
+    - name: tags
+      type: varchar(1000)
+      key: MUL
+      comment: Comma-separated tags for routing
+      datatype: varchar
+      normalized_type: text
+    - name: status
+      type: enum('PENDING','PROCESSING','COMPLETED','FAILED')
+      key: MUL
+      comment: Current event state
+      datatype: enum
+      normalized_type: enum
+      enum_values:
+        - COMPLETED
+        - FAILED
+        - PENDING
+        - PROCESSING
+    - name: payload
+      type: json
+      comment: Event payload with job-specific data
+      datatype: json
+      normalized_type: text
+    - name: retry_count
+      type: int
+      comment: Number of failed attempts
+      datatype: int
+      normalized_type: integer
+    - name: max_retries
+      type: int
+      comment: Maximum allowed retry attempts
+      datatype: int
+      normalized_type: integer
+    - name: next_retry_at
+      type: timestamp
+      key: MUL
+      comment: When to retry after failure
+      datatype: timestamp
+      normalized_type: timestamp
+    - name: created_at
+      type: timestamp
+      comment: Event creation timestamp
+      datatype: timestamp
+      normalized_type: timestamp
+    - name: updated_at
+      type: timestamp
+      comment: Last update timestamp
+      datatype: timestamp
+      normalized_type: timestamp
+  indexes:
+    - name: PRIMARY
+      columns:
+        - id
+      primary: true
+      unique: true
+    - name: idx_event_next_retry_at
+      columns:
+        - next_retry_at
+    - name: idx_event_status
+      columns:
+        - status
+    - name: idx_event_tags
+      columns:
+        - tags
+- name: event_log
+  comment: Audit trail of worker actions on events
+  columns:
+    - name: id
+      type: bigint
+      key: PRI
+      comment: Log entry identifier
+      datatype: bigint
+      normalized_type: integer
+    - name: event_id
+      type: bigint
+      key: MUL
+      comment: Reference to event
+      datatype: bigint
+      normalized_type: integer
+    - name: worker_id
+      type: varchar(255)
+      key: MUL
+      comment: Unique worker identifier
+      datatype: varchar
+      normalized_type: text
+    - name: action
+      type: varchar(50)
+      comment: Action performed PICKED STARTED COMPLETED FAILED
+      datatype: varchar
+      normalized_type: text
+    - name: status_code
+      type: int
+      comment: HTTP-like status code for outcome
+      datatype: int
+      normalized_type: integer
+    - name: error_message
+      type: text
+      comment: Error details if action failed
+      datatype: text
+      normalized_type: text
+    - name: execution_time_ms
+      type: int
+      comment: Milliseconds taken to execute
+      datatype: int
+      normalized_type: integer
+    - name: created_at
+      type: timestamp
+      key: MUL
+      comment: When action occurred
+      datatype: timestamp
+      normalized_type: timestamp
+  indexes:
+    - name: PRIMARY
+      columns:
+        - id
+      primary: true
+      unique: true
+    - name: idx_event_log_created_at
+      columns:
+        - created_at
+    - name: idx_event_log_event_id
+      columns:
+        - event_id
+    - name: idx_event_log_worker_id
+      columns:
+        - worker_id
+- name: migrations
+  comment: Migration log of applied migrations
+  columns:
+    - name: project
+      type: varchar(16)
+      key: PRI
+      comment: Microservice or project name
+      datatype: varchar
+      normalized_type: text
+    - name: filename
+      type: varchar(255)
+      key: PRI
+      comment: yyyy-mm-dd-HHMMSS.sql
+      datatype: varchar
+      normalized_type: text
+    - name: statement_index
+      type: int
+      comment: Statement number from SQL file
+      datatype: int
+      normalized_type: integer
+    - name: status
+      type: text
+      comment: ok or full error message
+      datatype: text
+      normalized_type: text
+  indexes:
+    - name: PRIMARY
+      columns:
+        - project
+        - filename
+      primary: true
+      unique: true

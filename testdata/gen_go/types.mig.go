@@ -108,50 +108,35 @@ func (q *QueryConfig) Apply(opts ...QueryOption) *QueryConfig {
 	return &cfg
 }
 
-// Asset generated for db table `asset`.
+// Event generated for db table `event`.
 //
-// Stores asset information for each commit.
-type Asset struct {
+// Core event table for distributed job queue system.
+type Event struct {
 }
 
-// AssetTable is the name of the table in the DB.
-const AssetTable = "`asset`"
+// EventTable is the name of the table in the DB.
+const EventTable = "`event`"
 
-// AssetFields is a list of all columns in the DB table.
-var AssetFields = []string{}
+// EventFields is a list of all columns in the DB table.
+var EventFields = []string{}
 
-// AssetPrimaryFields are the primary key fields in the DB table.
-var AssetPrimaryFields = []string{}
+// EventPrimaryFields are the primary key fields in the DB table.
+var EventPrimaryFields = []string{}
 
-// Branch generated for db table `branch`.
+// EventLog generated for db table `event_log`.
 //
-// Stores information about branches in repositories.
-type Branch struct {
+// Audit trail of worker actions on events.
+type EventLog struct {
 }
 
-// BranchTable is the name of the table in the DB.
-const BranchTable = "`branch`"
+// EventLogTable is the name of the table in the DB.
+const EventLogTable = "`event_log`"
 
-// BranchFields is a list of all columns in the DB table.
-var BranchFields = []string{}
+// EventLogFields is a list of all columns in the DB table.
+var EventLogFields = []string{}
 
-// BranchPrimaryFields are the primary key fields in the DB table.
-var BranchPrimaryFields = []string{}
-
-// Commit generated for db table `commit`.
-//
-// Stores information about commits in branches.
-type Commit struct {
-}
-
-// CommitTable is the name of the table in the DB.
-const CommitTable = "`commit`"
-
-// CommitFields is a list of all columns in the DB table.
-var CommitFields = []string{}
-
-// CommitPrimaryFields are the primary key fields in the DB table.
-var CommitPrimaryFields = []string{}
+// EventLogPrimaryFields are the primary key fields in the DB table.
+var EventLogPrimaryFields = []string{}
 
 // Migrations generated for db table `migrations`.
 //
@@ -168,32 +153,17 @@ var MigrationsFields = []string{}
 // MigrationsPrimaryFields are the primary key fields in the DB table.
 var MigrationsPrimaryFields = []string{}
 
-// Repository generated for db table `repository`.
-//
-// Stores basic information about repositories.
-type Repository struct {
-}
-
-// RepositoryTable is the name of the table in the DB.
-const RepositoryTable = "`repository`"
-
-// RepositoryFields is a list of all columns in the DB table.
-var RepositoryFields = []string{}
-
-// RepositoryPrimaryFields are the primary key fields in the DB table.
-var RepositoryPrimaryFields = []string{}
-
-func (a *Asset) Insert(opts ...QueryOption) string {
-	cfg := (&QueryConfig{Table: AssetTable, Statement: "INSERT INTO"}).Apply(opts...)
-	cols := AssetFields
+func (e *Event) Insert(opts ...QueryOption) string {
+	cfg := (&QueryConfig{Table: EventTable, Statement: "INSERT INTO"}).Apply(opts...)
+	cols := EventFields
 	if len(cfg.Columns) > 0 {
 		cols = cfg.Columns
 	}
 	return fmt.Sprintf("%s %s (%s) VALUES (:%s)", cfg.Statement, cfg.Table, strings.Join(cols, ", "), strings.Join(cols, ", :"))
 }
 
-func (a *Asset) Select(opts ...QueryOption) string {
-	cfg := (&QueryConfig{Table: AssetTable}).Apply(opts...)
+func (e *Event) Select(opts ...QueryOption) string {
+	cfg := (&QueryConfig{Table: EventTable}).Apply(opts...)
 	cols := "*"
 	if len(cfg.Columns) > 0 {
 		cols = strings.Join(cfg.Columns, ", ")
@@ -211,9 +181,9 @@ func (a *Asset) Select(opts ...QueryOption) string {
 	return query
 }
 
-func (a *Asset) Update(opts ...QueryOption) string {
-	cfg := (&QueryConfig{Table: AssetTable}).Apply(opts...)
-	cols := AssetFields
+func (e *Event) Update(opts ...QueryOption) string {
+	cfg := (&QueryConfig{Table: EventTable}).Apply(opts...)
+	cols := EventFields
 	if len(cfg.Columns) > 0 {
 		cols = cfg.Columns
 	}
@@ -231,8 +201,8 @@ func (a *Asset) Update(opts ...QueryOption) string {
 	return query
 }
 
-func (a *Asset) Delete(opts ...QueryOption) string {
-	cfg := (&QueryConfig{Table: AssetTable}).Apply(opts...)
+func (e *Event) Delete(opts ...QueryOption) string {
+	cfg := (&QueryConfig{Table: EventTable}).Apply(opts...)
 	query := fmt.Sprintf("DELETE FROM %s", cfg.Table)
 	if cfg.Where != "" {
 		query += " WHERE " + cfg.Where
@@ -240,17 +210,17 @@ func (a *Asset) Delete(opts ...QueryOption) string {
 	return query
 }
 
-func (b *Branch) Insert(opts ...QueryOption) string {
-	cfg := (&QueryConfig{Table: BranchTable, Statement: "INSERT INTO"}).Apply(opts...)
-	cols := BranchFields
+func (e *EventLog) Insert(opts ...QueryOption) string {
+	cfg := (&QueryConfig{Table: EventLogTable, Statement: "INSERT INTO"}).Apply(opts...)
+	cols := EventLogFields
 	if len(cfg.Columns) > 0 {
 		cols = cfg.Columns
 	}
 	return fmt.Sprintf("%s %s (%s) VALUES (:%s)", cfg.Statement, cfg.Table, strings.Join(cols, ", "), strings.Join(cols, ", :"))
 }
 
-func (b *Branch) Select(opts ...QueryOption) string {
-	cfg := (&QueryConfig{Table: BranchTable}).Apply(opts...)
+func (e *EventLog) Select(opts ...QueryOption) string {
+	cfg := (&QueryConfig{Table: EventLogTable}).Apply(opts...)
 	cols := "*"
 	if len(cfg.Columns) > 0 {
 		cols = strings.Join(cfg.Columns, ", ")
@@ -268,9 +238,9 @@ func (b *Branch) Select(opts ...QueryOption) string {
 	return query
 }
 
-func (b *Branch) Update(opts ...QueryOption) string {
-	cfg := (&QueryConfig{Table: BranchTable}).Apply(opts...)
-	cols := BranchFields
+func (e *EventLog) Update(opts ...QueryOption) string {
+	cfg := (&QueryConfig{Table: EventLogTable}).Apply(opts...)
+	cols := EventLogFields
 	if len(cfg.Columns) > 0 {
 		cols = cfg.Columns
 	}
@@ -288,65 +258,8 @@ func (b *Branch) Update(opts ...QueryOption) string {
 	return query
 }
 
-func (b *Branch) Delete(opts ...QueryOption) string {
-	cfg := (&QueryConfig{Table: BranchTable}).Apply(opts...)
-	query := fmt.Sprintf("DELETE FROM %s", cfg.Table)
-	if cfg.Where != "" {
-		query += " WHERE " + cfg.Where
-	}
-	return query
-}
-
-func (c *Commit) Insert(opts ...QueryOption) string {
-	cfg := (&QueryConfig{Table: CommitTable, Statement: "INSERT INTO"}).Apply(opts...)
-	cols := CommitFields
-	if len(cfg.Columns) > 0 {
-		cols = cfg.Columns
-	}
-	return fmt.Sprintf("%s %s (%s) VALUES (:%s)", cfg.Statement, cfg.Table, strings.Join(cols, ", "), strings.Join(cols, ", :"))
-}
-
-func (c *Commit) Select(opts ...QueryOption) string {
-	cfg := (&QueryConfig{Table: CommitTable}).Apply(opts...)
-	cols := "*"
-	if len(cfg.Columns) > 0 {
-		cols = strings.Join(cfg.Columns, ", ")
-	}
-	query := fmt.Sprintf("SELECT %s FROM %s", cols, cfg.Table)
-	if cfg.Where != "" {
-		query += " WHERE " + cfg.Where
-	}
-	if cfg.OrderBy != "" {
-		query += " ORDER BY " + cfg.OrderBy
-	}
-	if cfg.LimitOffset > 0 {
-		query += fmt.Sprintf(" LIMIT %d, %d", cfg.LimitStart, cfg.LimitOffset)
-	}
-	return query
-}
-
-func (c *Commit) Update(opts ...QueryOption) string {
-	cfg := (&QueryConfig{Table: CommitTable}).Apply(opts...)
-	cols := CommitFields
-	if len(cfg.Columns) > 0 {
-		cols = cfg.Columns
-	}
-	setClause := ""
-	for i, col := range cols {
-		if i > 0 {
-			setClause += ", "
-		}
-		setClause += col + "=:" + col
-	}
-	query := fmt.Sprintf("UPDATE %s SET %s", cfg.Table, setClause)
-	if cfg.Where != "" {
-		query += " WHERE " + cfg.Where
-	}
-	return query
-}
-
-func (c *Commit) Delete(opts ...QueryOption) string {
-	cfg := (&QueryConfig{Table: CommitTable}).Apply(opts...)
+func (e *EventLog) Delete(opts ...QueryOption) string {
+	cfg := (&QueryConfig{Table: EventLogTable}).Apply(opts...)
 	query := fmt.Sprintf("DELETE FROM %s", cfg.Table)
 	if cfg.Where != "" {
 		query += " WHERE " + cfg.Where
@@ -404,63 +317,6 @@ func (m *Migrations) Update(opts ...QueryOption) string {
 
 func (m *Migrations) Delete(opts ...QueryOption) string {
 	cfg := (&QueryConfig{Table: MigrationsTable}).Apply(opts...)
-	query := fmt.Sprintf("DELETE FROM %s", cfg.Table)
-	if cfg.Where != "" {
-		query += " WHERE " + cfg.Where
-	}
-	return query
-}
-
-func (r *Repository) Insert(opts ...QueryOption) string {
-	cfg := (&QueryConfig{Table: RepositoryTable, Statement: "INSERT INTO"}).Apply(opts...)
-	cols := RepositoryFields
-	if len(cfg.Columns) > 0 {
-		cols = cfg.Columns
-	}
-	return fmt.Sprintf("%s %s (%s) VALUES (:%s)", cfg.Statement, cfg.Table, strings.Join(cols, ", "), strings.Join(cols, ", :"))
-}
-
-func (r *Repository) Select(opts ...QueryOption) string {
-	cfg := (&QueryConfig{Table: RepositoryTable}).Apply(opts...)
-	cols := "*"
-	if len(cfg.Columns) > 0 {
-		cols = strings.Join(cfg.Columns, ", ")
-	}
-	query := fmt.Sprintf("SELECT %s FROM %s", cols, cfg.Table)
-	if cfg.Where != "" {
-		query += " WHERE " + cfg.Where
-	}
-	if cfg.OrderBy != "" {
-		query += " ORDER BY " + cfg.OrderBy
-	}
-	if cfg.LimitOffset > 0 {
-		query += fmt.Sprintf(" LIMIT %d, %d", cfg.LimitStart, cfg.LimitOffset)
-	}
-	return query
-}
-
-func (r *Repository) Update(opts ...QueryOption) string {
-	cfg := (&QueryConfig{Table: RepositoryTable}).Apply(opts...)
-	cols := RepositoryFields
-	if len(cfg.Columns) > 0 {
-		cols = cfg.Columns
-	}
-	setClause := ""
-	for i, col := range cols {
-		if i > 0 {
-			setClause += ", "
-		}
-		setClause += col + "=:" + col
-	}
-	query := fmt.Sprintf("UPDATE %s SET %s", cfg.Table, setClause)
-	if cfg.Where != "" {
-		query += " WHERE " + cfg.Where
-	}
-	return query
-}
-
-func (r *Repository) Delete(opts ...QueryOption) string {
-	cfg := (&QueryConfig{Table: RepositoryTable}).Apply(opts...)
 	query := fmt.Sprintf("DELETE FROM %s", cfg.Table)
 	if cfg.Where != "" {
 		query += " WHERE " + cfg.Where
