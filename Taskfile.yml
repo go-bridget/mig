@@ -41,8 +41,9 @@ tasks:
   test:sqlite:
     desc: "Test with SQLite"
     cmds:
-      - mig migrate stats --path testdata/sqlite/stats --db-driver sqlite --db-dsn ":memory:" --apply --verbose
-      - mig migrate stats --path testdata/sqlite/stats --db-driver sqlite --db-dsn "file:test.db" --apply --verbose
+      - mig migrate events --path testdata/events/sqlite --db-driver sqlite --db-dsn ":memory:" --apply --verbose
+      - mig migrate events --path testdata/events/sqlite --db-driver sqlite --db-dsn "file:test.db" --apply --verbose
+      - mig lint --db-driver sqlite --db-dsn "file:test.db" --skip-comments
       - mkdir -p testdata/docs-sqlite
       - mig docs --output=testdata/docs-sqlite --output-file=schema.yaml --yaml --db-driver sqlite --db-dsn "file:test.db"
       - mig gen --lang=go --db-driver sqlite --db-dsn "file:test.db" --output testdata/sqlite/model
@@ -50,35 +51,37 @@ tasks:
   test:mysql:
     desc: "Test with MySQL"
     env:
-      DB_DSN: 'root:test@tcp(localhost:13306)/stats'
+      DB_DSN: 'root:test@tcp(localhost:13306)/events'
     cmds:
-      - mig create stats --db-dsn "root:test@tcp(localhost:13306)/mysql" --apply
-      - mig migrate stats --path testdata/schema/stats --apply
+      - mig create events --db-dsn "root:test@tcp(localhost:13306)/mysql" --apply
+      - mig migrate events --path testdata/events/mysql --apply
+      - mig lint
       - go test -v -tags integration ./...
       - mkdir -p testdata/docs-mysql
       - mig docs --output=testdata/docs-mysql --output-file=schema.yaml --yaml
       - mig gen --lang=go --output=testdata/gen_go
-      - mig lint
       - mig version
 
   test:postgresql:
     desc: "Test with PostgreSQL"
     env:
-      DB_DSN: 'postgres://postgres:mig@localhost:15432/stats?sslmode=disable'
+      DB_DSN: 'postgres://postgres:mig@localhost:15432/events?sslmode=disable'
       DB_DRIVER: 'postgres'
       PGPASSWORD: mig
     cmds:
-      - psql -h localhost -p 15432 -U postgres -c "CREATE DATABASE IF NOT EXISTS stats" 2>/dev/null || psql -h localhost -p 15432 -U postgres -c "CREATE DATABASE stats" 2>/dev/null || true
-      - mig migrate stats --path testdata/schema/stats --apply
+      - psql -h localhost -p 15432 -U postgres -c "CREATE DATABASE IF NOT EXISTS events" 2>/dev/null || psql -h localhost -p 15432 -U postgres -c "CREATE DATABASE events" 2>/dev/null || true
+      - mig migrate events --path testdata/events/postgres --apply
+      - mig lint
       - mkdir -p testdata/docs-postgresql
       - mig docs --output=testdata/docs-postgresql --output-file=schema.yaml --yaml
 
   test:inspect:
-    desc: "Inspect differences between database outputs using dyff"
+    desc: "Compare schemas (filtered to name, normalized_type, enum_values)"
     cmds:
-      - echo "=== SQLite vs MySQL ==="
-      - dyff between testdata/docs-sqlite/schema.yaml testdata/docs-mysql/schema.yaml || true
-      - echo "=== SQLite vs PostgreSQL ==="
-      - dyff between testdata/docs-sqlite/schema.yaml testdata/docs-postgresql/schema.yaml || true
-      - echo "=== MySQL vs PostgreSQL ==="
-      - dyff between testdata/docs-mysql/schema.yaml testdata/docs-postgresql/schema.yaml || true
+      - mkdir -p testdata/inspect
+      - mig-filter-schema testdata/docs-sqlite/schema.yaml > testdata/inspect/sqlite.yaml
+      - mig-filter-schema testdata/docs-mysql/schema.yaml > testdata/inspect/mysql.yaml
+      - mig-filter-schema testdata/docs-postgresql/schema.yaml > testdata/inspect/postgresql.yaml
+      - dyff between -i testdata/inspect/sqlite.yaml testdata/inspect/mysql.yaml || true
+      - dyff between -i testdata/inspect/sqlite.yaml testdata/inspect/postgresql.yaml || true
+      - dyff between -i testdata/inspect/mysql.yaml testdata/inspect/postgresql.yaml || true
