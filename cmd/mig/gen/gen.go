@@ -2,11 +2,14 @@ package gen
 
 import (
 	"context"
+	"os"
+	"slices"
 
 	"github.com/go-bridget/mig/cli"
-	"github.com/go-bridget/mig/cmd/mig/gen/model"
 	"github.com/go-bridget/mig/cmd/mig/internal"
 	"github.com/go-bridget/mig/db"
+	"github.com/go-bridget/mig/model"
+	"github.com/pkg/errors"
 )
 
 const Name = "Generate source code from DB schema"
@@ -14,7 +17,7 @@ const Name = "Generate source code from DB schema"
 func New() *cli.Command {
 	var config struct {
 		db      *db.Options
-		options model.Options
+		options Options
 	}
 	config.options.Language = "go"
 	config.options.Output = "types"
@@ -35,7 +38,28 @@ func New() *cli.Command {
 			if err != nil {
 				return err
 			}
-			return render(config.options, tables)
+			return cmdGen(config.options, tables)
 		},
 	}
+}
+
+func cmdGen(options Options, tables []*model.Table) error {
+	language := options.Language
+	languages := []string{
+		"go",
+	}
+	if !slices.Contains(languages, language) {
+		return errors.Errorf("invalid language: %s", language)
+	}
+
+	// create output folder
+	if err := os.MkdirAll(options.Output, 0755); err != nil {
+		return err
+	}
+
+	switch language {
+	case "go":
+		return Render(options, tables)
+	}
+	return nil
 }

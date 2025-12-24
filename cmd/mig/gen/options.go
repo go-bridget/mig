@@ -1,4 +1,4 @@
-package model
+package gen
 
 type Options struct {
 	Language string
