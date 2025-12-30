@@ -60,6 +60,15 @@ func RunWithFS(ctx context.Context, sqldb *sqlx.DB, fs FS, options *Options) err
 		return nil
 	}
 
+	// execQueryInTransaction executes a query within the context of a transaction
+	execQueryInTransaction := func(tx *sqlx.Tx, idx int, query string) error {
+		printQuery(idx, query)
+		if _, err := tx.ExecContext(ctx, query); err != nil && err != sql.ErrNoRows {
+			return err
+		}
+		return nil
+	}
+
 	migrate := func(filename string) error {
 		status := Migration{
 			Project:        options.Project,
@@ -115,7 +124,7 @@ func RunWithFS(ctx context.Context, sqldb *sqlx.DB, fs FS, options *Options) err
 				// skip stmt if it has already been applied
 				if !isApplied {
 					status.StatementIndex = idx
-					if err := execQuery(idx, stmt); err != nil {
+					if err := execQueryInTransaction(tx, idx, stmt); err != nil {
 						status.StatementIndex--
 						status.Status = err.Error()
 						return err
