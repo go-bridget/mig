@@ -96,6 +96,7 @@ func WithStatement(stmt string) QueryOption {
 	return &QueryConfig{Statement: stmt}
 }
 
+// Apply will use passed query options to populate the query.
 func (q *QueryConfig) Apply(opts ...QueryOption) *QueryConfig {
 	cfg := *q
 	for _, opt := range opts {
@@ -315,6 +316,7 @@ var MigrationsFields = []string{"project", "filename", "statement_index", "statu
 // MigrationsPrimaryFields are the primary key fields in the DB table.
 var MigrationsPrimaryFields = []string{"project", "filename"}
 
+// Insert starts building an INSERT INTO query.
 func (e *Event) Insert(opts ...QueryOption) string {
 	cfg := (&QueryConfig{Table: EventTable, Statement: "INSERT INTO"}).Apply(opts...)
 	cols := EventFields
@@ -324,6 +326,7 @@ func (e *Event) Insert(opts ...QueryOption) string {
 	return fmt.Sprintf("%s %s (%s) VALUES (:%s)", cfg.Statement, cfg.Table, strings.Join(cols, ", "), strings.Join(cols, ", :"))
 }
 
+// Select starts building a SELECT query.
 func (e *Event) Select(opts ...QueryOption) string {
 	cfg := (&QueryConfig{Table: EventTable}).Apply(opts...)
 	cols := "*"
@@ -343,6 +346,7 @@ func (e *Event) Select(opts ...QueryOption) string {
 	return query
 }
 
+// Update starts building a UPDATE query.
 func (e *Event) Update(opts ...QueryOption) string {
 	cfg := (&QueryConfig{Table: EventTable}).Apply(opts...)
 	cols := EventFields
@@ -363,6 +367,7 @@ func (e *Event) Update(opts ...QueryOption) string {
 	return query
 }
 
+// Delete starts building a DELETE query.
 func (e *Event) Delete(opts ...QueryOption) string {
 	cfg := (&QueryConfig{Table: EventTable}).Apply(opts...)
 	query := fmt.Sprintf("DELETE FROM %s", cfg.Table)
@@ -372,6 +377,7 @@ func (e *Event) Delete(opts ...QueryOption) string {
 	return query
 }
 
+// Insert starts building an INSERT INTO query.
 func (e *EventLog) Insert(opts ...QueryOption) string {
 	cfg := (&QueryConfig{Table: EventLogTable, Statement: "INSERT INTO"}).Apply(opts...)
 	cols := EventLogFields
@@ -381,6 +387,7 @@ func (e *EventLog) Insert(opts ...QueryOption) string {
 	return fmt.Sprintf("%s %s (%s) VALUES (:%s)", cfg.Statement, cfg.Table, strings.Join(cols, ", "), strings.Join(cols, ", :"))
 }
 
+// Select starts building a SELECT query.
 func (e *EventLog) Select(opts ...QueryOption) string {
 	cfg := (&QueryConfig{Table: EventLogTable}).Apply(opts...)
 	cols := "*"
@@ -400,6 +407,7 @@ func (e *EventLog) Select(opts ...QueryOption) string {
 	return query
 }
 
+// Update starts building a UPDATE query.
 func (e *EventLog) Update(opts ...QueryOption) string {
 	cfg := (&QueryConfig{Table: EventLogTable}).Apply(opts...)
 	cols := EventLogFields
@@ -420,6 +428,7 @@ func (e *EventLog) Update(opts ...QueryOption) string {
 	return query
 }
 
+// Delete starts building a DELETE query.
 func (e *EventLog) Delete(opts ...QueryOption) string {
 	cfg := (&QueryConfig{Table: EventLogTable}).Apply(opts...)
 	query := fmt.Sprintf("DELETE FROM %s", cfg.Table)
@@ -429,6 +438,7 @@ func (e *EventLog) Delete(opts ...QueryOption) string {
 	return query
 }
 
+// Insert starts building an INSERT INTO query.
 func (m *Migrations) Insert(opts ...QueryOption) string {
 	cfg := (&QueryConfig{Table: MigrationsTable, Statement: "INSERT INTO"}).Apply(opts...)
 	cols := MigrationsFields
@@ -438,6 +448,7 @@ func (m *Migrations) Insert(opts ...QueryOption) string {
 	return fmt.Sprintf("%s %s (%s) VALUES (:%s)", cfg.Statement, cfg.Table, strings.Join(cols, ", "), strings.Join(cols, ", :"))
 }
 
+// Select starts building a SELECT query.
 func (m *Migrations) Select(opts ...QueryOption) string {
 	cfg := (&QueryConfig{Table: MigrationsTable}).Apply(opts...)
 	cols := "*"
@@ -457,6 +468,7 @@ func (m *Migrations) Select(opts ...QueryOption) string {
 	return query
 }
 
+// Update starts building a UPDATE query.
 func (m *Migrations) Update(opts ...QueryOption) string {
 	cfg := (&QueryConfig{Table: MigrationsTable}).Apply(opts...)
 	cols := MigrationsFields
@@ -477,6 +489,7 @@ func (m *Migrations) Update(opts ...QueryOption) string {
 	return query
 }
 
+// Delete starts building a DELETE query.
 func (m *Migrations) Delete(opts ...QueryOption) string {
 	cfg := (&QueryConfig{Table: MigrationsTable}).Apply(opts...)
 	query := fmt.Sprintf("DELETE FROM %s", cfg.Table)

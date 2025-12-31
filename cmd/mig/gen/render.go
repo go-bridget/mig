@@ -415,6 +415,7 @@ func renderQueryBuilders(buf *bytes.Buffer) {
 	fmt.Fprintln(buf, "}")
 	fmt.Fprintln(buf)
 
+	fmt.Fprintln(buf, "// Apply will use passed query options to populate the query.")
 	fmt.Fprintln(buf, "func (q *QueryConfig) Apply(opts ...QueryOption) *QueryConfig {")
 	fmt.Fprintln(buf, "	cfg := *q")
 	fmt.Fprintln(buf, "	for _, opt := range opts {")
@@ -445,6 +446,7 @@ func renderQueryBuilders(buf *bytes.Buffer) {
 }
 
 func renderQueryMethods(buf *bytes.Buffer, typeName, receiver, tableName string, fields []string) {
+	fmt.Fprintf(buf, "// Insert starts building an INSERT INTO query.\n")
 	fmt.Fprintf(buf, "func (%s *%s) Insert(opts ...QueryOption) string {\n", receiver, typeName)
 	fmt.Fprintf(buf, "	cfg := (&QueryConfig{Table: %sTable, Statement: \"INSERT INTO\"}).Apply(opts...)\n", typeName)
 	fmt.Fprintf(buf, "	cols := %sFields\n", typeName)
@@ -453,6 +455,7 @@ func renderQueryMethods(buf *bytes.Buffer, typeName, receiver, tableName string,
 	fmt.Fprintf(buf, "}\n")
 	fmt.Fprintln(buf)
 
+	fmt.Fprintf(buf, "// Select starts building a SELECT query.\n")
 	fmt.Fprintf(buf, "func (%s *%s) Select(opts ...QueryOption) string {\n", receiver, typeName)
 	fmt.Fprintf(buf, "	cfg := (&QueryConfig{Table: %sTable}).Apply(opts...)\n", typeName)
 	fmt.Fprintf(buf, "	cols := \"*\"\n")
@@ -465,6 +468,7 @@ func renderQueryMethods(buf *bytes.Buffer, typeName, receiver, tableName string,
 	fmt.Fprintf(buf, "}\n")
 	fmt.Fprintln(buf)
 
+	fmt.Fprintf(buf, "// Update starts building a UPDATE query.\n")
 	fmt.Fprintf(buf, "func (%s *%s) Update(opts ...QueryOption) string {\n", receiver, typeName)
 	fmt.Fprintf(buf, "	cfg := (&QueryConfig{Table: %sTable}).Apply(opts...)\n", typeName)
 	fmt.Fprintf(buf, "	cols := %sFields\n", typeName)
@@ -480,6 +484,7 @@ func renderQueryMethods(buf *bytes.Buffer, typeName, receiver, tableName string,
 	fmt.Fprintf(buf, "}\n")
 	fmt.Fprintln(buf)
 
+	fmt.Fprintf(buf, "// Delete starts building a DELETE query.\n")
 	fmt.Fprintf(buf, "func (%s *%s) Delete(opts ...QueryOption) string {\n", receiver, typeName)
 	fmt.Fprintf(buf, "	cfg := (&QueryConfig{Table: %sTable}).Apply(opts...)\n", typeName)
 	fmt.Fprintf(buf, "	query := fmt.Sprintf(\"DELETE FROM %%s\", cfg.Table)\n")
