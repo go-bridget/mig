@@ -1,0 +1,3 @@
+include:
+  - docker/service/mysql-percona.yml
+  - docker/service/postgres.yml
