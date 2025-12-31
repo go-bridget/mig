@@ -14,9 +14,7 @@ import (
 )
 
 // Run takes migrations for a project and executes them against a database.
-func Run(options *Options, dbOptions *db.Options) error {
-	ctx := context.Background()
-
+func Run(ctx context.Context, options *Options, dbOptions *db.Options) error {
 	database, err := db.ConnectWithRetry(ctx, dbOptions)
 	if err != nil {
 		return fmt.Errorf("error connecting to database: %w", err)
@@ -37,7 +35,12 @@ func RunWithDB(ctx context.Context, sqldb *sqlx.DB, options *Options) error {
 
 // RunWithFS runs the passed migrations against a *sqlx.DB with context.
 func RunWithFS(ctx context.Context, sqldb *sqlx.DB, fs FS, options *Options) error {
-	migrationFile := fmt.Sprintf("migrations-%s.sql", sqldb.DriverName())
+	// Normalize driver name for migration file lookup
+	driverName := sqldb.DriverName()
+	if driverName == "pgx" {
+		driverName = "postgres"
+	}
+	migrationFile := fmt.Sprintf("migrations-%s.sql", driverName)
 	migrationTable, err := statements(migrationsFS.ReadFile(migrationFile))
 	if err != nil {
 		return fmt.Errorf("error reading %s: %w", migrationFile, err)

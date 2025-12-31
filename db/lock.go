@@ -12,7 +12,7 @@ import (
 // The lock is released when the transaction commits or rolls back.
 func AcquireLock(ctx context.Context, tx *sqlx.Tx, driverName string, lockKey string) error {
 	switch driverName {
-	case "postgres", "postgresql":
+	case "postgres", "postgresql", "pgx":
 		// PostgreSQL: use advisory lock function
 		// We hash the key to a 64-bit integer
 		hash := hashString(lockKey)

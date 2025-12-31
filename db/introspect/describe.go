@@ -73,7 +73,7 @@ func NewDescriber(db *sqlx.DB) (Describer, error) {
 	switch driverName {
 	case "sqlite":
 		return &SqliteDescriber{}, nil
-	case "postgres", "postgresql":
+	case "postgres", "postgresql", "pgx":
 		return &PostgresDescriber{}, nil
 	case "mysql":
 		return &MysqlDescriber{}, nil

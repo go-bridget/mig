@@ -40,7 +40,7 @@ func New() *cli.Command {
 
 			switch {
 			case config.migrate.Apply:
-				return migrate.Run(config.migrate, config.db)
+				return migrate.Run(ctx, config.migrate, config.db)
 			default:
 				return migrate.Print(config.migrate)
 			}

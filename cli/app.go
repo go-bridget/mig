@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
 
-	"github.com/SentimensRG/sigctx"
 	"github.com/pkg/errors"
 	flag "github.com/spf13/pflag"
 )
@@ -29,7 +30,8 @@ func (app *App) Run() error {
 
 // RunWithArgs is a cli entrypoint which sets up a cancellable context for the command
 func (app *App) RunWithArgs(args []string) error {
-	ctx := sigctx.New()
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
+	defer cancel()
 	commands := parseCommands(args)
 	command, err := app.findCommand(commands, "")
 	if err != nil {

@@ -2,7 +2,7 @@
   comment: Core event table for distributed job queue system
   columns:
     - name: id
-      type: integer
+      type: int8
       key: PRI
       comment: Unique event identifier
       datatype: integer
@@ -40,12 +40,12 @@
       comment: Event payload with job-specific data
       datatype: text
     - name: retry_count
-      type: integer
+      type: int4
       comment: Number of failed attempts
       datatype: integer
       size: 4
     - name: max_retries
-      type: integer
+      type: int4
       comment: Maximum allowed retry attempts
       datatype: integer
       size: 4
@@ -81,13 +81,13 @@
   comment: Audit trail of worker actions on events
   columns:
     - name: id
-      type: integer
+      type: int8
       key: PRI
       comment: Log entry identifier
       datatype: integer
       size: 8
     - name: event_id
-      type: integer
+      type: int8
       key: MUL
       comment: Reference to event
       datatype: integer
@@ -102,7 +102,7 @@
       comment: Action performed PICKED STARTED COMPLETED FAILED
       datatype: text
     - name: status_code
-      type: integer
+      type: int4
       comment: HTTP-like status code for outcome
       datatype: integer
       size: 4
@@ -111,7 +111,7 @@
       comment: Error details if action failed
       datatype: text
     - name: execution_time_ms
-      type: integer
+      type: int4
       comment: Milliseconds taken to execute
       datatype: integer
       size: 4
@@ -149,7 +149,7 @@
       comment: yyyy-mm-dd-HHMMSS.sql
       datatype: text
     - name: statement_index
-      type: integer
+      type: int4
       comment: Statement number from SQL file
       datatype: integer
       size: 4
