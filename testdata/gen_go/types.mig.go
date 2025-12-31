@@ -8,6 +8,7 @@ import (
 	"time"
 )
 
+// QueryOption is implemented by each data model type.
 type QueryOption interface {
 	WithTable(name string) QueryOption
 	WithColumns(cols []string) QueryOption
@@ -17,6 +18,7 @@ type QueryOption interface {
 	WithStatement(stmt string) QueryOption
 }
 
+// QueryConfig is a function-chaining SQL statement type.
 type QueryConfig struct {
 	Table       string
 	Columns     []string
@@ -27,57 +29,69 @@ type QueryConfig struct {
 	Statement   string
 }
 
+// WithTable will set the table name for the query.
 func (q *QueryConfig) WithTable(name string) QueryOption {
 	q.Table = name
 	return q
 }
 
+// WithColumns will set the columns to use for the query.
 func (q *QueryConfig) WithColumns(cols []string) QueryOption {
 	q.Columns = cols
 	return q
 }
 
+// WithWhere will set the where condition for the query.
 func (q *QueryConfig) WithWhere(clause string) QueryOption {
 	q.Where = clause
 	return q
 }
 
+// WithOrderBy will set the order by clause for the query.
 func (q *QueryConfig) WithOrderBy(clause string) QueryOption {
 	q.OrderBy = clause
 	return q
 }
 
+// WithLimit will set the limit clause parameters for the query.
 func (q *QueryConfig) WithLimit(start, offset int) QueryOption {
 	q.LimitStart = start
 	q.LimitOffset = offset
 	return q
 }
 
+// WithStatement will change the statement for the query.
 func (q *QueryConfig) WithStatement(stmt string) QueryOption {
 	q.Statement = stmt
 	return q
 }
 
+// WithTable will set the table name for the query.
 func WithTable(name string) QueryOption {
 	return &QueryConfig{Table: name}
 }
 
+// WithColumns will set the columns to use for the query.
 func WithColumns(cols []string) QueryOption {
 	return &QueryConfig{Columns: cols}
 }
 
+// WithWhere will set the where condition for the query.
 func WithWhere(clause string) QueryOption {
 	return &QueryConfig{Where: clause}
 }
 
+// WithOrderBy will set the order by clause for the query.
 func WithOrderBy(clause string) QueryOption {
 	return &QueryConfig{OrderBy: clause}
 }
 
+// WithLimit will set the limit clause parameters for the query.
 func WithLimit(start, offset int) QueryOption {
 	return &QueryConfig{LimitStart: start, LimitOffset: offset}
 }
 
+// WithStatement will change the statement for the query.
 func WithStatement(stmt string) QueryOption {
 	return &QueryConfig{Statement: stmt}
 }

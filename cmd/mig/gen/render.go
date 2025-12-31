@@ -313,6 +313,7 @@ func Render(options Options, tables []*Table) error {
 }
 
 func renderQueryBuilders(buf *bytes.Buffer) {
+	fmt.Fprintln(buf, "// QueryOption is implemented by each data model type.")
 	fmt.Fprintln(buf, "type QueryOption interface {")
 	fmt.Fprintln(buf, "	WithTable(name string) QueryOption")
 	fmt.Fprintln(buf, "	WithColumns(cols []string) QueryOption")
@@ -323,6 +324,7 @@ func renderQueryBuilders(buf *bytes.Buffer) {
 	fmt.Fprintln(buf, "}")
 	fmt.Fprintln(buf)
 
+	fmt.Fprintln(buf, "// QueryConfig is a function-chaining SQL statement type.")
 	fmt.Fprintln(buf, "type QueryConfig struct {")
 	fmt.Fprintln(buf, "	Table       string")
 	fmt.Fprintln(buf, "	Columns     []string")
@@ -334,30 +336,35 @@ func renderQueryBuilders(buf *bytes.Buffer) {
 	fmt.Fprintln(buf, "}")
 	fmt.Fprintln(buf)
 
+	fmt.Fprintln(buf, "// WithTable will set the table name for the query.")
 	fmt.Fprintln(buf, "func (q *QueryConfig) WithTable(name string) QueryOption {")
 	fmt.Fprintln(buf, "	q.Table = name")
 	fmt.Fprintln(buf, "	return q")
 	fmt.Fprintln(buf, "}")
 	fmt.Fprintln(buf)
 
+	fmt.Fprintln(buf, "// WithColumns will set the columns to use for the query.")
 	fmt.Fprintln(buf, "func (q *QueryConfig) WithColumns(cols []string) QueryOption {")
 	fmt.Fprintln(buf, "	q.Columns = cols")
 	fmt.Fprintln(buf, "	return q")
 	fmt.Fprintln(buf, "}")
 	fmt.Fprintln(buf)
 
+	fmt.Fprintln(buf, "// WithWhere will set the where condition for the query.")
 	fmt.Fprintln(buf, "func (q *QueryConfig) WithWhere(clause string) QueryOption {")
 	fmt.Fprintln(buf, "	q.Where = clause")
 	fmt.Fprintln(buf, "	return q")
 	fmt.Fprintln(buf, "}")
 	fmt.Fprintln(buf)
 
+	fmt.Fprintln(buf, "// WithOrderBy will set the order by clause for the query.")
 	fmt.Fprintln(buf, "func (q *QueryConfig) WithOrderBy(clause string) QueryOption {")
 	fmt.Fprintln(buf, "	q.OrderBy = clause")
 	fmt.Fprintln(buf, "	return q")
 	fmt.Fprintln(buf, "}")
 	fmt.Fprintln(buf)
 
+	fmt.Fprintln(buf, "// WithLimit will set the limit clause parameters for the query.")
 	fmt.Fprintln(buf, "func (q *QueryConfig) WithLimit(start, offset int) QueryOption {")
 	fmt.Fprintln(buf, "	q.LimitStart = start")
 	fmt.Fprintln(buf, "	q.LimitOffset = offset")
@@ -365,37 +372,44 @@ func renderQueryBuilders(buf *bytes.Buffer) {
 	fmt.Fprintln(buf, "}")
 	fmt.Fprintln(buf)
 
+	fmt.Fprintln(buf, "// WithStatement will change the statement for the query.")
 	fmt.Fprintln(buf, "func (q *QueryConfig) WithStatement(stmt string) QueryOption {")
 	fmt.Fprintln(buf, "	q.Statement = stmt")
 	fmt.Fprintln(buf, "	return q")
 	fmt.Fprintln(buf, "}")
 	fmt.Fprintln(buf)
 
+	fmt.Fprintln(buf, "// WithTable will set the table name for the query.")
 	fmt.Fprintln(buf, "func WithTable(name string) QueryOption {")
 	fmt.Fprintln(buf, "	return &QueryConfig{Table: name}")
 	fmt.Fprintln(buf, "}")
 	fmt.Fprintln(buf)
 
+	fmt.Fprintln(buf, "// WithColumns will set the columns to use for the query.")
 	fmt.Fprintln(buf, "func WithColumns(cols []string) QueryOption {")
 	fmt.Fprintln(buf, "	return &QueryConfig{Columns: cols}")
 	fmt.Fprintln(buf, "}")
 	fmt.Fprintln(buf)
 
+	fmt.Fprintln(buf, "// WithWhere will set the where condition for the query.")
 	fmt.Fprintln(buf, "func WithWhere(clause string) QueryOption {")
 	fmt.Fprintln(buf, "	return &QueryConfig{Where: clause}")
 	fmt.Fprintln(buf, "}")
 	fmt.Fprintln(buf)
 
+	fmt.Fprintln(buf, "// WithOrderBy will set the order by clause for the query.")
 	fmt.Fprintln(buf, "func WithOrderBy(clause string) QueryOption {")
 	fmt.Fprintln(buf, "	return &QueryConfig{OrderBy: clause}")
 	fmt.Fprintln(buf, "}")
 	fmt.Fprintln(buf)
 
+	fmt.Fprintln(buf, "// WithLimit will set the limit clause parameters for the query.")
 	fmt.Fprintln(buf, "func WithLimit(start, offset int) QueryOption {")
 	fmt.Fprintln(buf, "	return &QueryConfig{LimitStart: start, LimitOffset: offset}")
 	fmt.Fprintln(buf, "}")
 	fmt.Fprintln(buf)
 
+	fmt.Fprintln(buf, "// WithStatement will change the statement for the query.")
 	fmt.Fprintln(buf, "func WithStatement(stmt string) QueryOption {")
 	fmt.Fprintln(buf, "	return &QueryConfig{Statement: stmt}")
 	fmt.Fprintln(buf, "}")
