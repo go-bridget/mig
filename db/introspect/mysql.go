@@ -198,7 +198,7 @@ func (d *MysqlDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tableNa
 			col.Type, col.Size = parseMySQLType(col.Type)
 		}
 		// Normalize the type
-		NormalizeColumnType(col, "mysql")
+		NormalizeColumnType(col, db.DriverName())
 	}
 
 	// Get indexes for this table

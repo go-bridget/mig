@@ -36,7 +36,7 @@ func New() *cli.Command {
 				return err
 			}
 
-			desc, err := introspect.NewDescriber(config.db.Credentials.Driver)
+			desc, err := introspect.NewDescriber(handle)
 			if err != nil {
 				return err
 			}

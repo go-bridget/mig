@@ -164,7 +164,7 @@ func (d *SqliteDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tableN
 			col.EnumValues = col.Values // Keep for backward compatibility
 		}
 		// Normalize the type
-		NormalizeColumnType(col, "sqlite3")
+		NormalizeColumnType(col, db.DriverName())
 	}
 
 	// Get indexes for this table

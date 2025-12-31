@@ -13,7 +13,8 @@ import (
 func Connect(ctx context.Context) (*sqlx.DB, error) {
 	options := &Options{
 		Connector: func(ctx context.Context, credentials Credentials) (*sql.DB, error) {
-			db, err := sql.Open(credentials.Driver, credentials.DSN)
+			driver := DeriveDriverFromDSN(credentials.DSN)
+			db, err := sql.Open(driver, credentials.DSN)
 			if err != nil {
 				return nil, err
 			}
@@ -25,7 +26,6 @@ func Connect(ctx context.Context) (*sqlx.DB, error) {
 		},
 	}
 	options.Credentials.DSN = os.Getenv("DB_DSN")
-	options.Credentials.Driver = os.Getenv("DB_DRIVER")
 	return ConnectWithRetry(ctx, options)
 }
 
@@ -35,20 +35,18 @@ func ConnectWithOptions(ctx context.Context, options *Options) (*sqlx.DB, error)
 	if credentials.DSN == "" {
 		return nil, errors.New("DSN not provided")
 	}
-	if credentials.Driver == "" {
-		credentials.Driver = "mysql"
-	}
-	credentials.DSN = cleanDSNForDriver(credentials.DSN, credentials.Driver)
+	driver := DeriveDriverFromDSN(credentials.DSN)
+	credentials.DSN = cleanDSNForDriver(credentials.DSN, driver)
 
 	connect := func() (*sqlx.DB, error) {
 		if options.Connector != nil {
 			handle, err := options.Connector(ctx, credentials)
 			if err == nil {
-				return sqlx.NewDb(handle, credentials.Driver), nil
+				return sqlx.NewDb(handle, driver), nil
 			}
 			return nil, errors.WithStack(err)
 		}
-		return sqlx.ConnectContext(ctx, credentials.Driver, credentials.DSN)
+		return sqlx.ConnectContext(ctx, driver, credentials.DSN)
 	}
 
 	db, err := connect()

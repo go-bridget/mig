@@ -39,7 +39,7 @@ func EnrichKeyMetadata(columns []*model.Column, indexes []*model.Index) {
 	}
 }
 
-// NormalizeColumnType sets DataType to the normalized cross-database type.
+// NormalizeColumnType sets DataType to the normalized cross-database type based on the source driver.
 func NormalizeColumnType(column *model.Column, dbDriver string) {
 	typeStr := strings.ToLower(column.Type)
 	dataType := strings.ToLower(column.DataType)

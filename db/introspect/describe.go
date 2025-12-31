@@ -11,6 +11,7 @@ import (
 
 // Describer defines the interface for database-specific schema introspection operations.
 // It can describe tables, queries, and list available tables in the database.
+// The database connection provides both the query execution and driver information.
 type Describer interface {
 	// Describe returns column metadata for a given SQL query or table.
 	// For tables, pass "SELECT * FROM table_name" or just "table_name".
@@ -65,8 +66,10 @@ func ListTablesWithColumns(ctx context.Context, db *sqlx.DB, describer Describer
 	return tables, nil
 }
 
-// NewDescriber returns a Describer implementation for the given database driver name
-func NewDescriber(driverName string) (Describer, error) {
+// NewDescriber returns a Describer implementation for the given database connection.
+// The driver type is determined from the database connection's DriverName().
+func NewDescriber(db *sqlx.DB) (Describer, error) {
+	driverName := db.DriverName()
 	switch driverName {
 	case "sqlite":
 		return &SqliteDescriber{}, nil

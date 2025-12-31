@@ -159,7 +159,7 @@ func (d *PostgresDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tabl
 			col.EnumValues = enumVals // Keep for backward compatibility
 		}
 		// Normalize the type
-		NormalizeColumnType(col, "postgres")
+		NormalizeColumnType(col, db.DriverName())
 	}
 
 	// Get indexes for this table

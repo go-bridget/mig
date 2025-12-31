@@ -16,7 +16,7 @@ func ListTables(ctx context.Context, config *db.Options) ([]*model.Table, error)
 		return nil, errors.Wrap(err, "error connecting to database")
 	}
 
-	desc, err := introspect.NewDescriber(config.Credentials.Driver)
+	desc, err := introspect.NewDescriber(handle)
 	if err != nil {
 		return nil, err
 	}

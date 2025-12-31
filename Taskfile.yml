@@ -41,12 +41,12 @@ tasks:
   test:sqlite:
     desc: "Test with SQLite"
     cmds:
-      - mig migrate events --path testdata/events/sqlite --db-driver sqlite --db-dsn ":memory:" --apply --verbose
-      - mig migrate events --path testdata/events/sqlite --db-driver sqlite --db-dsn "file:test.db" --apply --verbose
-      - mig lint --db-driver sqlite --db-dsn "file:test.db" --skip-comments
+      - mig migrate events --path testdata/events/sqlite --db-dsn ":memory:" --apply --verbose
+      - mig migrate events --path testdata/events/sqlite --db-dsn "file:test.db" --apply --verbose
+      - mig lint --db-dsn "file:test.db" --skip-comments
       - mkdir -p testdata/docs-sqlite
-      - mig docs --output=testdata/docs-sqlite --output-file=schema.yaml --yaml --db-driver sqlite --db-dsn "file:test.db"
-      - mig gen --lang=go --db-driver sqlite --db-dsn "file:test.db" --output testdata/sqlite/model
+      - mig docs --output=testdata/docs-sqlite --output-file=schema.yaml --yaml --db-dsn "file:test.db"
+      - mig gen --lang=go --db-dsn "file:test.db" --output testdata/sqlite/model
 
   test:mysql:
     desc: "Test with MySQL"
@@ -66,7 +66,6 @@ tasks:
     desc: "Test with PostgreSQL"
     env:
       DB_DSN: 'postgres://postgres:mig@localhost:15432/events?sslmode=disable'
-      DB_DRIVER: 'postgres'
       PGPASSWORD: mig
     cmds:
       - psql -h localhost -p 15432 -U postgres -c "CREATE DATABASE IF NOT EXISTS events" 2>/dev/null || psql -h localhost -p 15432 -U postgres -c "CREATE DATABASE events" 2>/dev/null || true

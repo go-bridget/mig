@@ -11,10 +11,9 @@ import (
 )
 
 type (
-	// Credentials contains DSN and Driver
+	// Credentials contains database connection DSN
 	Credentials struct {
-		DSN    string
-		Driver string
+		DSN string
 	}
 
 	// Options include database connection options
@@ -42,7 +41,6 @@ func (options *Options) Init() *Options {
 	options.RetryDelay = 2 * time.Second
 	options.ConnectTimeout = 2 * time.Minute
 	options.Credentials.DSN = os.Getenv("MIG_DB_DSN")
-	options.Credentials.Driver = os.Getenv("MIG_DB_DRIVER")
 	return options
 }
 
@@ -51,7 +49,7 @@ func (options *Options) Bind() *Options {
 	return options.BindWithPrefix("db")
 }
 
-// Bind binds the options variable flags with a custom prefix for multiple database connections
+// BindWithPrefix binds the options variable flags with a custom prefix for multiple database connections
 func (options *Options) BindWithPrefix(prefix string) *Options {
 	p := func(s string) string {
 		if prefix != "" {
@@ -59,7 +57,6 @@ func (options *Options) BindWithPrefix(prefix string) *Options {
 		}
 		return s
 	}
-	cli.StringVar(&options.Credentials.Driver, p("driver"), "mysql", "Database driver")
-	cli.StringVar(&options.Credentials.DSN, p("dsn"), "", "DSN for database connection")
+	cli.StringVar(&options.Credentials.DSN, p("dsn"), "", "DSN for database connection (mysql://, postgres://, sqlite://, or driver-specific format)")
 	return options
 }
