@@ -5,6 +5,7 @@ package gen_go
 import (
 	"fmt"
 	"strings"
+	"time"
 )
 
 type QueryOption interface {
@@ -112,46 +113,193 @@ func (q *QueryConfig) Apply(opts ...QueryOption) *QueryConfig {
 //
 // Core event table for distributed job queue system.
 type Event struct {
+	// Unique event identifier
+	ID int64 `db:"id" json:"-"`
+
+	// Event title or job name
+	Title string `db:"title" json:"-"`
+
+	// Detailed event description
+	Description string `db:"description" json:"-"`
+
+	// Comma-separated tags for routing
+	Tags string `db:"tags" json:"-"`
+
+	// Current event state
+	Status string `db:"status" json:"-"`
+
+	// Event payload with job-specific data
+	Payload string `db:"payload" json:"-"`
+
+	// Number of failed attempts
+	RetryCount int64 `db:"retry_count" json:"-"`
+
+	// Maximum allowed retry attempts
+	MaxRetries int64 `db:"max_retries" json:"-"`
+
+	// When to retry after failure
+	NextRetryAt *time.Time `db:"next_retry_at" json:"-"`
+
+	// Event creation timestamp
+	CreatedAt *time.Time `db:"created_at" json:"-"`
+
+	// Last update timestamp
+	UpdatedAt *time.Time `db:"updated_at" json:"-"`
 }
+
+// GetID will return the value of ID.
+func (e *Event) GetID() int64 { return e.ID }
+
+// GetTitle will return the value of Title.
+func (e *Event) GetTitle() string { return e.Title }
+
+// GetDescription will return the value of Description.
+func (e *Event) GetDescription() string { return e.Description }
+
+// GetTags will return the value of Tags.
+func (e *Event) GetTags() string { return e.Tags }
+
+// GetStatus will return the value of Status.
+func (e *Event) GetStatus() string { return e.Status }
+
+// GetPayload will return the value of Payload.
+func (e *Event) GetPayload() string { return e.Payload }
+
+// GetRetryCount will return the value of RetryCount.
+func (e *Event) GetRetryCount() int64 { return e.RetryCount }
+
+// GetMaxRetries will return the value of MaxRetries.
+func (e *Event) GetMaxRetries() int64 { return e.MaxRetries }
+
+// GetNextRetryAt will return the value of NextRetryAt.
+func (e *Event) GetNextRetryAt() *time.Time { return e.NextRetryAt }
+
+// SetNextRetryAt sets NextRetryAt to the provided value.
+func (e *Event) SetNextRetryAt(stamp time.Time) { e.NextRetryAt = &stamp }
+
+// GetCreatedAt will return the value of CreatedAt.
+func (e *Event) GetCreatedAt() *time.Time { return e.CreatedAt }
+
+// SetCreatedAt sets CreatedAt to the provided value.
+func (e *Event) SetCreatedAt(stamp time.Time) { e.CreatedAt = &stamp }
+
+// GetUpdatedAt will return the value of UpdatedAt.
+func (e *Event) GetUpdatedAt() *time.Time { return e.UpdatedAt }
+
+// SetUpdatedAt sets UpdatedAt to the provided value.
+func (e *Event) SetUpdatedAt(stamp time.Time) { e.UpdatedAt = &stamp }
 
 // EventTable is the name of the table in the DB.
 const EventTable = "`event`"
 
 // EventFields is a list of all columns in the DB table.
-var EventFields = []string{}
+var EventFields = []string{"id", "title", "description", "tags", "status", "payload", "retry_count", "max_retries", "next_retry_at", "created_at", "updated_at"}
 
 // EventPrimaryFields are the primary key fields in the DB table.
-var EventPrimaryFields = []string{}
+var EventPrimaryFields = []string{"id"}
 
 // EventLog generated for db table `event_log`.
 //
 // Audit trail of worker actions on events.
 type EventLog struct {
+	// Log entry identifier
+	ID int64 `db:"id" json:"-"`
+
+	// Reference to event
+	EventID int64 `db:"event_id" json:"-"`
+
+	// Unique worker identifier
+	WorkerID string `db:"worker_id" json:"-"`
+
+	// Action performed PICKED STARTED COMPLETED FAILED
+	Action string `db:"action" json:"-"`
+
+	// HTTP-like status code for outcome
+	StatusCode int64 `db:"status_code" json:"-"`
+
+	// Error details if action failed
+	ErrorMessage string `db:"error_message" json:"-"`
+
+	// Milliseconds taken to execute
+	ExecutionTimeMs int64 `db:"execution_time_ms" json:"-"`
+
+	// When action occurred
+	CreatedAt *time.Time `db:"created_at" json:"-"`
 }
+
+// GetID will return the value of ID.
+func (e *EventLog) GetID() int64 { return e.ID }
+
+// GetEventID will return the value of EventID.
+func (e *EventLog) GetEventID() int64 { return e.EventID }
+
+// GetWorkerID will return the value of WorkerID.
+func (e *EventLog) GetWorkerID() string { return e.WorkerID }
+
+// GetAction will return the value of Action.
+func (e *EventLog) GetAction() string { return e.Action }
+
+// GetStatusCode will return the value of StatusCode.
+func (e *EventLog) GetStatusCode() int64 { return e.StatusCode }
+
+// GetErrorMessage will return the value of ErrorMessage.
+func (e *EventLog) GetErrorMessage() string { return e.ErrorMessage }
+
+// GetExecutionTimeMs will return the value of ExecutionTimeMs.
+func (e *EventLog) GetExecutionTimeMs() int64 { return e.ExecutionTimeMs }
+
+// GetCreatedAt will return the value of CreatedAt.
+func (e *EventLog) GetCreatedAt() *time.Time { return e.CreatedAt }
+
+// SetCreatedAt sets CreatedAt to the provided value.
+func (e *EventLog) SetCreatedAt(stamp time.Time) { e.CreatedAt = &stamp }
 
 // EventLogTable is the name of the table in the DB.
 const EventLogTable = "`event_log`"
 
 // EventLogFields is a list of all columns in the DB table.
-var EventLogFields = []string{}
+var EventLogFields = []string{"id", "event_id", "worker_id", "action", "status_code", "error_message", "execution_time_ms", "created_at"}
 
 // EventLogPrimaryFields are the primary key fields in the DB table.
-var EventLogPrimaryFields = []string{}
+var EventLogPrimaryFields = []string{"id"}
 
 // Migrations generated for db table `migrations`.
 //
 // Migration log of applied migrations.
 type Migrations struct {
+	// Microservice or project name
+	Project string `db:"project" json:"-"`
+
+	// yyyy-mm-dd-HHMMSS.sql
+	Filename string `db:"filename" json:"-"`
+
+	// Statement number from SQL file
+	StatementIndex int64 `db:"statement_index" json:"-"`
+
+	// ok or full error message
+	Status string `db:"status" json:"-"`
 }
+
+// GetProject will return the value of Project.
+func (m *Migrations) GetProject() string { return m.Project }
+
+// GetFilename will return the value of Filename.
+func (m *Migrations) GetFilename() string { return m.Filename }
+
+// GetStatementIndex will return the value of StatementIndex.
+func (m *Migrations) GetStatementIndex() int64 { return m.StatementIndex }
+
+// GetStatus will return the value of Status.
+func (m *Migrations) GetStatus() string { return m.Status }
 
 // MigrationsTable is the name of the table in the DB.
 const MigrationsTable = "`migrations`"
 
 // MigrationsFields is a list of all columns in the DB table.
-var MigrationsFields = []string{}
+var MigrationsFields = []string{"project", "filename", "statement_index", "status"}
 
 // MigrationsPrimaryFields are the primary key fields in the DB table.
-var MigrationsPrimaryFields = []string{}
+var MigrationsPrimaryFields = []string{"project", "filename"}
 
 func (e *Event) Insert(opts ...QueryOption) string {
 	cfg := (&QueryConfig{Table: EventTable, Statement: "INSERT INTO"}).Apply(opts...)

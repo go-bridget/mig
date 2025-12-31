@@ -6,8 +6,8 @@ import (
 	"fmt"
 
 	"github.com/go-bridget/mig/cli"
-	"github.com/go-bridget/mig/cmd/mig/internal"
 	"github.com/go-bridget/mig/db"
+	"github.com/go-bridget/mig/db/introspect"
 )
 
 const Name = "Check schema for best practices and comments"
@@ -31,10 +31,21 @@ func New() *cli.Command {
 			cli.BoolVar(&config.skipPlural, "skip-plural", false, "Skip validating table name for singular form")
 		},
 		Run: func(ctx context.Context, commands []string) error {
-			tables, err := internal.ListTables(ctx, config.db)
+			handle, err := db.ConnectWithRetry(ctx, config.db)
 			if err != nil {
 				return err
 			}
+
+			desc, err := introspect.NewDescriber(handle)
+			if err != nil {
+				return err
+			}
+
+			tables, err := introspect.ListTablesWithColumns(ctx, handle, desc)
+			if err != nil {
+				return err
+			}
+
 			errs := validate(tables, config)
 			if len(errs) > 0 {
 				for _, err := range errs {

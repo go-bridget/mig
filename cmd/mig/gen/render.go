@@ -38,6 +38,11 @@ func isNumeric(column *Column) (string, bool) {
 		typeName = typeName[:idx]
 	}
 
+	// sqlite
+	if typeName == "integer" {
+		return "int64", true
+	}
+
 	val, ok := numericTypes[typeName]
 	return val, ok
 }

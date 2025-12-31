@@ -8,8 +8,8 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/go-bridget/mig/cli"
-	"github.com/go-bridget/mig/cmd/mig/internal"
 	"github.com/go-bridget/mig/db"
+	"github.com/go-bridget/mig/db/introspect"
 	"github.com/go-bridget/mig/model"
 )
 
@@ -35,10 +35,21 @@ func New() *cli.Command {
 			cli.BoolVar(&config.options.Go.SkipJSON, "go.skip-json", false, "Skip JSON tags (go)")
 		},
 		Run: func(ctx context.Context, commands []string) error {
-			tables, err := internal.ListTables(ctx, config.db)
+			handle, err := db.ConnectWithRetry(ctx, config.db)
 			if err != nil {
 				return err
 			}
+
+			desc, err := introspect.NewDescriber(handle)
+			if err != nil {
+				return err
+			}
+
+			tables, err := introspect.ListTablesWithColumns(ctx, handle, desc)
+			if err != nil {
+				return err
+			}
+
 			return cmdGen(config.options, tables)
 		},
 	}

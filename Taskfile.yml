@@ -41,12 +41,12 @@ tasks:
   test:sqlite:
     desc: "Test with SQLite"
     cmds:
-      - mig migrate events --path testdata/events/sqlite --db-dsn ":memory:" --apply --verbose
-      - mig migrate events --path testdata/events/sqlite --db-dsn "file:test.db" --apply --verbose
+      - mig migrate events --path testdata/events/sqlite --db-dsn "sqlite://:memory:" --apply --verbose
+      - mig migrate events --path testdata/events/sqlite --db-dsn "sqlite://test.db" --apply --verbose
       - mig lint --db-dsn "file:test.db" --skip-comments
       - mkdir -p testdata/docs-sqlite
-      - mig docs --output=testdata/docs-sqlite --output-file=schema.yaml --yaml --db-dsn "file:test.db"
-      - mig gen --lang=go --db-dsn "file:test.db" --output testdata/sqlite/model
+      - mig docs --output=testdata/docs-sqlite --output-file=schema.yaml --yaml --db-dsn "sqlite://test.db"
+      - mig gen --lang=go --db-dsn "sqlite://test.db" --output testdata/sqlite/model
 
   test:mysql:
     desc: "Test with MySQL"
