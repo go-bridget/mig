@@ -7,7 +7,7 @@ import (
 
 	"database/sql"
 
-	"github.com/go-bridget/mig/cli"
+	flag "github.com/spf13/pflag"
 )
 
 type (
@@ -44,19 +44,19 @@ func (options *Options) Init() *Options {
 	return options
 }
 
-// Bind binds the options variable flags with `db` prefix for the default database connection
-func (options *Options) Bind() *Options {
-	return options.BindWithPrefix("db")
+// Bind registers database flags on the given FlagSet with `db` prefix.
+func (options *Options) Bind(fs *flag.FlagSet) *Options {
+	return options.BindWithPrefix(fs, "db")
 }
 
-// BindWithPrefix binds the options variable flags with a custom prefix for multiple database connections
-func (options *Options) BindWithPrefix(prefix string) *Options {
+// BindWithPrefix registers database flags on the given FlagSet with a custom prefix for multiple database connections.
+func (options *Options) BindWithPrefix(fs *flag.FlagSet, prefix string) *Options {
 	p := func(s string) string {
 		if prefix != "" {
 			return prefix + "-" + s
 		}
 		return s
 	}
-	cli.StringVar(&options.Credentials.DSN, p("dsn"), "", "DSN for database connection (mysql://, postgres://, sqlite://, or driver-specific format)")
+	fs.StringVar(&options.Credentials.DSN, p("dsn"), "", "DSN for database connection (mysql://, postgres://, sqlite://, or driver-specific format)")
 	return options
 }

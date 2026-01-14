@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	flag "github.com/spf13/pflag"
+
 	"github.com/go-bridget/mig/cli"
 	"github.com/go-bridget/mig/db"
 	"github.com/go-bridget/mig/migrate"
@@ -19,15 +21,17 @@ func New() *cli.Command {
 	}
 
 	return &cli.Command{
-		Bind: func(_ context.Context) {
+		Name:  "migrate",
+		Title: Name,
+		Bind: func(fs *flag.FlagSet) {
 			config.db = db.NewOptions()
-			config.db.Bind()
+			config.db.Bind(fs)
 			config.migrate = migrate.NewOptions()
-			config.migrate.Bind()
+			config.migrate.Bind(fs)
 		},
-		Run: func(ctx context.Context, commands []string) error {
-			if len(commands) > 1 {
-				config.migrate.Project = commands[1]
+		Run: func(ctx context.Context, args []string) error {
+			if len(args) > 0 {
+				config.migrate.Project = args[0]
 			}
 
 			if config.migrate.Project == "" {
@@ -44,7 +48,6 @@ func New() *cli.Command {
 			default:
 				return migrate.Print(config.migrate)
 			}
-			return nil
 		},
 	}
 }

@@ -15,6 +15,13 @@ var (
 	errNoCommand = errors.New("no command found")
 )
 
+// App is the cli entrypoint
+type App struct {
+	Name string
+
+	commands map[string]CommandInfo
+}
+
 // NewApp creates a new App instance
 func NewApp(name string) *App {
 	return &App{
@@ -39,35 +46,41 @@ func (app *App) RunWithArgs(args []string) error {
 		return err
 	}
 
-	flag.Usage = func() {
-		app.HelpCommand(command)
+	// Create a scoped FlagSet for this command
+	fs := flag.NewFlagSet(command.Name, flag.ContinueOnError)
+	fs.Usage = func() {
+		app.HelpCommand(command, fs)
 	}
 
 	// bind command specific flags
 	if command.Bind != nil {
-		command.Bind(ctx)
+		command.Bind(fs)
+	}
+
+	// Strip command names from args before parsing
+	flagArgs := args
+	if len(commands) > 0 {
+		flagArgs = args[len(commands):]
 	}
 
 	// parse flags and set from environment
-	if err := Parse(); err != nil {
-		app.HelpCommand(command)
+	if err := ParseWithFlagSet(fs, flagArgs); err != nil {
+		app.HelpCommand(command, fs)
 		return err
-	}
-
-	// initialize command (pre-load data, etc.)
-	if command.Init != nil {
-		if err := command.Init(ctx); err != nil {
-			app.HelpCommand(command)
-			return err
-		}
 	}
 
 	// Run command if defined
 	if command.Run != nil {
-		err = command.Run(ctx, commands)
+		// Pass remaining command tokens plus any positional args after flags
+		// commands[1:] skips the matched command name, leaving sub-commands/args
+		remainingArgs := fs.Args()
+		if len(commands) > 1 {
+			remainingArgs = append(commands[1:], remainingArgs...)
+		}
+		err = command.Run(ctx, remainingArgs)
 		// don't print help with standard "context canceled" exit
 		if err != nil && !errors.Is(err, context.Canceled) {
-			app.HelpCommand(command)
+			app.HelpCommand(command, fs)
 			return err
 		}
 		return nil
@@ -96,17 +109,11 @@ func (app *App) Help() {
 	fmt.Println()
 }
 
-// Help prints out registered commands for app
-func (app *App) HelpCommand(command *Command) {
-	fmt.Println("Usage:", app.Name, "(command) [--flags]")
+// HelpCommand prints out help for a specific command
+func (app *App) HelpCommand(command *Command, fs *flag.FlagSet) {
+	fmt.Println("Usage:", app.Name, command.Name, "[--flags]")
 	fmt.Println()
-
-	maxLen := len(command.Name)
-	pad := "   "
-	format := pad + "%-" + fmt.Sprintf("%d", maxLen+3) + "s %s\n"
-	fmt.Printf(format, command.Name, command.Title)
-	fmt.Println()
-	PrintDefaults()
+	fs.PrintDefaults()
 	fmt.Println()
 }
 
@@ -161,7 +168,7 @@ func (app *App) findCommand(commands []string, fallback string) (*Command, error
 func parseCommands(args []string) []string {
 	result := []string{}
 	for _, v := range args {
-		if v[0:1] == "-" {
+		if len(v) > 0 && v[0:1] == "-" {
 			break
 		}
 		result = append(result, v)

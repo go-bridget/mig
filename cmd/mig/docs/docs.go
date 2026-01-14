@@ -3,6 +3,8 @@ package docs
 import (
 	"context"
 
+	flag "github.com/spf13/pflag"
+
 	"github.com/go-bridget/mig/cli"
 	"github.com/go-bridget/mig/db"
 	"github.com/go-bridget/mig/db/introspect"
@@ -21,16 +23,18 @@ func New() *cli.Command {
 	}
 
 	return &cli.Command{
-		Bind: func(_ context.Context) {
+		Name:  "docs",
+		Title: Name,
+		Bind: func(fs *flag.FlagSet) {
 			config.db = db.NewOptions()
-			config.db.Bind()
+			config.db.Bind(fs)
 
-			cli.StringVar(&config.output, "output", "docs", "Output folder where to generate docs")
-			cli.StringVar(&config.filename, "output-file", "", "Output as single filename")
-			cli.BoolVar(&config.yaml, "yaml", false, "Output as YAML")
-			cli.BoolVar(&config.jsonOut, "json", false, "Output as JSON")
+			fs.StringVar(&config.output, "output", "docs", "Output folder where to generate docs")
+			fs.StringVar(&config.filename, "output-file", "", "Output as single filename")
+			fs.BoolVar(&config.yaml, "yaml", false, "Output as YAML")
+			fs.BoolVar(&config.jsonOut, "json", false, "Output as JSON")
 		},
-		Run: func(ctx context.Context, commands []string) error {
+		Run: func(ctx context.Context, args []string) error {
 			handle, err := db.ConnectWithRetry(ctx, config.db)
 			if err != nil {
 				return err

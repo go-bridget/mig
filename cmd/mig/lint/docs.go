@@ -5,12 +5,14 @@ import (
 	"errors"
 	"fmt"
 
+	flag "github.com/spf13/pflag"
+
 	"github.com/go-bridget/mig/cli"
 	"github.com/go-bridget/mig/db"
 	"github.com/go-bridget/mig/db/introspect"
 )
 
-const Name = "Check schema for best practices and comments"
+const Name = "Lint database schema"
 
 type Options struct {
 	db *db.Options
@@ -23,14 +25,16 @@ func New() *cli.Command {
 	var config Options
 
 	return &cli.Command{
-		Bind: func(_ context.Context) {
+		Name:  "lint",
+		Title: Name,
+		Bind: func(fs *flag.FlagSet) {
 			config.db = db.NewOptions()
-			config.db.Bind()
+			config.db.Bind(fs)
 
-			cli.BoolVar(&config.skipComments, "skip-comments", false, "Skip validating table/column comments")
-			cli.BoolVar(&config.skipPlural, "skip-plural", false, "Skip validating table name for singular form")
+			fs.BoolVar(&config.skipComments, "skip-comments", false, "Skip validating table/column comments")
+			fs.BoolVar(&config.skipPlural, "skip-plural", false, "Skip validating table name for singular form")
 		},
-		Run: func(ctx context.Context, commands []string) error {
+		Run: func(ctx context.Context, args []string) error {
 			handle, err := db.ConnectWithRetry(ctx, config.db)
 			if err != nil {
 				return err

@@ -6,6 +6,7 @@ import (
 	"slices"
 
 	"github.com/pkg/errors"
+	flag "github.com/spf13/pflag"
 
 	"github.com/go-bridget/mig/cli"
 	"github.com/go-bridget/mig/db"
@@ -24,17 +25,19 @@ func New() *cli.Command {
 	config.options.Output = "types"
 
 	return &cli.Command{
-		Bind: func(_ context.Context) {
+		Name:  "gen",
+		Title: Name,
+		Bind: func(fs *flag.FlagSet) {
 			config.db = db.NewOptions()
-			config.db.Bind()
+			config.db.Bind(fs)
 
-			cli.StringVar(&config.options.Language, "lang", "go", "Programming language")
-			cli.StringVar(&config.options.Output, "output", "model", "Output folder where to generate types")
+			fs.StringVar(&config.options.Language, "lang", "go", "Programming language")
+			fs.StringVar(&config.options.Output, "output", "model", "Output folder where to generate types")
 
-			cli.BoolVar(&config.options.Go.FillJSON, "go.fill-json", false, "Fill JSON tags (go)")
-			cli.BoolVar(&config.options.Go.SkipJSON, "go.skip-json", false, "Skip JSON tags (go)")
+			fs.BoolVar(&config.options.Go.FillJSON, "go.fill-json", false, "Fill JSON tags (go)")
+			fs.BoolVar(&config.options.Go.SkipJSON, "go.skip-json", false, "Skip JSON tags (go)")
 		},
-		Run: func(ctx context.Context, commands []string) error {
+		Run: func(ctx context.Context, args []string) error {
 			handle, err := db.ConnectWithRetry(ctx, config.db)
 			if err != nil {
 				return err

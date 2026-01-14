@@ -51,9 +51,9 @@ tasks:
   test:mysql:
     desc: "Test with MySQL"
     env:
-      DB_DSN: 'root:test@tcp(localhost:13306)/events'
+      DB_DSN: 'mysql://root:test@tcp(localhost:13306)/events'
     cmds:
-      - mig create events --db-dsn "root:test@tcp(localhost:13306)/mysql" --apply
+      - mig create events --db-dsn "mysql://root:test@tcp(localhost:13306)/mysql" --apply
       - mig migrate events --path testdata/events/mysql --apply
       - mig lint
       - go test -v -tags integration ./...

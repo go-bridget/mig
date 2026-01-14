@@ -43,19 +43,11 @@ var (
 )
 
 type (
-	// App is the cli entrypoint
-	App struct {
-		Name string
-
-		commands map[string]CommandInfo
-	}
-
 	// Command is an individual command
 	Command struct {
 		Name, Title string
 
-		Bind func(context.Context)
-		Init func(context.Context) error
+		Bind func(*flag.FlagSet)
 		Run  func(context.Context, []string) error
 	}
 
@@ -67,18 +59,23 @@ type (
 	}
 )
 
-func Parse() error {
-	// parse os.Environ() and include it as cli flags to the command line
+// ParseWithFlagSet parses flags and environment variables for a scoped FlagSet
+func ParseWithFlagSet(fs *flag.FlagSet, args []string) error {
+	// FlagSets are optional, but generally filled.
+	if fs == nil {
+		return nil
+	}
+
+	// parse environment variables and set on FlagSet
 	for _, v := range os.Environ() {
 		vals := strings.SplitN(v, "=", 2)
+		if len(vals) != 2 {
+			continue
+		}
 
-		// convert DB_DSN to db-dsn (pflag like)
 		flagName := vals[0]
 
-		// only consider scoped envs, e.g. if you have DSN with
-		// no scope, then this skips parsing it from env. A
-		// common unwanted side effect was parsing `HOME`,
-		// `PATH`, `USER` and a few other default envs.
+		// only consider scoped envs
 		if !strings.Contains(flagName, "_") {
 			continue
 		}
@@ -87,7 +84,7 @@ func Parse() error {
 		flagName = strings.Replace(flagName, "_", "-", -1)
 
 		// check if destination flag exists or modified
-		fn := flag.CommandLine.Lookup(flagName)
+		fn := fs.Lookup(flagName)
 		if fn == nil || fn.Changed {
 			continue
 		}
@@ -95,6 +92,5 @@ func Parse() error {
 			return err
 		}
 	}
-	flag.Parse()
-	return nil
+	return fs.Parse(args)
 }

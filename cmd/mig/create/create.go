@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
+	flag "github.com/spf13/pflag"
 
 	"github.com/go-bridget/mig/cli"
 	"github.com/go-bridget/mig/db"
@@ -20,19 +21,21 @@ func New() *cli.Command {
 	}
 
 	return &cli.Command{
-		Bind: func(_ context.Context) {
+		Name:  "create",
+		Title: Name,
+		Bind: func(fs *flag.FlagSet) {
 			config.db = db.NewOptions()
-			config.db.Bind()
+			config.db.Bind(fs)
 			config.migrate = migrate.NewOptions()
-			config.migrate.Bind()
+			config.migrate.Bind(fs)
 		},
-		Run: func(ctx context.Context, commands []string) error {
-			if len(commands) > 1 {
-				config.migrate.Project = commands[1]
+		Run: func(ctx context.Context, args []string) error {
+			if len(args) > 0 {
+				config.migrate.Project = args[0]
 			}
 
 			if config.migrate.Project == "" {
-				return errors.Errorf("Specify project name as first argument to migrate")
+				return errors.Errorf("Specify project name as first argument to create")
 			}
 
 			queries := []string{}
