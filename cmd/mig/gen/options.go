@@ -1,5 +1,6 @@
 package gen
 
+// Options contains code generation options.
 type Options struct {
 	Language string
 	Schema   string

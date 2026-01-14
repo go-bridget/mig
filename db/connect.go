@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Connect connects to a database and produces the handle for injection
+// Connect connects to a database and produces the handle for injection.
 func Connect(ctx context.Context) (*sqlx.DB, error) {
 	options := &Options{
 		Connector: func(ctx context.Context, credentials Credentials) (*sql.DB, error) {
@@ -29,7 +29,7 @@ func Connect(ctx context.Context) (*sqlx.DB, error) {
 	return ConnectWithRetry(ctx, options)
 }
 
-// ConnectWithOptions connect to host based on Options{}
+// ConnectWithOptions connects to host based on Options{}.
 func ConnectWithOptions(ctx context.Context, options *Options) (*sqlx.DB, error) {
 	credentials := options.Credentials
 	if credentials.DSN == "" {

@@ -15,14 +15,14 @@ var (
 	errNoCommand = errors.New("no command found")
 )
 
-// App is the cli entrypoint
+// App is the cli entrypoint.
 type App struct {
 	Name string
 
 	commands map[string]CommandInfo
 }
 
-// NewApp creates a new App instance
+// NewApp creates a new App instance.
 func NewApp(name string) *App {
 	return &App{
 		Name:     name,
@@ -30,12 +30,12 @@ func NewApp(name string) *App {
 	}
 }
 
-// Run passes os.Args without the command name to RunWithArgs()
+// Run passes os.Args without the command name to RunWithArgs().
 func (app *App) Run() error {
 	return app.RunWithArgs(os.Args[1:])
 }
 
-// RunWithArgs is a cli entrypoint which sets up a cancellable context for the command
+// RunWithArgs is a cli entrypoint which sets up a cancellable context for the command.
 func (app *App) RunWithArgs(args []string) error {
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
 	defer cancel()
@@ -49,7 +49,7 @@ func (app *App) RunWithArgs(args []string) error {
 	// Create a scoped FlagSet for this command
 	fs := flag.NewFlagSet(command.Name, flag.ContinueOnError)
 	fs.Usage = func() {
-		app.HelpCommand(command, fs)
+		app.HelpCommand(fs, command)
 	}
 
 	// bind command specific flags
@@ -65,7 +65,7 @@ func (app *App) RunWithArgs(args []string) error {
 
 	// parse flags and set from environment
 	if err := ParseWithFlagSet(fs, flagArgs); err != nil {
-		app.HelpCommand(command, fs)
+		app.HelpCommand(fs, command)
 		return err
 	}
 
@@ -80,7 +80,7 @@ func (app *App) RunWithArgs(args []string) error {
 		err = command.Run(ctx, remainingArgs)
 		// don't print help with standard "context canceled" exit
 		if err != nil && !errors.Is(err, context.Canceled) {
-			app.HelpCommand(command, fs)
+			app.HelpCommand(fs, command)
 			return err
 		}
 		return nil
@@ -89,7 +89,7 @@ func (app *App) RunWithArgs(args []string) error {
 	return errors.New("Missing Run() for command")
 }
 
-// Help prints out registered commands for app
+// Help prints out registered commands for app.
 func (app *App) Help() {
 	fmt.Println("Usage:", app.Name, "(command) [--flags]")
 	fmt.Println("Available commands:")
@@ -109,15 +109,15 @@ func (app *App) Help() {
 	fmt.Println()
 }
 
-// HelpCommand prints out help for a specific command
-func (app *App) HelpCommand(command *Command, fs *flag.FlagSet) {
+// HelpCommand prints out help for a specific command.
+func (app *App) HelpCommand(fs *flag.FlagSet, command *Command) {
 	fmt.Println("Usage:", app.Name, command.Name, "[--flags]")
 	fmt.Println()
 	fs.PrintDefaults()
 	fmt.Println()
 }
 
-// AddCommand adds a command to the app
+// AddCommand adds a command to the app.
 func (app *App) AddCommand(name, title string, constructor func() *Command) {
 	info := CommandInfo{
 		Name:  name,

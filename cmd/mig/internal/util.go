@@ -6,6 +6,7 @@ import (
 	stylecheck "honnef.co/go/tools/config"
 )
 
+// Camel converts a snake_case string to CamelCase.
 func Camel(input string) string {
 	// special case from having camel case `showId` fields in DB
 	if len(input) > 2 && input[len(input)-2:] == "Id" {
@@ -26,6 +27,7 @@ func Camel(input string) string {
 	return strings.Join(keys, "")
 }
 
+// Title converts a snake_case string to Title Case with spaces.
 func Title(input string) string {
 	// special case from having camel case `showId` fields in DB
 	if len(input) > 2 && input[len(input)-2:] == "Id" {
@@ -46,10 +48,12 @@ func Title(input string) string {
 	return strings.Join(keys, " ")
 }
 
+// Filename converts a string to a lowercase filename with underscores.
 func Filename(input string) string {
 	return strings.ReplaceAll(strings.ToLower(input), " ", "_")
 }
 
+// Contains checks if a value exists in a string slice.
 func Contains(set []string, value string) bool {
 	for _, v := range set {
 		if v == value {

@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// ConnectWithRetry uses retry options set in Options{}
+// ConnectWithRetry uses retry options set in Options{}.
 func ConnectWithRetry(ctx context.Context, options *Options) (db *sqlx.DB, err error) {
 	dsn := maskDSN(options.Credentials.DSN)
 

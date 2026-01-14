@@ -10,6 +10,7 @@ import (
 	"github.com/go-bridget/mig/model"
 )
 
+// ListTables retrieves all tables from the database.
 func ListTables(ctx context.Context, config *db.Options) ([]*model.Table, error) {
 	handle, err := db.ConnectWithRetry(ctx, config)
 	if err != nil {

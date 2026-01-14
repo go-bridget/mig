@@ -10,8 +10,10 @@ import (
 	"github.com/go-bridget/mig/db/introspect"
 )
 
+// Name is the command title.
 const Name = "Generate markdown docs from DB schema"
 
+// New creates a new docs command.
 func New() *cli.Command {
 	var config struct {
 		db *db.Options

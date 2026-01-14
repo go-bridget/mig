@@ -7,7 +7,7 @@ import "strings"
 // - postgres:// or postgresql:// → pgx
 // - mysql:// → mysql
 // - sqlite:// or file: → sqlite
-// - driver-specific formats (e.g., user:pass@tcp(host:port)/db → mysql)
+// - driver-specific formats (e.g., user:pass@tcp(host:port)/db → mysql).
 func DeriveDriverFromDSN(dsn string) string {
 	// Extract the schema/protocol prefix as the driver indicator
 	if strings.Contains(dsn, "://") {

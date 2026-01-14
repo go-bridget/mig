@@ -13,7 +13,7 @@ import (
 	"github.com/go-bridget/mig/model"
 )
 
-// sqliteDescriber implements Describer for SQLite
+// SqliteDescriber implements Describer for SQLite.
 type SqliteDescriber struct{}
 
 // Describe returns column metadata from a query.

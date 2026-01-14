@@ -2,9 +2,9 @@ package lint
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
+	"github.com/pkg/errors"
 	flag "github.com/spf13/pflag"
 
 	"github.com/go-bridget/mig/cli"
@@ -12,8 +12,10 @@ import (
 	"github.com/go-bridget/mig/db/introspect"
 )
 
+// Name is the command title.
 const Name = "Lint database schema"
 
+// Options contains lint configuration.
 type Options struct {
 	db *db.Options
 
@@ -21,6 +23,7 @@ type Options struct {
 	skipPlural   bool
 }
 
+// New creates a new lint command.
 func New() *cli.Command {
 	var config Options
 

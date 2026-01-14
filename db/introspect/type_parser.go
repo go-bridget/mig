@@ -12,7 +12,7 @@ var (
 	numericPattern  = regexp.MustCompile(`(numeric|decimal)\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)`)
 )
 
-// ParsePostgresIntType maps int2/int4/int8 to base type and size in bytes
+// ParsePostgresIntType maps int2/int4/int8 to base type and size in bytes.
 func ParsePostgresIntType(typeStr string) (baseType string, sizeBytes int) {
 	typeStr = strings.ToLower(strings.TrimSpace(typeStr))
 

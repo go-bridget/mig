@@ -16,6 +16,7 @@ import (
 	"github.com/go-bridget/mig/model"
 )
 
+// Column and Table type aliases from model package.
 type (
 	Column = model.Column
 	Table  = model.Table
@@ -117,6 +118,7 @@ func resolveTypeGo(column *Column) (string, error) {
 	return "", errors.Errorf("Unsupported SQL type: %s", column.DataType)
 }
 
+// Render generates Go source code from database tables.
 func Render(options Options, tables []*Table) error {
 	var (
 		output = options.Output

@@ -14,8 +14,10 @@ import (
 	"github.com/go-bridget/mig/model"
 )
 
+// Name is the command title.
 const Name = "Generate source code from DB schema"
 
+// New creates a new gen command.
 func New() *cli.Command {
 	var config struct {
 		db      *db.Options

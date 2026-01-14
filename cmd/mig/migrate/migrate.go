@@ -2,9 +2,9 @@ package migrate
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
+	"github.com/pkg/errors"
 	flag "github.com/spf13/pflag"
 
 	"github.com/go-bridget/mig/cli"
@@ -12,8 +12,10 @@ import (
 	"github.com/go-bridget/mig/migrate"
 )
 
+// Name is the command title.
 const Name = "Apply SQL migrations to database"
 
+// New creates a new migrate command.
 func New() *cli.Command {
 	var config struct {
 		db      *db.Options
@@ -44,7 +46,7 @@ func New() *cli.Command {
 
 			switch {
 			case config.migrate.Apply:
-				return migrate.Run(ctx, config.migrate, config.db)
+				return migrate.Run(ctx, config.db, config.migrate)
 			default:
 				return migrate.Print(config.migrate)
 			}

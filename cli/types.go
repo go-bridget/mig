@@ -20,6 +20,7 @@ import (
 // That being said, it's still possible to use the spf13/pflag API, but there
 // should be little reason to do that.
 
+// Flag variable binding functions from spf13/pflag.
 var (
 	BoolVar        = flag.BoolVar
 	DurationVar    = flag.DurationVar
@@ -42,6 +43,7 @@ var (
 	PrintDefaults = flag.PrintDefaults
 )
 
+// Command and CommandInfo types for CLI command handling.
 type (
 	// Command is an individual command
 	Command struct {
@@ -59,7 +61,7 @@ type (
 	}
 )
 
-// ParseWithFlagSet parses flags and environment variables for a scoped FlagSet
+// ParseWithFlagSet parses flags and environment variables for a scoped FlagSet.
 func ParseWithFlagSet(fs *flag.FlagSet, args []string) error {
 	// FlagSets are optional, but generally filled.
 	if fs == nil {

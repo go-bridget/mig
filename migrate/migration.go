@@ -1,5 +1,6 @@
 package migrate
 
+// Migration type for database migrations.
 type (
 	// Migration holds the DB structure for the migration table.
 	Migration struct {

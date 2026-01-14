@@ -23,6 +23,7 @@ type Options struct {
 	Verbose bool
 }
 
+// NewOptions creates a new Options instance with default values.
 func NewOptions() *Options {
 	return (&Options{}).Init()
 }

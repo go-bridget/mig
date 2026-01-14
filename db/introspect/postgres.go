@@ -13,7 +13,7 @@ import (
 	"github.com/go-bridget/mig/model"
 )
 
-// PostgresDescriber implements Describer for PostgreSQL
+// PostgresDescriber implements Describer for PostgreSQL.
 type PostgresDescriber struct{}
 
 // Describe returns column metadata from a query.

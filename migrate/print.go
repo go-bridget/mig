@@ -7,7 +7,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Print outputs database migrations for a project to log output
+// Print outputs database migrations for a project to log output.
 func Print(options *Options) error {
 	fs, ok := migrations[options.Project]
 	if !ok {

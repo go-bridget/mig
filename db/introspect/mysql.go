@@ -53,7 +53,7 @@ func enrichKeysFromInfoSchema(ctx context.Context, db *sqlx.DB, tableName string
 	}
 }
 
-// MysqlDescriber implements Describer for MySQL
+// MysqlDescriber implements Describer for MySQL.
 type MysqlDescriber struct{}
 
 // parseMySQLType extracts base type and size for varchar/char/numeric/decimal; strips integer display width.
@@ -229,7 +229,7 @@ func (d *MysqlDescriber) ListTables(ctx context.Context, db *sqlx.DB) ([]*model.
 	return tables, nil
 }
 
-// TableIndexes returns all indexes for a MySQL table
+// TableIndexes returns all indexes for a MySQL table.
 func (d *MysqlDescriber) TableIndexes(ctx context.Context, db *sqlx.DB, tableName string) ([]*model.Index, error) {
 	type indexStatistic struct {
 		IndexName  string `db:"INDEX_NAME"`

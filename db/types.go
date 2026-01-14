@@ -10,6 +10,7 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
+// Credentials and Options types for database connections.
 type (
 	// Credentials contains database connection DSN
 	Credentials struct {
@@ -30,12 +31,12 @@ type (
 	}
 )
 
-// NewOptions provides an initialized *Options object
+// NewOptions provides an initialized *Options object.
 func NewOptions() *Options {
 	return (&Options{}).Init()
 }
 
-// Init sets default *Options values
+// Init sets default *Options values.
 func (options *Options) Init() *Options {
 	options.Retries = 100
 	options.RetryDelay = 2 * time.Second

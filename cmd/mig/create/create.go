@@ -12,8 +12,10 @@ import (
 	"github.com/go-bridget/mig/migrate"
 )
 
+// Name is the command title.
 const Name = "Create database schema SQL"
 
+// New creates a new create command.
 func New() *cli.Command {
 	var config struct {
 		db      *db.Options

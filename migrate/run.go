@@ -14,7 +14,7 @@ import (
 )
 
 // Run takes migrations for a project and executes them against a database.
-func Run(ctx context.Context, options *Options, dbOptions *db.Options) error {
+func Run(ctx context.Context, dbOptions *db.Options, options *Options) error {
 	database, err := db.ConnectWithRetry(ctx, dbOptions)
 	if err != nil {
 		return fmt.Errorf("error connecting to database: %w", err)
