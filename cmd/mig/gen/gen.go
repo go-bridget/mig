@@ -8,7 +8,8 @@ import (
 	"github.com/pkg/errors"
 	flag "github.com/spf13/pflag"
 
-	"github.com/go-bridget/mig/cli"
+	"github.com/titpetric/cli"
+
 	"github.com/go-bridget/mig/db"
 	"github.com/go-bridget/mig/db/introspect"
 	"github.com/go-bridget/mig/model"

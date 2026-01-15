@@ -41,6 +41,7 @@ tasks:
   test:sqlite:
     desc: "Test with SQLite"
     cmds:
+      - rm -f test.db
       - mig migrate events --path testdata/events/sqlite --db-dsn "sqlite://:memory:" --apply --verbose
       - mig migrate events --path testdata/events/sqlite --db-dsn "sqlite://test.db" --apply --verbose
       - mig lint --db-dsn "file:test.db" --skip-comments

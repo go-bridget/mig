@@ -10,7 +10,7 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 	_ "modernc.org/sqlite"
 
-	"github.com/go-bridget/mig/cli"
+	"github.com/titpetric/cli"
 
 	"github.com/go-bridget/mig/cmd/mig/create"
 	"github.com/go-bridget/mig/cmd/mig/docs"
