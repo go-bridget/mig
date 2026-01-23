@@ -15,7 +15,7 @@ require (
 	github.com/titpetric/cli v0.2.4
 	gopkg.in/yaml.v3 v3.0.1
 	honnef.co/go/tools v0.6.1
-	modernc.org/sqlite v1.44.1
+	modernc.org/sqlite v1.44.3
 )
 
 require (
