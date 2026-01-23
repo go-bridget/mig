@@ -9,12 +9,14 @@ import (
 	"github.com/pkg/errors"
 )
 
+var ErrEmptyDSN = errors.New("empty dsn")
+
 // Connect connects to a database and produces the handle for injection.
 func Connect(ctx context.Context) (*sqlx.DB, error) {
 	options := &Options{
 		Connector: func(ctx context.Context, credentials Credentials) (*sql.DB, error) {
-			driver := DeriveDriverFromDSN(credentials.DSN)
-			db, err := sql.Open(driver, credentials.DSN)
+			driver, dsn := credentials.Open()
+			db, err := sql.Open(driver, dsn)
 			if err != nil {
 				return nil, err
 			}
@@ -31,22 +33,20 @@ func Connect(ctx context.Context) (*sqlx.DB, error) {
 
 // ConnectWithOptions connects to host based on Options{}.
 func ConnectWithOptions(ctx context.Context, options *Options) (*sqlx.DB, error) {
-	credentials := options.Credentials
-	if credentials.DSN == "" {
-		return nil, errors.New("DSN not provided")
+	driver, dsn := options.Credentials.Open()
+	if dsn == "" {
+		return nil, ErrEmptyDSN
 	}
-	driver := DeriveDriverFromDSN(credentials.DSN)
-	credentials.DSN = cleanDSNForDriver(credentials.DSN, driver)
 
 	connect := func() (*sqlx.DB, error) {
 		if options.Connector != nil {
-			handle, err := options.Connector(ctx, credentials)
+			handle, err := options.Connector(ctx, options.Credentials)
 			if err == nil {
 				return sqlx.NewDb(handle, driver), nil
 			}
 			return nil, errors.WithStack(err)
 		}
-		return sqlx.ConnectContext(ctx, driver, credentials.DSN)
+		return sqlx.ConnectContext(ctx, driver, dsn)
 	}
 
 	db, err := connect()

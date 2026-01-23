@@ -10,26 +10,18 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
-// Credentials and Options types for database connections.
-type (
-	// Credentials contains database connection DSN
-	Credentials struct {
-		DSN string
-	}
+// Options include database connection options
+type Options struct {
+	Credentials Credentials
 
-	// Options include database connection options
-	Options struct {
-		Credentials Credentials
+	// Connector is an optional parameter to produce our
+	// own *sql.DB, which is then wrapped in *sqlx.DB
+	Connector func(context.Context, Credentials) (*sql.DB, error)
 
-		// Connector is an optional parameter to produce our
-		// own *sql.DB, which is then wrapped in *sqlx.DB
-		Connector func(context.Context, Credentials) (*sql.DB, error)
-
-		Retries        int
-		RetryDelay     time.Duration
-		ConnectTimeout time.Duration
-	}
-)
+	Retries        int
+	RetryDelay     time.Duration
+	ConnectTimeout time.Duration
+}
 
 // NewOptions provides an initialized *Options object.
 func NewOptions() *Options {
