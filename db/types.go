@@ -33,16 +33,14 @@ type (
 
 // NewOptions provides an initialized *Options object.
 func NewOptions() *Options {
-	return (&Options{}).Init()
-}
-
-// Init sets default *Options values.
-func (options *Options) Init() *Options {
-	options.Retries = 100
-	options.RetryDelay = 2 * time.Second
-	options.ConnectTimeout = 2 * time.Minute
-	options.Credentials.DSN = os.Getenv("MIG_DB_DSN")
-	return options
+	return &Options{
+		Retries:        100,
+		RetryDelay:     2 * time.Second,
+		ConnectTimeout: 2 * time.Minute,
+		Credentials: Credentials{
+			DSN: os.Getenv("MIG_DB_DSN"),
+		},
+	}
 }
 
 // Bind registers database flags on the given FlagSet with `db` prefix.

@@ -25,7 +25,7 @@ func Connect(ctx context.Context) (*sqlx.DB, error) {
 			return db, nil
 		},
 	}
-	options.Credentials.DSN = os.Getenv("DB_DSN")
+	options.Credentials.DSN = os.Getenv("MIG_DB_DSN")
 	return ConnectWithRetry(ctx, options)
 }
 

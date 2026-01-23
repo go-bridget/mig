@@ -25,12 +25,9 @@ type Options struct {
 
 // NewOptions creates a new Options instance with default values.
 func NewOptions() *Options {
-	return (&Options{}).Init()
-}
-
-func (options *Options) Init() *Options {
-	options.Path = "schema"
-	return options
+	return &Options{
+		Path: "schema",
+	}
 }
 
 // Bind registers migration flags on the given FlagSet.
