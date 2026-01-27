@@ -9,8 +9,20 @@ type Credentials struct {
 	DSN string
 }
 
+// NewCredentials returns a filled Credentials
+func NewCredentials(dsn string) Credentials {
+	return Credentials{
+		DSN: dsn,
+	}
+}
+
+// ParseDSN will return driver and dsn valid for db.Open.
+func ParseDSN(conn string) (string, string) {
+	return NewCredentials(conn).Open()
+}
+
 // Open returns the driver and the connection string.
-func (c *Credentials) Open() (string, string) {
+func (c Credentials) Open() (string, string) {
 	driver, dsn := c.parse(c.DSN)
 	switch driver {
 	case "mysql":
@@ -23,7 +35,7 @@ func (c *Credentials) Open() (string, string) {
 	return driver, dsn
 }
 
-func (*Credentials) parse(dsn string) (string, string) {
+func (Credentials) parse(dsn string) (string, string) {
 	// Extract the schema/protocol prefix as the driver indicator
 	if strings.Contains(dsn, "://") {
 		scheme := strings.Split(dsn, "://")

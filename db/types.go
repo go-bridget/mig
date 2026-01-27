@@ -48,6 +48,6 @@ func (options *Options) BindWithPrefix(fs *flag.FlagSet, prefix string) *Options
 		}
 		return s
 	}
-	fs.StringVar(&options.Credentials.DSN, p("dsn"), "", "DSN for database connection (mysql://, postgres://, sqlite://, or driver-specific format)")
+	fs.StringVar(&options.Credentials.DSN, p("dsn"), options.Credentials.DSN, "DSN for database connection (mysql://, postgres://, sqlite://, or driver-specific format)")
 	return options
 }
