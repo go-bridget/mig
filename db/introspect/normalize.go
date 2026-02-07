@@ -90,9 +90,8 @@ func NormalizeColumnType(column *model.Column, dbDriver string) {
 	case strings.Contains(typeStr, "blob"), strings.Contains(dataType, "blob"):
 		column.DataType = "blob"
 
-	// Default fallback
+	// Default fallback, keep column datatype as is
 	default:
-		column.DataType = "unknown"
 	}
 }
 
