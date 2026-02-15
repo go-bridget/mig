@@ -27,7 +27,7 @@ func statements(contents []byte, err error) ([]string, error) {
 	contents = comments.ReplaceAll(contents, nil)
 
 	// split statements by trailing ; at the end of the line
-	stmts := regexp.MustCompilePOSIX(`;$`).Split(string(contents), -1)
+	stmts := regexp.MustCompile(`(?m);$`).Split(string(contents), -1)
 	for _, stmt := range stmts {
 		stmt = strings.TrimSpace(stmt)
 		if stmt != "" {

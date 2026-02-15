@@ -1,4 +1,4 @@
-# mig
+# mig - SQL statement migration and development tooling
 
 Mig is a database SQL statement based migration utility. It's short for migrate.
 
@@ -9,7 +9,7 @@ environments.
 - Well tested and used: mysql.
 - Early, but functional: sqlite.
 
-Status: active use, maintained on occasion.
+Status: active use, maintenance.
 
 ## Goals
 
