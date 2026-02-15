@@ -103,13 +103,20 @@ func RunWithFS(ctx context.Context, sqldb *sqlx.DB, fs FS, options *Options) err
 			}
 		}
 
-		// If migration already exists and is marked ok, skip it
+		// If migration already exists and is marked ok, check if new
+		// statements were appended since the last run.
 		if exists && status.Status == "ok" {
-			if err := tx.Commit(); err != nil {
-				return fmt.Errorf("failed to commit transaction: %w", err)
+			stmts, err := statements(fs.ReadFile(filename))
+			if err != nil {
+				return fmt.Errorf("Error reading %s: %w", filename, err)
 			}
-			log.Println(filename, "SKIPPED (already applied)")
-			return nil
+			if len(stmts) <= status.StatementIndex+1 {
+				if err := tx.Commit(); err != nil {
+					return fmt.Errorf("failed to commit transaction: %w", err)
+				}
+				log.Println(filename, "SKIPPED (already applied)")
+				return nil
+			}
 		}
 
 		up := func() error {
