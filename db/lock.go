@@ -24,6 +24,8 @@ func AcquireLock(ctx context.Context, tx *sqlx.Tx, driverName string, lockKey st
 	case "mysql":
 		// MySQL: use GET_LOCK function
 		// GET_LOCK returns 1 on success, 0 on timeout, NULL on error
+		// MySQL enforces a maximum lock name length of 64 characters
+		lockKey = fmt.Sprintf("%x", hashString(lockKey))
 		var result *int
 		if err := tx.QueryRowContext(ctx, "SELECT GET_LOCK(?, 30)", lockKey).Scan(&result); err != nil {
 			return fmt.Errorf("failed to acquire lock: %w", err)
