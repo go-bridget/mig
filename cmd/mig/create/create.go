@@ -16,6 +16,15 @@ import (
 // Name is the command title.
 const Name = "Create database schema SQL"
 
+func createDatabaseQuery(driver, name string) string {
+	switch driver {
+	case "pgx":
+		return fmt.Sprintf(`CREATE DATABASE "%s"`, name)
+	default:
+		return fmt.Sprintf("CREATE DATABASE `%s`", name)
+	}
+}
+
 // New creates a new create command.
 func New() *cli.Command {
 	var config struct {
@@ -41,8 +50,8 @@ func New() *cli.Command {
 				return errors.Errorf("Specify project name as first argument to create")
 			}
 
-			queries := []string{}
-			queries = append(queries, fmt.Sprintf("CREATE DATABASE IF NOT EXISTS `%s`;", config.migrate.Project))
+			driver, _ := db.ParseDSN(config.db.Credentials.DSN)
+			query := createDatabaseQuery(driver, config.migrate.Project)
 
 			if config.migrate.Apply {
 				handle, err := db.ConnectWithRetry(ctx, config.db)
@@ -50,17 +59,16 @@ func New() *cli.Command {
 					return errors.Wrap(err, "error connecting to database")
 				}
 
-				for _, query := range queries {
-					fmt.Println(query)
-					if _, err := handle.Exec(query); err != nil {
-						return err
-					}
+				fmt.Println(query)
+
+				// error is ignored but printed
+				if _, err := handle.Exec(query); err != nil {
+					fmt.Println("notice:", err)
+					return nil
 				}
 				return nil
 			}
-			for _, query := range queries {
-				fmt.Println(query)
-			}
+			fmt.Println(query)
 			return nil
 		},
 	}

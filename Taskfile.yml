@@ -55,6 +55,7 @@ tasks:
       DB_DSN: 'mysql://root:test@tcp(localhost:13306)/events'
     cmds:
       - mig create events --db-dsn "mysql://root:test@tcp(localhost:13306)/mysql" --apply
+      - mig create events --db-dsn "mysql://root:test@tcp(localhost:13306)/mysql" --apply
       - mig migrate events --path testdata/events/mysql --apply
       - mig lint
       - go test -v -tags integration ./...
@@ -69,7 +70,8 @@ tasks:
       DB_DSN: 'postgres://postgres:mig@localhost:15432/events?sslmode=disable'
       PGPASSWORD: mig
     cmds:
-      - psql -h localhost -p 15432 -U postgres -c "CREATE DATABASE IF NOT EXISTS events" 2>/dev/null || psql -h localhost -p 15432 -U postgres -c "CREATE DATABASE events" 2>/dev/null || true
+      - mig create events --db-dsn "postgres://postgres:mig@localhost:15432/postgres?sslmode=disable" --apply
+      - mig create events --db-dsn "postgres://postgres:mig@localhost:15432/postgres?sslmode=disable" --apply
       - mig migrate events --path testdata/events/postgres --apply
       - mig lint
       - mkdir -p testdata/docs-postgresql
