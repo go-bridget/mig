@@ -25,6 +25,13 @@ var (
 )
 
 func main() {
+	if err := run(); err != nil {
+		fmt.Fprintf(os.Stderr, "An error occurred: %s\n", err)
+		os.Exit(1)
+	}
+}
+
+func run() error {
 	app := cli.NewApp("mig")
 
 	app.AddCommand("create", create.Name, create.New)
@@ -44,9 +51,6 @@ func main() {
 			},
 		}
 	})
-	if err := app.Run(); err != nil {
-		fmt.Printf("An error occurred: %s", err)
-		fmt.Println()
-		os.Exit(1)
-	}
+
+	return app.Run()
 }

@@ -3,8 +3,6 @@ package docs
 import (
 	"context"
 
-	flag "github.com/spf13/pflag"
-
 	"github.com/titpetric/cli"
 
 	"github.com/go-bridget/mig/db"
@@ -28,7 +26,7 @@ func New() *cli.Command {
 	return &cli.Command{
 		Name:  "docs",
 		Title: Name,
-		Bind: func(fs *flag.FlagSet) {
+		Bind: func(fs *cli.FlagSet) {
 			config.db = db.NewOptions()
 			config.db.Bind(fs)
 

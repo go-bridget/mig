@@ -6,7 +6,6 @@ import (
 	"slices"
 
 	"github.com/pkg/errors"
-	flag "github.com/spf13/pflag"
 
 	"github.com/titpetric/cli"
 
@@ -30,7 +29,7 @@ func New() *cli.Command {
 	return &cli.Command{
 		Name:  "gen",
 		Title: Name,
-		Bind: func(fs *flag.FlagSet) {
+		Bind: func(fs *cli.FlagSet) {
 			config.db = db.NewOptions()
 			config.db.Bind(fs)
 
