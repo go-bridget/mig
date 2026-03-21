@@ -95,8 +95,8 @@ github.com/stretchr/testify v1.6.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/stretchr/testify v1.11.1 h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu7U=
 github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD981Nm4B6U=
-github.com/titpetric/cli v0.4.2 h1:8fACVJRVBi9oHvCcFywrua7bdFiFTqzuwvk1j+ehYKE=
-github.com/titpetric/cli v0.4.2/go.mod h1:6tMT3+Bz3MjEDdXhQ9fzai19U2LDT+hmrOYDkpE1f7A=
+github.com/titpetric/cli v0.4.3 h1:DAe+fltQr7CqHBHKBv0bnPtahru2zwH0ouYpNcth4oo=
+github.com/titpetric/cli v0.4.3/go.mod h1:6tMT3+Bz3MjEDdXhQ9fzai19U2LDT+hmrOYDkpE1f7A=
 github.com/tj/assert v0.0.0-20171129193455-018094318fb0/go.mod h1:mZ9/Rh9oLWpLLDRpvE+3b7gP/C2YyLFYxNmcLnPTMe0=
 github.com/tj/assert v0.0.3 h1:Df/BlaZ20mq6kuai7f5z2TvPFiwC3xaWJSDQNiIS3Rk=
 github.com/tj/assert v0.0.3/go.mod h1:Ne6X72Q+TB1AteidzQncjw9PabbMp4PBMZ1k+vd1Pvk=
