@@ -9,9 +9,10 @@ This document describes a distributed event queue system supporting asynchronous
 ### Event States
 
 ```
-PENDING → PROCESSING → COMPLETED
-       ↓
-       FAILED → PENDING (after 5-min backoff, max 3 retries)
+PENDING -> PROCESSING -> COMPLETED
+       |
+       v
+       FAILED -> PENDING (after 5-min backoff, max 3 retries)
 ```
 
 ### Worker Tracking
@@ -151,8 +152,8 @@ Worker reports successful completion, writes audit log, and marks event complete
 ```
 
 **Side Effects:**
-- Event status → COMPLETED
-- Event updated_at → now
+- Event status -> COMPLETED
+- Event updated_at -> now
 - event_log entry created with action=COMPLETED
 
 ---
@@ -196,7 +197,7 @@ Worker reports failure, writes audit log, and schedules retry if under max_retri
 ```
 
 **Side Effects:**
-- Event status → PENDING (if retry scheduled) or FAILED (if max reached)
+- Event status -> PENDING (if retry scheduled) or FAILED (if max reached)
 - Event retry_count += 1
 - Event next_retry_at = now() + 5 minutes (if retry scheduled)
 - event_log entry created with action=FAILED
@@ -347,7 +348,7 @@ For a successful event with one retry:
 
 ### Atomicity & Concurrency
 
-- **Subscribe operation:** Use database transaction with FOR UPDATE lock to atomically fetch and transition PENDING → PROCESSING
+- **Subscribe operation:** Use database transaction with FOR UPDATE lock to atomically fetch and transition PENDING -> PROCESSING
 - **Retry scheduling:** Database timestamp functions (CURRENT_TIMESTAMP) ensure consistency across workers in different timezones
 - **Event log:** Append-only; no updates required after insert
 
@@ -379,13 +380,13 @@ POST /events
     "month": "2025-12"
   }
 }
-→ Returns event_id=2001
+-> Returns event_id=2001
 ```
 
 **Process B (Worker 1):**
 ```
 GET /events/subscribe?tags=reporting&worker_id=worker-03:9100
-→ Returns event_id=2001, status=PROCESSING
+-> Returns event_id=2001, status=PROCESSING
 
 [Process executes for 15 seconds]
 
@@ -395,18 +396,18 @@ POST /events/2001/complete
   "execution_time_ms": 15000,
   "status_code": 200
 }
-→ Event status → COMPLETED
+-> Event status -> COMPLETED
 ```
 
 **Process B (Worker 2 - Different subscriptions):**
 ```
 GET /events/subscribe?tags=payment&worker_id=worker-04:9101
-→ Returns 204 No Content (no payment events available)
+-> Returns 204 No Content (no payment events available)
 
 [Waits 5 seconds and retries]
 
 GET /events/subscribe?tags=payment&worker_id=worker-04:9101
-→ Polls until events match
+-> Polls until events match
 ```
 
 ---
