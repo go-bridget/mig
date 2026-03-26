@@ -125,8 +125,6 @@ func (q *QueryConfig) Apply(opts ...QueryOption) *QueryConfig {
 }
 
 // Event generated for db table `event`.
-//
-// Event.
 type Event struct {
 	// ID
 	ID int64 `db:"id" json:"-"`
@@ -279,8 +277,6 @@ var EventLogFields = []string{"id", "event_id", "worker_id", "action", "status_c
 var EventLogPrimaryFields = []string{"id"}
 
 // Migrations generated for db table `migrations`.
-//
-// Migrations.
 type Migrations struct {
 	// Project
 	Project string `db:"project" json:"-"`

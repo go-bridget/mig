@@ -219,7 +219,9 @@ func Render(options Options, tables []*Table) error {
 		}
 
 		fmt.Fprintf(buf, "// %s generated for db table `%s`.\n", tableName, table.Name)
-		if table.Comment != "" {
+
+		// TODO: this probablly needs to be better, case insensitive, strip spaces
+		if table.Comment != "" && table.Comment != tableName+"." {
 			fmt.Fprintln(buf, "//\n//", table.Comment)
 		}
 		fmt.Fprintf(buf, "type %s struct {\n", tableName)
