@@ -209,11 +209,16 @@ func Render(options Options, tables []*Table) error {
 				fmt.Sprintf("func (%s *%s) Get%s() %s { return %s.%s }", receiver, tableName, columnName, columnType, receiver, columnName),
 			}...)
 
+			// Generate setters for all fields
 			if columnType == "*time.Time" {
-				receiver := strings.ToLower(string(tableName[0]))
 				helpers = append(helpers, []string{
 					fmt.Sprintf("// Set%s sets %s to the provided value.", columnName, columnName),
 					fmt.Sprintf("func (%s *%s) Set%s(stamp time.Time) { %s.%s = &stamp }", receiver, tableName, columnName, receiver, columnName),
+				}...)
+			} else {
+				helpers = append(helpers, []string{
+					fmt.Sprintf("// Set%s sets %s to the provided value.", columnName, columnName),
+					fmt.Sprintf("func (%s *%s) Set%s(val %s) { %s.%s = val }", receiver, tableName, columnName, columnType, receiver, columnName),
 				}...)
 			}
 		}

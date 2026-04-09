@@ -165,26 +165,50 @@ type Event struct {
 // GetID will return the value of ID.
 func (e *Event) GetID() int64 { return e.ID }
 
+// SetID sets ID to the provided value.
+func (e *Event) SetID(val int64) { e.ID = val }
+
 // GetTitle will return the value of Title.
 func (e *Event) GetTitle() string { return e.Title }
+
+// SetTitle sets Title to the provided value.
+func (e *Event) SetTitle(val string) { e.Title = val }
 
 // GetDescription will return the value of Description.
 func (e *Event) GetDescription() string { return e.Description }
 
+// SetDescription sets Description to the provided value.
+func (e *Event) SetDescription(val string) { e.Description = val }
+
 // GetTags will return the value of Tags.
 func (e *Event) GetTags() string { return e.Tags }
+
+// SetTags sets Tags to the provided value.
+func (e *Event) SetTags(val string) { e.Tags = val }
 
 // GetStatus will return the value of Status.
 func (e *Event) GetStatus() string { return e.Status }
 
+// SetStatus sets Status to the provided value.
+func (e *Event) SetStatus(val string) { e.Status = val }
+
 // GetPayload will return the value of Payload.
 func (e *Event) GetPayload() string { return e.Payload }
+
+// SetPayload sets Payload to the provided value.
+func (e *Event) SetPayload(val string) { e.Payload = val }
 
 // GetRetryCount will return the value of RetryCount.
 func (e *Event) GetRetryCount() int64 { return e.RetryCount }
 
+// SetRetryCount sets RetryCount to the provided value.
+func (e *Event) SetRetryCount(val int64) { e.RetryCount = val }
+
 // GetMaxRetries will return the value of MaxRetries.
 func (e *Event) GetMaxRetries() int64 { return e.MaxRetries }
+
+// SetMaxRetries sets MaxRetries to the provided value.
+func (e *Event) SetMaxRetries(val int64) { e.MaxRetries = val }
 
 // GetNextRetryAt will return the value of NextRetryAt.
 func (e *Event) GetNextRetryAt() *time.Time { return e.NextRetryAt }
@@ -245,23 +269,44 @@ type EventLog struct {
 // GetID will return the value of ID.
 func (e *EventLog) GetID() int64 { return e.ID }
 
+// SetID sets ID to the provided value.
+func (e *EventLog) SetID(val int64) { e.ID = val }
+
 // GetEventID will return the value of EventID.
 func (e *EventLog) GetEventID() int64 { return e.EventID }
+
+// SetEventID sets EventID to the provided value.
+func (e *EventLog) SetEventID(val int64) { e.EventID = val }
 
 // GetWorkerID will return the value of WorkerID.
 func (e *EventLog) GetWorkerID() string { return e.WorkerID }
 
+// SetWorkerID sets WorkerID to the provided value.
+func (e *EventLog) SetWorkerID(val string) { e.WorkerID = val }
+
 // GetAction will return the value of Action.
 func (e *EventLog) GetAction() string { return e.Action }
+
+// SetAction sets Action to the provided value.
+func (e *EventLog) SetAction(val string) { e.Action = val }
 
 // GetStatusCode will return the value of StatusCode.
 func (e *EventLog) GetStatusCode() int64 { return e.StatusCode }
 
+// SetStatusCode sets StatusCode to the provided value.
+func (e *EventLog) SetStatusCode(val int64) { e.StatusCode = val }
+
 // GetErrorMessage will return the value of ErrorMessage.
 func (e *EventLog) GetErrorMessage() string { return e.ErrorMessage }
 
+// SetErrorMessage sets ErrorMessage to the provided value.
+func (e *EventLog) SetErrorMessage(val string) { e.ErrorMessage = val }
+
 // GetExecutionTimeMs will return the value of ExecutionTimeMs.
 func (e *EventLog) GetExecutionTimeMs() int64 { return e.ExecutionTimeMs }
+
+// SetExecutionTimeMs sets ExecutionTimeMs to the provided value.
+func (e *EventLog) SetExecutionTimeMs(val int64) { e.ExecutionTimeMs = val }
 
 // GetCreatedAt will return the value of CreatedAt.
 func (e *EventLog) GetCreatedAt() *time.Time { return e.CreatedAt }
@@ -298,14 +343,26 @@ type Migrations struct {
 // GetProject will return the value of Project.
 func (m *Migrations) GetProject() string { return m.Project }
 
+// SetProject sets Project to the provided value.
+func (m *Migrations) SetProject(val string) { m.Project = val }
+
 // GetFilename will return the value of Filename.
 func (m *Migrations) GetFilename() string { return m.Filename }
+
+// SetFilename sets Filename to the provided value.
+func (m *Migrations) SetFilename(val string) { m.Filename = val }
 
 // GetStatementIndex will return the value of StatementIndex.
 func (m *Migrations) GetStatementIndex() int64 { return m.StatementIndex }
 
+// SetStatementIndex sets StatementIndex to the provided value.
+func (m *Migrations) SetStatementIndex(val int64) { m.StatementIndex = val }
+
 // GetStatus will return the value of Status.
 func (m *Migrations) GetStatus() string { return m.Status }
+
+// SetStatus sets Status to the provided value.
+func (m *Migrations) SetStatus(val string) { m.Status = val }
 
 // MigrationsTable is the name of the table in the DB.
 const MigrationsTable = "`migrations`"
