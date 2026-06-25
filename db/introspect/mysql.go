@@ -3,7 +3,6 @@ package introspect
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -56,41 +55,6 @@ func enrichKeysFromInfoSchema(ctx context.Context, db *sqlx.DB, tableName string
 // MysqlDescriber implements Describer for MySQL.
 type MysqlDescriber struct{}
 
-// parseMySQLType extracts base type and size for varchar/char/numeric/decimal; strips integer display width.
-func parseMySQLType(typeStr string) (baseType string, size int) {
-	typeStr = strings.TrimSpace(typeStr)
-	typeStrLower := strings.ToLower(typeStr)
-
-	// Handle varchar/char - extract max length
-	if matches := varcharPattern.FindStringSubmatch(typeStrLower); len(matches) >= 3 {
-		if n, err := strconv.Atoi(matches[2]); err == nil {
-			return matches[1], n
-		}
-		return matches[1], 0
-	}
-
-	// Handle numeric/decimal - extract precision
-	if matches := numericPattern.FindStringSubmatch(typeStrLower); len(matches) >= 3 {
-		if n, err := strconv.Atoi(matches[2]); err == nil {
-			return matches[1], n
-		}
-		return matches[1], 0
-	}
-
-	// Strip display width from integer types (int(11), bigint(20), etc)
-	// Display width has no semantic meaning for storage
-	if intDisplayWidth.MatchString(typeStrLower) {
-		typeStr = intDisplayWidth.ReplaceAllStringFunc(typeStrLower, func(match string) string {
-			parts := strings.Split(match, "(")
-			return strings.TrimSpace(parts[0])
-		})
-		return typeStr, 0
-	}
-
-	// Return as-is for other types
-	return typeStr, 0
-}
-
 // Describe returns column metadata from a query.
 func (d *MysqlDescriber) Describe(ctx context.Context, db *sqlx.DB, query string) ([]*model.Column, error) {
 	var err error
@@ -138,11 +102,11 @@ func (d *MysqlDescriber) Describe(ctx context.Context, db *sqlx.DB, query string
 	columns := []*model.Column{}
 	for _, row := range describeRows {
 		column := &model.Column{
-			Name:     row.Field,
-			Type:     row.Type,
-			DataType: row.Type,
-			Comment:  "",
+			Name:    row.Field,
+			Type:    row.Type,
+			Comment: "",
 		}
+		parseMySQLType(column)
 
 		// Map Key values - DESCRIBE shows keys
 		column.Key = row.Key // Could be: "PRI", "UNI", "MUL", or empty
@@ -187,18 +151,10 @@ func (d *MysqlDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tableNa
 
 	// Enrich columns with normalized type and extract ENUM values
 	for _, col := range columns {
-		// Extract ENUM values and set Values field
-		if strings.Contains(strings.ToLower(col.Type), "enum") {
-			col.Values = ExtractEnumValues(col.Type)
-			col.EnumValues = col.Values // Keep for backward compatibility
-			// Set type to just "enum" without the values
-			col.Type = "enum"
-		} else {
-			// Parse MySQL type and extract meaningful size
-			col.Type, col.Size = parseMySQLType(col.Type)
-		}
+		parseMySQLType(col)
+
 		// Normalize the type
-		NormalizeColumnType(col, db.DriverName())
+		normalizeColumnType(col, db.DriverName())
 	}
 
 	// Get indexes for this table
@@ -208,7 +164,7 @@ func (d *MysqlDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tableNa
 	}
 
 	// Enrich key metadata based on naming conventions and indexes
-	EnrichKeyMetadata(columns, indexes)
+	enrichKeyMetadata(columns, indexes)
 
 	table.Columns = columns
 	table.Indexes = indexes

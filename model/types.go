@@ -38,23 +38,18 @@ func (t *Table) Ignore() bool {
 var TableFields = []string{"TABLE_NAME", "TABLE_COMMENT"}
 
 // Column represents a database column with its metadata.
-// Type is the base SQL type (e.g., "varchar", "bigint", "enum").
-// DataType is the normalized cross-database type (e.g., "text", "integer", "enum").
-// Size is set for types where it has semantic meaning: varchar/char size represents max character length, PostgreSQL int types size represents storage in bytes (2, 4, 8).
-// Values contains the allowed values for enum types.
-// EnumValues is deprecated; use Values instead.
+// SIZE is filled from sql query on postgres.
 type Column struct {
-	Name       string   `db:"COLUMN_NAME" json:"name" yaml:"name"`
-	Type       string   `db:"COLUMN_TYPE" json:"type,omitempty" yaml:"type,omitempty"`
-	Key        string   `db:"COLUMN_KEY" json:"key,omitempty" yaml:"key,omitempty"`
-	Comment    string   `db:"COLUMN_COMMENT" json:"comment,omitempty" yaml:"comment,omitempty"`
-	DataType   string   `db:"DATA_TYPE" json:"datatype,omitempty" yaml:"datatype,omitempty"`
-	Size       int      `json:"size,omitempty" yaml:"size,omitempty"`
-	Values     []string `json:"values,omitempty" yaml:"values,omitempty"`
-	EnumValues []string `json:"enum_values,omitempty" yaml:"enum_values,omitempty"`
+	Name     string   `db:"COLUMN_NAME" json:"name" yaml:"name"`
+	Type     string   `db:"COLUMN_TYPE" json:"type,omitempty" yaml:"type,omitempty"`
+	Key      string   `db:"COLUMN_KEY" json:"key,omitempty" yaml:"key,omitempty"`
+	Comment  string   `db:"COLUMN_COMMENT" json:"comment,omitempty" yaml:"comment,omitempty"`
+	DataType string   `db:"DATA_TYPE" json:"datatype,omitempty" yaml:"datatype,omitempty"`
+	Size     int      `db:"SIZE" json:"size,omitempty" yaml:"size,omitempty"`
+	Values   []string `json:"values,omitempty" yaml:"values,omitempty"`
 }
 
-// ColumnFields lists the database columns queried from Column.
+// ColumnFields lists the database columns queried from Column (mysql, omits SIZE).
 var ColumnFields = []string{"COLUMN_NAME", "COLUMN_TYPE", "COLUMN_KEY", "COLUMN_COMMENT", "DATA_TYPE"}
 
 // Index represents a database index on a table.

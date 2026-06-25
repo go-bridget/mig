@@ -49,6 +49,7 @@ func (d *PostgresDescriber) Describe(ctx context.Context, db *sqlx.DB, query str
 		SELECT
 			c.column_name as COLUMN_NAME,
 			c.udt_name as COLUMN_TYPE,
+			COALESCE(c.character_maximum_length, 0) as "SIZE",
 			COALESCE(tc.constraint_type, '') as COLUMN_KEY,
 			COALESCE(c.column_default, '') as DATA_TYPE
 		FROM information_schema.columns c
@@ -70,6 +71,7 @@ func (d *PostgresDescriber) Describe(ctx context.Context, db *sqlx.DB, query str
 	type pgColumn struct {
 		ColumnName     string `db:"COLUMN_NAME"`
 		ColumnType     string `db:"COLUMN_TYPE"`
+		ColumnSize     int    `db:"SIZE"`
 		ConstraintType string `db:"COLUMN_KEY"`
 		ColumnDefault  string `db:"DATA_TYPE"`
 	}
@@ -85,7 +87,10 @@ func (d *PostgresDescriber) Describe(ctx context.Context, db *sqlx.DB, query str
 			Name:     pgCol.ColumnName,
 			Type:     pgCol.ColumnType,
 			DataType: pgCol.ColumnType,
+			Size:     pgCol.ColumnSize,
 		}
+
+		parsePostgresType(ctx, db, column)
 
 		// Map PostgreSQL constraint types
 		if pgCol.ConstraintType == "PRIMARY KEY" {
@@ -127,6 +132,7 @@ func (d *PostgresDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tabl
 		SELECT 
 			c.column_name as "COLUMN_NAME",
 			c.udt_name as "COLUMN_TYPE",
+			COALESCE(c.character_maximum_length, 0) as "SIZE",
 			COALESCE(col_description(cl.oid, c.ordinal_position), '') as "COLUMN_COMMENT",
 			c.udt_name as "DATA_TYPE",
 			CASE WHEN pk.conname IS NOT NULL AND a.attnum = ANY(pk.conkey) THEN 'PRI' ELSE '' END as "COLUMN_KEY"
@@ -146,20 +152,10 @@ func (d *PostgresDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tabl
 	for _, col := range columns {
 		// Parse PostgreSQL type aliases (int2, int4, int8) to extract size
 		// Keep the original type (e.g., int8, int4) but extract the size in bytes
-		_, sizeBytes := ParsePostgresIntType(col.Type)
-		if sizeBytes > 0 {
-			col.Size = sizeBytes
-		}
+		parsePostgresType(ctx, db, col)
 
-		// Try to extract ENUM values for all columns (custom types and enum types)
-		// extractPostgresEnumValues will return nil if the type is not an enum
-		enumVals := extractPostgresEnumValues(ctx, db, col.Type)
-		if enumVals != nil && len(enumVals) > 0 {
-			col.Values = enumVals
-			col.EnumValues = enumVals // Keep for backward compatibility
-		}
 		// Normalize the type
-		NormalizeColumnType(col, db.DriverName())
+		normalizeColumnType(col, db.DriverName())
 	}
 
 	// Get indexes for this table
@@ -169,7 +165,7 @@ func (d *PostgresDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tabl
 	}
 
 	// Enrich key metadata based on naming conventions and indexes
-	EnrichKeyMetadata(columns, indexes)
+	enrichKeyMetadata(columns, indexes)
 
 	table.Columns = columns
 	table.Indexes = indexes

@@ -2,24 +2,25 @@
   comment: Core event table for distributed job queue system
   columns:
     - name: id
-      type: bigint
+      type: integer
       key: PRI
       comment: Unique event identifier
-      datatype: integer
+      datatype: bigint
+      size: 8
     - name: title
-      type: varchar
+      type: text
       comment: Event title or job name
-      datatype: text
+      datatype: varchar
       size: 255
     - name: description
       type: text
       comment: Detailed event description
       datatype: text
     - name: tags
-      type: varchar
+      type: text
       key: MUL
       comment: Comma-separated tags for routing
-      datatype: text
+      datatype: varchar
       size: 1000
     - name: status
       type: enum
@@ -31,23 +32,20 @@
         - FAILED
         - PENDING
         - PROCESSING
-      enum_values:
-        - COMPLETED
-        - FAILED
-        - PENDING
-        - PROCESSING
     - name: payload
-      type: json
+      type: text
       comment: Event payload with job-specific data
-      datatype: text
+      datatype: json
     - name: retry_count
-      type: int
+      type: integer
       comment: Number of failed attempts
-      datatype: integer
+      datatype: int
+      size: 4
     - name: max_retries
-      type: int
+      type: integer
       comment: Maximum allowed retry attempts
-      datatype: integer
+      datatype: int
+      size: 4
     - name: next_retry_at
       type: timestamp
       key: MUL
@@ -80,38 +78,42 @@
   comment: Audit trail of worker actions on events
   columns:
     - name: id
-      type: bigint
+      type: integer
       key: PRI
       comment: Log entry identifier
-      datatype: integer
+      datatype: bigint
+      size: 8
     - name: event_id
-      type: bigint
+      type: integer
       key: MUL
       comment: Reference to event
-      datatype: integer
+      datatype: bigint
+      size: 8
     - name: worker_id
-      type: varchar
+      type: text
       key: MUL
       comment: Unique worker identifier
-      datatype: text
+      datatype: varchar
       size: 255
     - name: action
-      type: varchar
+      type: text
       comment: Action performed PICKED STARTED COMPLETED FAILED
-      datatype: text
+      datatype: varchar
       size: 50
     - name: status_code
-      type: int
+      type: integer
       comment: HTTP-like status code for outcome
-      datatype: integer
+      datatype: int
+      size: 4
     - name: error_message
       type: text
       comment: Error details if action failed
       datatype: text
     - name: execution_time_ms
-      type: int
+      type: integer
       comment: Milliseconds taken to execute
-      datatype: integer
+      datatype: int
+      size: 4
     - name: created_at
       type: timestamp
       key: MUL
@@ -136,21 +138,22 @@
   comment: Migration log of applied migrations
   columns:
     - name: project
-      type: varchar
+      type: text
       key: PRI
       comment: Microservice or project name
-      datatype: text
+      datatype: varchar
       size: 16
     - name: filename
-      type: varchar
+      type: text
       key: PRI
       comment: yyyy-mm-dd-HHMMSS.sql
-      datatype: text
+      datatype: varchar
       size: 255
     - name: statement_index
-      type: int
+      type: integer
       comment: Statement number from SQL file
-      datatype: integer
+      datatype: int
+      size: 4
     - name: status
       type: text
       comment: ok or full error message

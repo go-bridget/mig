@@ -1,32 +1,49 @@
 - name: event
+  comment: Core event table for distributed job queue system
   columns:
     - name: id
-      normalized_type: integer
+      comment: Unique event identifier
+      datatype: bigint
+      size: 8
     - name: title
-      normalized_type: text
+      comment: Event title or job name
+      datatype: varchar
+      size: 255
     - name: description
-      normalized_type: text
+      comment: Detailed event description
+      datatype: text
     - name: tags
-      normalized_type: text
+      comment: Comma-separated tags for routing
+      datatype: varchar
+      size: 1000
     - name: status
-      normalized_type: enum
-      enum_values:
+      comment: Current event state
+      datatype: enum
+      values:
         - COMPLETED
         - FAILED
         - PENDING
         - PROCESSING
     - name: payload
-      normalized_type: text
+      comment: Event payload with job-specific data
+      datatype: json
     - name: retry_count
-      normalized_type: integer
+      comment: Number of failed attempts
+      datatype: int
+      size: 4
     - name: max_retries
-      normalized_type: integer
+      comment: Maximum allowed retry attempts
+      datatype: int
+      size: 4
     - name: next_retry_at
-      normalized_type: timestamp
+      comment: When to retry after failure
+      datatype: timestamp
     - name: created_at
-      normalized_type: timestamp
+      comment: Event creation timestamp
+      datatype: timestamp
     - name: updated_at
-      normalized_type: timestamp
+      comment: Last update timestamp
+      datatype: timestamp
   indexes:
     - columns:
         - id
@@ -39,23 +56,38 @@
     - columns:
         - tags
 - name: event_log
+  comment: Audit trail of worker actions on events
   columns:
     - name: id
-      normalized_type: integer
+      comment: Log entry identifier
+      datatype: bigint
+      size: 8
     - name: event_id
-      normalized_type: integer
+      comment: Reference to event
+      datatype: bigint
+      size: 8
     - name: worker_id
-      normalized_type: text
+      comment: Unique worker identifier
+      datatype: varchar
+      size: 255
     - name: action
-      normalized_type: text
+      comment: Action performed PICKED STARTED COMPLETED FAILED
+      datatype: varchar
+      size: 50
     - name: status_code
-      normalized_type: integer
+      comment: HTTP-like status code for outcome
+      datatype: int
+      size: 4
     - name: error_message
-      normalized_type: text
+      comment: Error details if action failed
+      datatype: text
     - name: execution_time_ms
-      normalized_type: integer
+      comment: Milliseconds taken to execute
+      datatype: int
+      size: 4
     - name: created_at
-      normalized_type: timestamp
+      comment: When action occurred
+      datatype: timestamp
   indexes:
     - columns:
         - id
@@ -68,15 +100,23 @@
     - columns:
         - worker_id
 - name: migrations
+  comment: Migration log of applied migrations
   columns:
     - name: project
-      normalized_type: text
+      comment: Microservice or project name
+      datatype: varchar
+      size: 16
     - name: filename
-      normalized_type: text
+      comment: yyyy-mm-dd-HHMMSS.sql
+      datatype: varchar
+      size: 255
     - name: statement_index
-      normalized_type: integer
+      comment: Statement number from SQL file
+      datatype: int
+      size: 4
     - name: status
-      normalized_type: text
+      comment: ok or full error message
+      datatype: text
   indexes:
     - columns:
         - project

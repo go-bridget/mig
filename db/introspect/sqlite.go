@@ -64,16 +64,7 @@ func (d *SqliteDescriber) Describe(ctx context.Context, db *sqlx.DB, query strin
 			DataType: strings.ToLower(pc.Type),
 		}
 
-		// Map SQLite types to standard types (consistent with existing logic in list.go)
-		var sqliteTypeMapping = map[string]string{
-			"integer": "bigint",
-			"real":    "double",
-			"text":    "varchar",
-			"blob":    "blob",
-		}
-		if mapped, ok := sqliteTypeMapping[column.DataType]; ok {
-			column.DataType = mapped
-		}
+		parseSqliteType(column)
 
 		// Set primary key indicator - pk > 0 indicates part of primary key
 		if pc.Pk > 0 {
@@ -121,21 +112,11 @@ func (d *SqliteDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tableN
 	columns := []*model.Column{}
 	for _, pc := range pragmaColumns {
 		column := &model.Column{
-			Name:     pc.Name,
-			Type:     pc.Type,
-			DataType: strings.ToLower(pc.Type),
+			Name: pc.Name,
+			Type: pc.Type,
 		}
 
-		// Map SQLite types to standard types
-		var sqliteTypeMapping = map[string]string{
-			"integer": "bigint",
-			"real":    "double",
-			"text":    "text",
-			"blob":    "blob",
-		}
-		if mapped, ok := sqliteTypeMapping[column.DataType]; ok {
-			column.DataType = mapped
-		}
+		parseSqliteType(column)
 
 		// Set primary key indicator - pk > 0 indicates part of primary key
 		if pc.Pk > 0 {
@@ -161,10 +142,9 @@ func (d *SqliteDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tableN
 		// Check if this column has enum-like CHECK constraint
 		if constraints, ok := checkConstraints[col.Name]; ok && len(constraints) > 0 {
 			col.Values = extractEnumValuesFromCheckConstraint(constraints[0])
-			col.EnumValues = col.Values // Keep for backward compatibility
 		}
 		// Normalize the type
-		NormalizeColumnType(col, db.DriverName())
+		normalizeColumnType(col, db.DriverName())
 	}
 
 	// Get indexes for this table
@@ -174,7 +154,7 @@ func (d *SqliteDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tableN
 	}
 
 	// Enrich key metadata based on naming conventions and indexes
-	EnrichKeyMetadata(columns, indexes)
+	enrichKeyMetadata(columns, indexes)
 
 	table.Columns = columns
 	table.Indexes = indexes

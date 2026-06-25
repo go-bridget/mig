@@ -1,32 +1,47 @@
 - name: event
+  comment: Event
   columns:
     - name: id
-      normalized_type: integer
+      comment: ID
+      datatype: bigint
+      size: 8
     - name: title
-      normalized_type: text
+      comment: Title
+      datatype: varchar
     - name: description
-      normalized_type: text
+      comment: Description
+      datatype: varchar
     - name: tags
-      normalized_type: text
+      comment: Tags
+      datatype: varchar
     - name: status
-      normalized_type: enum
-      enum_values:
+      comment: Status
+      datatype: varchar
+      values:
         - COMPLETED
         - FAILED
         - PENDING
         - PROCESSING
     - name: payload
-      normalized_type: text
+      comment: Payload
+      datatype: varchar
     - name: retry_count
-      normalized_type: integer
+      comment: Retry Count
+      datatype: bigint
+      size: 8
     - name: max_retries
-      normalized_type: integer
+      comment: Max Retries
+      datatype: bigint
+      size: 8
     - name: next_retry_at
-      normalized_type: timestamp
+      comment: Next Retry At
+      datatype: timestamp
     - name: created_at
-      normalized_type: timestamp
+      comment: Created At
+      datatype: timestamp
     - name: updated_at
-      normalized_type: timestamp
+      comment: Updated At
+      datatype: timestamp
   indexes:
     - columns:
         - id
@@ -39,23 +54,36 @@
     - columns:
         - tags
 - name: event_log
+  comment: Event Log
   columns:
     - name: id
-      normalized_type: integer
+      comment: ID
+      datatype: bigint
+      size: 8
     - name: event_id
-      normalized_type: integer
+      comment: Event ID
+      datatype: bigint
+      size: 8
     - name: worker_id
-      normalized_type: text
+      comment: Worker ID
+      datatype: varchar
     - name: action
-      normalized_type: text
+      comment: Action
+      datatype: varchar
     - name: status_code
-      normalized_type: integer
+      comment: Status Code
+      datatype: bigint
+      size: 8
     - name: error_message
-      normalized_type: text
+      comment: Error Message
+      datatype: varchar
     - name: execution_time_ms
-      normalized_type: integer
+      comment: Execution Time Ms
+      datatype: bigint
+      size: 8
     - name: created_at
-      normalized_type: timestamp
+      comment: Created At
+      datatype: timestamp
   indexes:
     - columns:
         - id
@@ -68,15 +96,21 @@
     - columns:
         - worker_id
 - name: migrations
+  comment: Migrations
   columns:
     - name: project
-      normalized_type: text
+      comment: Project
+      datatype: varchar
     - name: filename
-      normalized_type: text
+      comment: Filename
+      datatype: varchar
     - name: statement_index
-      normalized_type: integer
+      comment: Statement Index
+      datatype: bigint
+      size: 8
     - name: status
-      normalized_type: text
+      comment: Status
+      datatype: varchar
   indexes:
     - columns:
         - project

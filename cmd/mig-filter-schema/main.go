@@ -33,11 +33,13 @@ func main() {
 	filtered := make([]*model.Table, 0, len(tables))
 	for _, table := range tables {
 		newTable := &model.Table{
-			Name: table.Name,
+			Name:    table.Name,
+			Comment: table.Comment,
 		}
 		for _, col := range table.Columns {
 			newTable.Columns = append(newTable.Columns, &model.Column{
 				Name:     col.Name,
+				Comment:  col.Comment,
 				DataType: col.DataType,
 				Size:     col.Size,
 				Values:   col.Values,

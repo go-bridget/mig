@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	sqlxTypes "github.com/jmoiron/sqlx/types"
 )
 
 // QueryOption is implemented by each data model type.
@@ -144,13 +146,13 @@ type Event struct {
 	Status string `db:"status" json:"-"`
 
 	// Event payload with job-specific data
-	Payload string `db:"payload" json:"-"`
+	Payload sqlxTypes.JSONText `db:"payload" json:"-"`
 
 	// Number of failed attempts
-	RetryCount int64 `db:"retry_count" json:"-"`
+	RetryCount int32 `db:"retry_count" json:"-"`
 
 	// Maximum allowed retry attempts
-	MaxRetries int64 `db:"max_retries" json:"-"`
+	MaxRetries int32 `db:"max_retries" json:"-"`
 
 	// When to retry after failure
 	NextRetryAt *time.Time `db:"next_retry_at" json:"-"`
@@ -193,22 +195,22 @@ func (e *Event) GetStatus() string { return e.Status }
 func (e *Event) SetStatus(val string) { e.Status = val }
 
 // GetPayload will return the value of Payload.
-func (e *Event) GetPayload() string { return e.Payload }
+func (e *Event) GetPayload() sqlxTypes.JSONText { return e.Payload }
 
 // SetPayload sets Payload to the provided value.
-func (e *Event) SetPayload(val string) { e.Payload = val }
+func (e *Event) SetPayload(val sqlxTypes.JSONText) { e.Payload = val }
 
 // GetRetryCount will return the value of RetryCount.
-func (e *Event) GetRetryCount() int64 { return e.RetryCount }
+func (e *Event) GetRetryCount() int32 { return e.RetryCount }
 
 // SetRetryCount sets RetryCount to the provided value.
-func (e *Event) SetRetryCount(val int64) { e.RetryCount = val }
+func (e *Event) SetRetryCount(val int32) { e.RetryCount = val }
 
 // GetMaxRetries will return the value of MaxRetries.
-func (e *Event) GetMaxRetries() int64 { return e.MaxRetries }
+func (e *Event) GetMaxRetries() int32 { return e.MaxRetries }
 
 // SetMaxRetries sets MaxRetries to the provided value.
-func (e *Event) SetMaxRetries(val int64) { e.MaxRetries = val }
+func (e *Event) SetMaxRetries(val int32) { e.MaxRetries = val }
 
 // GetNextRetryAt will return the value of NextRetryAt.
 func (e *Event) GetNextRetryAt() *time.Time { return e.NextRetryAt }
@@ -254,13 +256,13 @@ type EventLog struct {
 	Action string `db:"action" json:"-"`
 
 	// HTTP-like status code for outcome
-	StatusCode int64 `db:"status_code" json:"-"`
+	StatusCode int32 `db:"status_code" json:"-"`
 
 	// Error details if action failed
 	ErrorMessage string `db:"error_message" json:"-"`
 
 	// Milliseconds taken to execute
-	ExecutionTimeMs int64 `db:"execution_time_ms" json:"-"`
+	ExecutionTimeMs int32 `db:"execution_time_ms" json:"-"`
 
 	// When action occurred
 	CreatedAt *time.Time `db:"created_at" json:"-"`
@@ -291,10 +293,10 @@ func (e *EventLog) GetAction() string { return e.Action }
 func (e *EventLog) SetAction(val string) { e.Action = val }
 
 // GetStatusCode will return the value of StatusCode.
-func (e *EventLog) GetStatusCode() int64 { return e.StatusCode }
+func (e *EventLog) GetStatusCode() int32 { return e.StatusCode }
 
 // SetStatusCode sets StatusCode to the provided value.
-func (e *EventLog) SetStatusCode(val int64) { e.StatusCode = val }
+func (e *EventLog) SetStatusCode(val int32) { e.StatusCode = val }
 
 // GetErrorMessage will return the value of ErrorMessage.
 func (e *EventLog) GetErrorMessage() string { return e.ErrorMessage }
@@ -303,10 +305,10 @@ func (e *EventLog) GetErrorMessage() string { return e.ErrorMessage }
 func (e *EventLog) SetErrorMessage(val string) { e.ErrorMessage = val }
 
 // GetExecutionTimeMs will return the value of ExecutionTimeMs.
-func (e *EventLog) GetExecutionTimeMs() int64 { return e.ExecutionTimeMs }
+func (e *EventLog) GetExecutionTimeMs() int32 { return e.ExecutionTimeMs }
 
 // SetExecutionTimeMs sets ExecutionTimeMs to the provided value.
-func (e *EventLog) SetExecutionTimeMs(val int64) { e.ExecutionTimeMs = val }
+func (e *EventLog) SetExecutionTimeMs(val int32) { e.ExecutionTimeMs = val }
 
 // GetCreatedAt will return the value of CreatedAt.
 func (e *EventLog) GetCreatedAt() *time.Time { return e.CreatedAt }
@@ -334,7 +336,7 @@ type Migrations struct {
 	Filename string `db:"filename" json:"-"`
 
 	// Statement number from SQL file
-	StatementIndex int64 `db:"statement_index" json:"-"`
+	StatementIndex int32 `db:"statement_index" json:"-"`
 
 	// ok or full error message
 	Status string `db:"status" json:"-"`
@@ -353,10 +355,10 @@ func (m *Migrations) GetFilename() string { return m.Filename }
 func (m *Migrations) SetFilename(val string) { m.Filename = val }
 
 // GetStatementIndex will return the value of StatementIndex.
-func (m *Migrations) GetStatementIndex() int64 { return m.StatementIndex }
+func (m *Migrations) GetStatementIndex() int32 { return m.StatementIndex }
 
 // SetStatementIndex sets StatementIndex to the provided value.
-func (m *Migrations) SetStatementIndex(val int64) { m.StatementIndex = val }
+func (m *Migrations) SetStatementIndex(val int32) { m.StatementIndex = val }
 
 // GetStatus will return the value of Status.
 func (m *Migrations) GetStatus() string { return m.Status }

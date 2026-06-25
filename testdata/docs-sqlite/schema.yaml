@@ -2,61 +2,59 @@
   comment: Event
   columns:
     - name: id
-      type: INTEGER
+      type: integer
       key: PRI
       comment: ID
-      datatype: integer
+      datatype: bigint
+      size: 8
     - name: title
-      type: TEXT
+      type: text
       comment: Title
-      datatype: text
+      datatype: varchar
     - name: description
-      type: TEXT
+      type: text
       comment: Description
-      datatype: text
+      datatype: varchar
     - name: tags
-      type: TEXT
+      type: text
       key: MUL
       comment: Tags
-      datatype: text
+      datatype: varchar
     - name: status
       type: TEXT
       key: MUL
       comment: Status
-      datatype: enum
+      datatype: varchar
       values:
         - COMPLETED
         - FAILED
         - PENDING
         - PROCESSING
-      enum_values:
-        - COMPLETED
-        - FAILED
-        - PENDING
-        - PROCESSING
     - name: payload
-      type: TEXT
+      type: text
       comment: Payload
-      datatype: text
+      datatype: varchar
     - name: retry_count
-      type: INTEGER
+      type: integer
       comment: Retry Count
-      datatype: integer
+      datatype: bigint
+      size: 8
     - name: max_retries
-      type: INTEGER
+      type: integer
       comment: Max Retries
-      datatype: integer
+      datatype: bigint
+      size: 8
     - name: next_retry_at
-      type: TIMESTAMP
+      type: timestamp
       key: MUL
       comment: Next Retry At
       datatype: timestamp
     - name: created_at
-      type: TIMESTAMP
+      type: timestamp
       comment: Created At
       datatype: timestamp
     - name: updated_at
-      type: TIMESTAMP
+      type: timestamp
       comment: Updated At
       datatype: timestamp
   indexes:
@@ -77,38 +75,42 @@
   comment: Event Log
   columns:
     - name: id
-      type: INTEGER
+      type: integer
       key: PRI
       comment: ID
-      datatype: integer
+      datatype: bigint
+      size: 8
     - name: event_id
-      type: INTEGER
+      type: integer
       key: MUL
       comment: Event ID
-      datatype: integer
+      datatype: bigint
+      size: 8
     - name: worker_id
-      type: TEXT
+      type: text
       key: MUL
       comment: Worker ID
-      datatype: text
+      datatype: varchar
     - name: action
-      type: TEXT
+      type: text
       comment: Action
-      datatype: text
+      datatype: varchar
     - name: status_code
-      type: INTEGER
+      type: integer
       comment: Status Code
-      datatype: integer
+      datatype: bigint
+      size: 8
     - name: error_message
-      type: TEXT
+      type: text
       comment: Error Message
-      datatype: text
+      datatype: varchar
     - name: execution_time_ms
-      type: INTEGER
+      type: integer
       comment: Execution Time Ms
-      datatype: integer
+      datatype: bigint
+      size: 8
     - name: created_at
-      type: TIMESTAMP
+      type: timestamp
       key: MUL
       comment: Created At
       datatype: timestamp
@@ -130,23 +132,24 @@
   comment: Migrations
   columns:
     - name: project
-      type: TEXT
+      type: text
       key: PRI
       comment: Project
-      datatype: text
+      datatype: varchar
     - name: filename
-      type: TEXT
+      type: text
       key: PRI
       comment: Filename
-      datatype: text
+      datatype: varchar
     - name: statement_index
-      type: INTEGER
+      type: integer
       comment: Statement Index
-      datatype: integer
+      datatype: bigint
+      size: 8
     - name: status
-      type: TEXT
+      type: text
       comment: Status
-      datatype: text
+      datatype: varchar
   indexes:
     - name: sqlite_autoindex_migrations_1
       columns:
