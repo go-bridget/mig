@@ -33,6 +33,7 @@ Available commands:
    create     Create database schema SQL
    migrate    Apply SQL migrations to database
    docs       Generate markdown docs from DB schema
+   filter     Filter schema YAML to driver-independent fields
    lint       Check schema for best practices and comments
    gen        Generate source code from DB schema
    version    Print version

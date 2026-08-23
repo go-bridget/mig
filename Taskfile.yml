@@ -81,9 +81,9 @@ tasks:
     desc: "Compare schemas (filtered to name, normalized_type, enum_values)"
     cmds:
       - mkdir -p testdata/inspect
-      - mig-filter-schema testdata/docs-sqlite/schema.yaml > testdata/inspect/sqlite.yaml
-      - mig-filter-schema testdata/docs-mysql/schema.yaml > testdata/inspect/mysql.yaml
-      - mig-filter-schema testdata/docs-postgresql/schema.yaml > testdata/inspect/postgresql.yaml
+      - mig filter testdata/docs-sqlite/schema.yaml > testdata/inspect/sqlite.yaml
+      - mig filter testdata/docs-mysql/schema.yaml > testdata/inspect/mysql.yaml
+      - mig filter testdata/docs-postgresql/schema.yaml > testdata/inspect/postgresql.yaml
       - dyff between -i testdata/inspect/sqlite.yaml testdata/inspect/mysql.yaml || true
       - dyff between -i testdata/inspect/sqlite.yaml testdata/inspect/postgresql.yaml || true
       - dyff between -i testdata/inspect/mysql.yaml testdata/inspect/postgresql.yaml || true

@@ -13,6 +13,7 @@ import (
 
 	"github.com/go-bridget/mig/cmd/mig/create"
 	"github.com/go-bridget/mig/cmd/mig/docs"
+	"github.com/go-bridget/mig/cmd/mig/filter"
 	"github.com/go-bridget/mig/cmd/mig/gen"
 	"github.com/go-bridget/mig/cmd/mig/lint"
 	"github.com/go-bridget/mig/cmd/mig/migrate"
@@ -37,6 +38,7 @@ func run() error {
 	app.AddCommand("create", create.Name, create.New)
 	app.AddCommand("migrate", migrate.Name, migrate.New)
 	app.AddCommand("docs", docs.Name, docs.New)
+	app.AddCommand("filter", filter.Name, filter.New)
 	app.AddCommand("lint", lint.Name, lint.New)
 	app.AddCommand("gen", gen.Name, gen.New)
 
