@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"os"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -35,12 +36,16 @@ func main() {
 func run() error {
 	app := cli.NewApp("mig")
 
-	app.AddCommand("create", create.Name, create.New)
-	app.AddCommand("migrate", migrate.Name, migrate.New)
-	app.AddCommand("docs", docs.Name, docs.New)
+	// The SQL a command prints goes to stdout, for a script to read; what
+	// a run did goes here.
+	log := slog.New(slog.NewTextHandler(os.Stderr, nil))
+
+	app.AddCommand("create", create.Name, create.New(log))
+	app.AddCommand("migrate", migrate.Name, migrate.New(log))
+	app.AddCommand("docs", docs.Name, docs.New(log))
 	app.AddCommand("filter", filter.Name, filter.New)
-	app.AddCommand("lint", lint.Name, lint.New)
-	app.AddCommand("gen", gen.Name, gen.New)
+	app.AddCommand("lint", lint.Name, lint.New(log))
+	app.AddCommand("gen", gen.Name, gen.New(log))
 
 	app.AddCommand("version", "Print version", func() *cli.Command {
 		return &cli.Command{

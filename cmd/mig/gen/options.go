@@ -1,7 +1,7 @@
 package gen
 
 import (
-	"github.com/go-bridget/mig/logger"
+	"log/slog"
 )
 
 // Options contains code generation options.
@@ -10,9 +10,9 @@ type Options struct {
 	Schema   string
 	Output   string
 
-	// LogFn receives code generation progress. It must be set;
-	// Render returns logger.ErrNoLogFn when it is nil.
-	LogFn logger.LogFn
+	// Logger receives the progress of a render, which is the files it
+	// wrote. A nil Logger reports nothing.
+	Logger *slog.Logger
 
 	Go struct {
 		FillJSON bool
@@ -24,15 +24,11 @@ type Options struct {
 	}
 }
 
-// Logf writes a line to the bound sink.
-func (options *Options) Logf(format string, args ...any) {
-	options.LogFn(format, args...)
-}
-
-// checkLogFn reports whether a logging sink has been bound.
-func (options *Options) checkLogFn() error {
-	if options.LogFn == nil {
-		return logger.ErrNoLogFn
+// log returns the logger to report through, which drops what it's given
+// when the caller bound none.
+func (options *Options) log() *slog.Logger {
+	if options.Logger == nil {
+		return slog.New(slog.DiscardHandler)
 	}
-	return nil
+	return options.Logger
 }

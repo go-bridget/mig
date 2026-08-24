@@ -1,9 +1,12 @@
 package migrate
 
 import (
-	flag "github.com/spf13/pflag"
+	"fmt"
+	"io"
+	"log/slog"
+	"os"
 
-	"github.com/go-bridget/mig/logger"
+	flag "github.com/spf13/pflag"
 )
 
 // Options include migration options.
@@ -24,22 +27,36 @@ type Options struct {
 	// Verbose will output more details about migration execution.
 	Verbose bool
 
-	// LogFn receives migration progress and SQL output. It must be set;
-	// entry points return logger.ErrNoLogFn when it is nil.
-	LogFn logger.LogFn
+	// Logger receives the progress of a migration. A nil Logger reports
+	// nothing.
+	Logger *slog.Logger
+
+	// Output receives the SQL the migrations are made of, which Print
+	// writes and Verbose adds to a run. A nil Output writes to stdout.
+	Output io.Writer
 }
 
-// Logf writes a line to the bound sink.
-func (options *Options) Logf(format string, args ...any) {
-	options.LogFn(format, args...)
-}
-
-// checkLogFn reports whether a logging sink has been bound.
-func (options *Options) checkLogFn() error {
-	if options.LogFn == nil {
-		return logger.ErrNoLogFn
+// log returns the logger to report through, which drops what it's given
+// when the caller bound none.
+func (options *Options) log() *slog.Logger {
+	if options.Logger == nil {
+		return slog.New(slog.DiscardHandler)
 	}
-	return nil
+	return options.Logger
+}
+
+// output returns where the SQL goes. It's stdout by default, so a caller
+// can pipe the migrations of a project into a database.
+func (options *Options) output() io.Writer {
+	if options.Output == nil {
+		return os.Stdout
+	}
+	return options.Output
+}
+
+// printf writes a line of SQL to the output.
+func (options *Options) printf(format string, args ...any) {
+	fmt.Fprintf(options.output(), format+"\n", args...)
 }
 
 // NewOptions creates a new Options instance with default values.

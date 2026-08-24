@@ -7,18 +7,15 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
-
-	"github.com/go-bridget/mig/logger"
 )
 
 var ErrEmptyDSN = errors.New("empty dsn")
 
 // Connect connects to a database and produces the handle for injection.
-// It has no logging sink of its own and stays silent; use ConnectWithRetry
-// with your own Options if you want the connection retries logged.
+// It reports nothing of its own; use ConnectWithRetry with an Options
+// carrying a Logger to have the connection retries reported.
 func Connect(ctx context.Context) (*sqlx.DB, error) {
 	options := &Options{
-		LogFn: logger.Discard,
 		Connector: func(ctx context.Context, credentials Credentials) (*sql.DB, error) {
 			driver, dsn := credentials.Open()
 			db, err := sql.Open(driver, dsn)

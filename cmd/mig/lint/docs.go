@@ -3,6 +3,7 @@ package lint
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/pkg/errors"
 
@@ -10,7 +11,6 @@ import (
 
 	"github.com/go-bridget/mig/db"
 	"github.com/go-bridget/mig/db/introspect"
-	"github.com/go-bridget/mig/logger"
 )
 
 // Name is the command title.
@@ -24,45 +24,47 @@ type Options struct {
 	skipPlural   bool
 }
 
-// New creates a new lint command.
-func New() *cli.Command {
-	var config Options
+// New creates a new lint command. It reports through log.
+func New(log *slog.Logger) func() *cli.Command {
+	return func() *cli.Command {
+		var config Options
 
-	return &cli.Command{
-		Name:  "lint",
-		Title: Name,
-		Bind: func(fs *cli.FlagSet) {
-			config.db = db.NewOptions()
-			config.db.LogFn = logger.Printf
-			config.db.Bind(fs)
+		return &cli.Command{
+			Name:  "lint",
+			Title: Name,
+			Bind: func(fs *cli.FlagSet) {
+				config.db = db.NewOptions()
+				config.db.Logger = log
+				config.db.Bind(fs)
 
-			fs.BoolVar(&config.skipComments, "skip-comments", false, "Skip validating table/column comments")
-			fs.BoolVar(&config.skipPlural, "skip-plural", false, "Skip validating table name for singular form")
-		},
-		Run: func(ctx context.Context, args []string) error {
-			handle, err := db.ConnectWithRetry(ctx, config.db)
-			if err != nil {
-				return err
-			}
-
-			desc, err := introspect.NewDescriber(handle)
-			if err != nil {
-				return err
-			}
-
-			tables, err := introspect.ListTablesWithColumns(ctx, handle, desc)
-			if err != nil {
-				return err
-			}
-
-			errs := validate(tables, config)
-			if len(errs) > 0 {
-				for _, err := range errs {
-					fmt.Println(err)
+				fs.BoolVar(&config.skipComments, "skip-comments", false, "Skip validating table/column comments")
+				fs.BoolVar(&config.skipPlural, "skip-plural", false, "Skip validating table name for singular form")
+			},
+			Run: func(ctx context.Context, args []string) error {
+				handle, err := db.ConnectWithRetry(ctx, config.db)
+				if err != nil {
+					return err
 				}
-				return errors.New("validation failed")
-			}
-			return nil
-		},
+
+				desc, err := introspect.NewDescriber(handle)
+				if err != nil {
+					return err
+				}
+
+				tables, err := introspect.ListTablesWithColumns(ctx, handle, desc)
+				if err != nil {
+					return err
+				}
+
+				errs := validate(tables, config)
+				if len(errs) > 0 {
+					for _, err := range errs {
+						fmt.Println(err)
+					}
+					return errors.New("validation failed")
+				}
+				return nil
+			},
+		}
 	}
 }

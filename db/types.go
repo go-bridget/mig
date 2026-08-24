@@ -2,14 +2,13 @@ package db
 
 import (
 	"context"
+	"log/slog"
 	"os"
 	"time"
 
 	"database/sql"
 
 	flag "github.com/spf13/pflag"
-
-	"github.com/go-bridget/mig/logger"
 )
 
 // Options include database connection options
@@ -24,22 +23,18 @@ type Options struct {
 	RetryDelay     time.Duration
 	ConnectTimeout time.Duration
 
-	// LogFn receives connection progress. It must be set; entry points
-	// return logger.ErrNoLogFn when it is nil.
-	LogFn logger.LogFn
+	// Logger receives the progress of a connection, which is the retries
+	// it took. A nil Logger reports nothing.
+	Logger *slog.Logger
 }
 
-// Logf writes a line to the bound sink.
-func (options *Options) Logf(format string, args ...any) {
-	options.LogFn(format, args...)
-}
-
-// checkLogFn reports whether a logging sink has been bound.
-func (options *Options) checkLogFn() error {
-	if options.LogFn == nil {
-		return logger.ErrNoLogFn
+// log returns the logger to report through, which drops what it's given
+// when the caller bound none.
+func (options *Options) log() *slog.Logger {
+	if options.Logger == nil {
+		return slog.New(slog.DiscardHandler)
 	}
-	return nil
+	return options.Logger
 }
 
 // NewOptions provides an initialized *Options object.

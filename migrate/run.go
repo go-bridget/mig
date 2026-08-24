@@ -3,7 +3,6 @@ package migrate
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"database/sql"
 
@@ -34,10 +33,6 @@ func RunWithDB(ctx context.Context, sqldb *sqlx.DB, options *Options) error {
 
 // RunWithFS runs the passed migrations against a *sqlx.DB with context.
 func RunWithFS(ctx context.Context, sqldb *sqlx.DB, fs FS, options *Options) error {
-	if err := options.checkLogFn(); err != nil {
-		return err
-	}
-
 	// Normalize driver name for migration file lookup
 	driverName := sqldb.DriverName()
 	if driverName == "pgx" {
@@ -51,10 +46,10 @@ func RunWithFS(ctx context.Context, sqldb *sqlx.DB, fs FS, options *Options) err
 
 	printQuery := func(idx int, query string) {
 		if options.Verbose {
-			options.Logf("")
-			options.Logf("-- Statement index: %d", idx)
-			options.Logf("%s", query)
-			options.Logf("")
+			options.printf("")
+			options.printf("-- Statement index: %d", idx)
+			options.printf("%s", query)
+			options.printf("")
 		}
 	}
 
@@ -117,7 +112,7 @@ func RunWithFS(ctx context.Context, sqldb *sqlx.DB, fs FS, options *Options) err
 				if err := tx.Commit(); err != nil {
 					return fmt.Errorf("failed to commit transaction: %w", err)
 				}
-				options.Logf("%s SKIPPED (already applied)", filename)
+				options.log().Info("skipped", "file", filename, "reason", "already applied")
 				return nil
 			}
 		}
@@ -132,7 +127,7 @@ func RunWithFS(ctx context.Context, sqldb *sqlx.DB, fs FS, options *Options) err
 			for idx, stmt := range stmts {
 				isApplied = idx <= status.StatementIndex
 				if options.Verbose {
-					options.Logf("-- statement %d/%d is applied? %t", idx, status.StatementIndex, isApplied)
+					options.log().Debug("statement", "index", idx, "of", status.StatementIndex, "applied", isApplied)
 				}
 				// skip stmt if it has already been applied
 				if !isApplied {
@@ -171,7 +166,7 @@ func RunWithFS(ctx context.Context, sqldb *sqlx.DB, fs FS, options *Options) err
 			return fmt.Errorf("failed to commit transaction: %w", err)
 		}
 
-		options.Logf("%s %s", filename, strings.ToUpper(status.Status))
+		options.log().Info("migration", "file", filename, "status", status.Status)
 		return err
 	}
 

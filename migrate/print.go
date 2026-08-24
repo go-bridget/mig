@@ -8,10 +8,6 @@ import (
 
 // Print outputs database migrations for a project to the bound log sink.
 func Print(options *Options) error {
-	if err := options.checkLogFn(); err != nil {
-		return err
-	}
-
 	fs, ok := migrations[options.Project]
 	if !ok {
 		return errors.Errorf("Migrations for '%s' don't exist", options.Project)
@@ -19,16 +15,16 @@ func Print(options *Options) error {
 
 	printQuery := func(idx int, query string) error {
 		if options.Verbose {
-			options.Logf("")
-			options.Logf("-- Statement index: %d", idx)
-			options.Logf("%s", query)
-			options.Logf("")
+			options.printf("")
+			options.printf("-- Statement index: %d", idx)
+			options.printf("%s", query)
+			options.printf("")
 		}
 		return nil
 	}
 
 	migrate := func(filename string) error {
-		options.Logf("-- Migrations file: %s", filename)
+		options.printf("-- Migrations file: %s", filename)
 		stmts, err := statements(fs.ReadFile(filename))
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf("Error reading migration: %s", filename))

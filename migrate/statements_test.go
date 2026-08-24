@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"embed"
+	"io"
+	"log/slog"
 	"testing"
 
 	"github.com/jmoiron/sqlx"
@@ -41,7 +43,7 @@ func TestStatementsAppended(t *testing.T) {
 	err = RunWithFS(ctx, db, fs, &Options{
 		Project: "test",
 		Apply:   true,
-		LogFn:   t.Logf,
+		Logger:  slog.New(slog.NewTextHandler(io.Discard, nil)),
 	})
 	require.NoError(t, err)
 
@@ -60,7 +62,7 @@ func TestStatementsAppended(t *testing.T) {
 	err = RunWithFS(ctx, db, fs, &Options{
 		Project: "test",
 		Apply:   true,
-		LogFn:   t.Logf,
+		Logger:  slog.New(slog.NewTextHandler(io.Discard, nil)),
 	})
 	require.NoError(t, err)
 

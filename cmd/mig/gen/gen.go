@@ -2,6 +2,7 @@ package gen
 
 import (
 	"context"
+	"log/slog"
 	"os"
 	"slices"
 
@@ -11,55 +12,56 @@ import (
 
 	"github.com/go-bridget/mig/db"
 	"github.com/go-bridget/mig/db/introspect"
-	"github.com/go-bridget/mig/logger"
 	"github.com/go-bridget/mig/model"
 )
 
 // Name is the command title.
 const Name = "Generate source code from DB schema"
 
-// New creates a new gen command.
-func New() *cli.Command {
-	var config struct {
-		db      *db.Options
-		options Options
-	}
-	config.options.Language = "go"
-	config.options.Output = "types"
-	config.options.LogFn = logger.Printf
+// New creates a new gen command. It reports through log.
+func New(log *slog.Logger) func() *cli.Command {
+	return func() *cli.Command {
+		var config struct {
+			db      *db.Options
+			options Options
+		}
+		config.options.Language = "go"
+		config.options.Output = "types"
+		config.options.Logger = log
 
-	return &cli.Command{
-		Name:  "gen",
-		Title: Name,
-		Bind: func(fs *cli.FlagSet) {
-			config.db = db.NewOptions()
-			config.db.LogFn = logger.Printf
-			config.db.Bind(fs)
+		return &cli.Command{
+			Name:  "gen",
+			Title: Name,
+			Bind: func(fs *cli.FlagSet) {
+				config.db = db.NewOptions()
+				config.db.Logger = log
+				config.db.Bind(fs)
 
-			fs.StringVar(&config.options.Language, "lang", "go", "Programming language")
-			fs.StringVar(&config.options.Output, "output", "model", "Output folder where to generate types")
+				fs.StringVar(&config.options.Language, "lang", "go", "Programming language")
+				fs.StringVar(&config.options.Output, "output", "model", "Output folder where to generate types")
 
-			fs.BoolVar(&config.options.Go.FillJSON, "go.fill-json", false, "Fill JSON tags (go)")
-			fs.BoolVar(&config.options.Go.SkipJSON, "go.skip-json", false, "Skip JSON tags (go)")
-		},
-		Run: func(ctx context.Context, args []string) error {
-			handle, err := db.ConnectWithRetry(ctx, config.db)
-			if err != nil {
-				return err
-			}
+				fs.BoolVar(&config.options.Go.FillJSON, "go.fill-json", false, "Fill JSON tags (go)")
+				fs.BoolVar(&config.options.Go.SkipJSON, "go.skip-json", false, "Skip JSON tags (go)")
+			},
+			Run: func(ctx context.Context, args []string) error {
+				handle, err := db.ConnectWithRetry(ctx, config.db)
+				if err != nil {
+					return err
+				}
 
-			desc, err := introspect.NewDescriber(handle)
-			if err != nil {
-				return err
-			}
+				desc, err := introspect.NewDescriber(handle)
+				if err != nil {
+					return err
+				}
 
-			tables, err := introspect.ListTablesWithColumns(ctx, handle, desc)
-			if err != nil {
-				return err
-			}
+				tables, err := introspect.ListTablesWithColumns(ctx, handle, desc)
+				if err != nil {
+					return err
+				}
 
-			return cmdGen(config.options, tables)
-		},
+				return cmdGen(config.options, tables)
+			},
+		}
 	}
 }
 

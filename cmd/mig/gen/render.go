@@ -119,10 +119,6 @@ func resolveTypeGo(column *Column) (string, error) {
 
 // Render generates Go source code from database tables.
 func Render(options Options, tables []*Table) error {
-	if err := options.checkLogFn(); err != nil {
-		return err
-	}
-
 	var (
 		output = options.Output
 	)
@@ -316,10 +312,10 @@ func Render(options Options, tables []*Table) error {
 		// fall back to unformatted source to inspect
 		// the saved file for the error which occurred
 		formatted = contents
-		options.Logf("error formatting %s: %s", filename, err)
+		options.log().Error("cannot format", "file", filename, "error", err)
 	}
 
-	options.Logf("%s", filename)
+	options.log().Info("wrote", "file", filename)
 
 	return ioutil.WriteFile(filename, formatted, 0644)
 }

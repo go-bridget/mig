@@ -10,10 +10,6 @@ import (
 
 // ConnectWithRetry uses retry options set in Options{}.
 func ConnectWithRetry(ctx context.Context, options *Options) (db *sqlx.DB, err error) {
-	if err := options.checkLogFn(); err != nil {
-		return nil, err
-	}
-
 	// by default, retry for 5 minutes, 5 seconds between retries
 	if options.Retries == 0 && options.ConnectTimeout.Seconds() == 0 {
 		options.ConnectTimeout = 5 * time.Minute
@@ -34,7 +30,7 @@ func ConnectWithRetry(ctx context.Context, options *Options) (db *sqlx.DB, err e
 
 			db, err = ConnectWithOptions(ctx, options)
 			if err != nil {
-				options.Logf("can't connect, err=%s, try=%d", err, try)
+				options.log().Info("cannot connect", "error", err, "try", try)
 
 				if errors.Is(err, ErrEmptyDSN) {
 					break
