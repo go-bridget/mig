@@ -37,11 +37,9 @@ func New(log *slog.Logger) func() *cli.Command {
 			Name:  "create",
 			Title: Name,
 			Bind: func(fs *cli.FlagSet) {
-				config.db = db.NewOptions()
-				config.db.Logger = log
+				config.db = db.NewOptions(log)
 				config.db.Bind(fs)
-				config.migrate = migrate.NewOptions()
-				config.migrate.Logger = log
+				config.migrate = migrate.NewOptions(log)
 				config.migrate.Bind(fs)
 			},
 			Run: func(ctx context.Context, args []string) error {

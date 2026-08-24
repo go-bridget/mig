@@ -30,7 +30,7 @@ func ConnectWithRetry(ctx context.Context, options *Options) (db *sqlx.DB, err e
 
 			db, err = ConnectWithOptions(ctx, options)
 			if err != nil {
-				options.log().Info("cannot connect", "error", err, "try", try)
+				options.Logger.Info("cannot connect", "error", err, "try", try)
 
 				if errors.Is(err, ErrEmptyDSN) {
 					break

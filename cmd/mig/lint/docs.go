@@ -33,8 +33,7 @@ func New(log *slog.Logger) func() *cli.Command {
 			Name:  "lint",
 			Title: Name,
 			Bind: func(fs *cli.FlagSet) {
-				config.db = db.NewOptions()
-				config.db.Logger = log
+				config.db = db.NewOptions(log)
 				config.db.Bind(fs)
 
 				fs.BoolVar(&config.skipComments, "skip-comments", false, "Skip validating table/column comments")

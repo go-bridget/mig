@@ -2,7 +2,6 @@ package db
 
 import (
 	"context"
-	"log/slog"
 	"os"
 	"time"
 
@@ -10,6 +9,14 @@ import (
 
 	flag "github.com/spf13/pflag"
 )
+
+// Logger receives what a connection did. The shape is slog's, so a
+// *slog.Logger satisfies it as it stands, but any logger with these two
+// methods does - the package doesn't name slog.
+type Logger interface {
+	Info(msg string, args ...any)
+	Error(msg string, args ...any)
+}
 
 // Options include database connection options
 type Options struct {
@@ -24,21 +31,13 @@ type Options struct {
 	ConnectTimeout time.Duration
 
 	// Logger receives the progress of a connection, which is the retries
-	// it took. A nil Logger reports nothing.
-	Logger *slog.Logger
+	// it took. It's required - take an Options from NewOptions and it's
+	// the argument you passed.
+	Logger Logger
 }
 
-// log returns the logger to report through, which drops what it's given
-// when the caller bound none.
-func (options *Options) log() *slog.Logger {
-	if options.Logger == nil {
-		return slog.New(slog.DiscardHandler)
-	}
-	return options.Logger
-}
-
-// NewOptions provides an initialized *Options object.
-func NewOptions() *Options {
+// NewOptions provides an initialized *Options object reporting through log.
+func NewOptions(log Logger) *Options {
 	return &Options{
 		Retries:        100,
 		RetryDelay:     2 * time.Second,
@@ -46,6 +45,7 @@ func NewOptions() *Options {
 		Credentials: Credentials{
 			DSN: os.Getenv("MIG_DB_DSN"),
 		},
+		Logger: log,
 	}
 }
 

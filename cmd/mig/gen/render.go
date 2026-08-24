@@ -118,7 +118,7 @@ func resolveTypeGo(column *Column) (string, error) {
 }
 
 // Render generates Go source code from database tables.
-func Render(options Options, tables []*Table) error {
+func Render(options *Options, tables []*Table) error {
 	var (
 		output = options.Output
 	)
@@ -312,10 +312,10 @@ func Render(options Options, tables []*Table) error {
 		// fall back to unformatted source to inspect
 		// the saved file for the error which occurred
 		formatted = contents
-		options.log().Error("cannot format", "file", filename, "error", err)
+		options.Logger.Error("cannot format", "file", filename, "error", err)
 	}
 
-	options.log().Info("wrote", "file", filename)
+	options.Logger.Info("wrote", "file", filename)
 
 	return ioutil.WriteFile(filename, formatted, 0644)
 }

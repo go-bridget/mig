@@ -112,7 +112,7 @@ func RunWithFS(ctx context.Context, sqldb *sqlx.DB, fs FS, options *Options) err
 				if err := tx.Commit(); err != nil {
 					return fmt.Errorf("failed to commit transaction: %w", err)
 				}
-				options.log().Info("skipped", "file", filename, "reason", "already applied")
+				options.Logger.Info("skipped", "file", filename, "reason", "already applied")
 				return nil
 			}
 		}
@@ -127,7 +127,7 @@ func RunWithFS(ctx context.Context, sqldb *sqlx.DB, fs FS, options *Options) err
 			for idx, stmt := range stmts {
 				isApplied = idx <= status.StatementIndex
 				if options.Verbose {
-					options.log().Debug("statement", "index", idx, "of", status.StatementIndex, "applied", isApplied)
+					options.Logger.Info("statement", "index", idx, "of", status.StatementIndex, "applied", isApplied)
 				}
 				// skip stmt if it has already been applied
 				if !isApplied {
@@ -166,7 +166,7 @@ func RunWithFS(ctx context.Context, sqldb *sqlx.DB, fs FS, options *Options) err
 			return fmt.Errorf("failed to commit transaction: %w", err)
 		}
 
-		options.log().Info("migration", "file", filename, "status", status.Status)
+		options.Logger.Info("migration", "file", filename, "status", status.Status)
 		return err
 	}
 

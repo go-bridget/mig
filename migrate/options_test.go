@@ -13,10 +13,29 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-// TestOptionsWithoutLogger covers an Options carrying no Logger, which is
-// what a program embedding mig passes when it doesn't want a running
-// commentary. It used to be refused before the database was touched.
-func TestOptionsWithoutLogger(t *testing.T) {
+// recorder is a Logger owing nothing to slog, which is the point of Logger
+// being an interface: a caller brings the logger they already have.
+type recorder struct {
+	lines []string
+}
+
+func (r *recorder) Info(msg string, _ ...any)  { r.lines = append(r.lines, "info:"+msg) }
+func (r *recorder) Error(msg string, _ ...any) { r.lines = append(r.lines, "error:"+msg) }
+
+// TestNewOptionsBindsLogger covers the logger arriving through the
+// constructor, which is the whole point of it being a parameter: a caller
+// can't reach an Options without having said where the progress goes.
+func TestNewOptionsBindsLogger(t *testing.T) {
+	log := &recorder{}
+	options := NewOptions(log)
+
+	require.Same(t, log, options.Logger)
+	require.Equal(t, "schema", options.Path, "the constructor still fills the defaults")
+}
+
+// TestRunWithLoggerOfOwnMaking covers a run reporting through a Logger that
+// isn't a *slog.Logger, which nothing in the package requires it to be.
+func TestRunWithLoggerOfOwnMaking(t *testing.T) {
 	ctx := context.Background()
 
 	handle, err := sql.Open("sqlite", ":memory:")
@@ -28,11 +47,14 @@ func TestOptionsWithoutLogger(t *testing.T) {
 	migration, err := testdataFS.ReadFile("testdata/pulse.up.sql")
 	require.NoError(t, err)
 
-	migrations["quiet"] = FS{"pulse.up.sql": migration}
-	t.Cleanup(func() { delete(migrations, "quiet") })
+	log := &recorder{}
+	options := NewOptions(log)
+	options.Project = "own"
+	options.Apply = true
+	options.Output = &bytes.Buffer{}
 
-	require.NoError(t, RunWithFS(ctx, db, FS{"pulse.up.sql": migration}, &Options{Project: "quiet", Apply: true}))
-	require.NoError(t, Print(&Options{Project: "quiet", Output: &bytes.Buffer{}}))
+	require.NoError(t, RunWithFS(ctx, db, FS{"pulse.up.sql": migration}, options))
+	require.Equal(t, []string{"info:migration"}, log.lines)
 }
 
 // TestOptionsOutput covers where the two streams go: the SQL to the output,

@@ -3,11 +3,18 @@ package migrate
 import (
 	"fmt"
 	"io"
-	"log/slog"
 	"os"
 
 	flag "github.com/spf13/pflag"
 )
+
+// Logger receives what a migration did. The shape is slog's, so a
+// *slog.Logger satisfies it as it stands, but any logger with these two
+// methods does - the package doesn't name slog.
+type Logger interface {
+	Info(msg string, args ...any)
+	Error(msg string, args ...any)
+}
 
 // Options include migration options.
 type Options struct {
@@ -27,22 +34,13 @@ type Options struct {
 	// Verbose will output more details about migration execution.
 	Verbose bool
 
-	// Logger receives the progress of a migration. A nil Logger reports
-	// nothing.
-	Logger *slog.Logger
+	// Logger receives the progress of a migration. It's required - take an
+	// Options from NewOptions and it's the argument you passed.
+	Logger Logger
 
 	// Output receives the SQL the migrations are made of, which Print
 	// writes and Verbose adds to a run. A nil Output writes to stdout.
 	Output io.Writer
-}
-
-// log returns the logger to report through, which drops what it's given
-// when the caller bound none.
-func (options *Options) log() *slog.Logger {
-	if options.Logger == nil {
-		return slog.New(slog.DiscardHandler)
-	}
-	return options.Logger
 }
 
 // output returns where the SQL goes. It's stdout by default, so a caller
@@ -59,10 +57,12 @@ func (options *Options) printf(format string, args ...any) {
 	fmt.Fprintf(options.output(), format+"\n", args...)
 }
 
-// NewOptions creates a new Options instance with default values.
-func NewOptions() *Options {
+// NewOptions creates a new Options instance with default values, reporting
+// through log. Pass nil to migrate without a running commentary.
+func NewOptions(log Logger) *Options {
 	return &Options{
-		Path: "schema",
+		Path:   "schema",
+		Logger: log,
 	}
 }
 

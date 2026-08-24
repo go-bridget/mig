@@ -23,18 +23,15 @@ func New(log *slog.Logger) func() *cli.Command {
 	return func() *cli.Command {
 		var config struct {
 			db      *db.Options
-			options Options
+			options *Options
 		}
-		config.options.Language = "go"
-		config.options.Output = "types"
-		config.options.Logger = log
+		config.options = NewOptions(log)
 
 		return &cli.Command{
 			Name:  "gen",
 			Title: Name,
 			Bind: func(fs *cli.FlagSet) {
-				config.db = db.NewOptions()
-				config.db.Logger = log
+				config.db = db.NewOptions(log)
 				config.db.Bind(fs)
 
 				fs.StringVar(&config.options.Language, "lang", "go", "Programming language")
@@ -65,7 +62,7 @@ func New(log *slog.Logger) func() *cli.Command {
 	}
 }
 
-func cmdGen(options Options, tables []*model.Table) error {
+func cmdGen(options *Options, tables []*model.Table) error {
 	language := options.Language
 	languages := []string{
 		"go",

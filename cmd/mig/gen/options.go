@@ -1,8 +1,12 @@
 package gen
 
-import (
-	"log/slog"
-)
+// Logger receives what a render did. The shape is slog's, so a *slog.Logger
+// satisfies it as it stands, but any logger with these two methods does -
+// the package doesn't name slog.
+type Logger interface {
+	Info(msg string, args ...any)
+	Error(msg string, args ...any)
+}
 
 // Options contains code generation options.
 type Options struct {
@@ -11,8 +15,9 @@ type Options struct {
 	Output   string
 
 	// Logger receives the progress of a render, which is the files it
-	// wrote. A nil Logger reports nothing.
-	Logger *slog.Logger
+	// wrote. It's required - take an Options from NewOptions and it's the
+	// argument you passed.
+	Logger Logger
 
 	Go struct {
 		FillJSON bool
@@ -24,11 +29,12 @@ type Options struct {
 	}
 }
 
-// log returns the logger to report through, which drops what it's given
-// when the caller bound none.
-func (options *Options) log() *slog.Logger {
-	if options.Logger == nil {
-		return slog.New(slog.DiscardHandler)
+// NewOptions creates a new Options instance with default values, reporting
+// through log.
+func NewOptions(log Logger) *Options {
+	return &Options{
+		Language: "go",
+		Output:   "types",
+		Logger:   log,
 	}
-	return options.Logger
 }
