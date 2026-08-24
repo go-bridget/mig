@@ -9,6 +9,7 @@ import (
 	"github.com/titpetric/cli"
 
 	"github.com/go-bridget/mig/db"
+	"github.com/go-bridget/mig/logger"
 	"github.com/go-bridget/mig/migrate"
 )
 
@@ -36,8 +37,10 @@ func New() *cli.Command {
 		Title: Name,
 		Bind: func(fs *cli.FlagSet) {
 			config.db = db.NewOptions()
+			config.db.LogFn = logger.Printf
 			config.db.Bind(fs)
 			config.migrate = migrate.NewOptions()
+			config.migrate.LogFn = logger.Printf
 			config.migrate.Bind(fs)
 		},
 		Run: func(ctx context.Context, args []string) error {

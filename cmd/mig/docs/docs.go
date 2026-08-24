@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-bridget/mig/db"
 	"github.com/go-bridget/mig/db/introspect"
+	"github.com/go-bridget/mig/logger"
 )
 
 // Name is the command title.
@@ -28,6 +29,7 @@ func New() *cli.Command {
 		Title: Name,
 		Bind: func(fs *cli.FlagSet) {
 			config.db = db.NewOptions()
+			config.db.LogFn = logger.Printf
 			config.db.Bind(fs)
 
 			fs.StringVar(&config.output, "output", "docs", "Output folder where to generate docs")

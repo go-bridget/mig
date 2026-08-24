@@ -8,6 +8,8 @@ import (
 	"database/sql"
 
 	flag "github.com/spf13/pflag"
+
+	"github.com/go-bridget/mig/logger"
 )
 
 // Options include database connection options
@@ -21,6 +23,23 @@ type Options struct {
 	Retries        int
 	RetryDelay     time.Duration
 	ConnectTimeout time.Duration
+
+	// LogFn receives connection progress. It must be set; entry points
+	// return logger.ErrNoLogFn when it is nil.
+	LogFn logger.LogFn
+}
+
+// Logf writes a line to the bound sink.
+func (options *Options) Logf(format string, args ...any) {
+	options.LogFn(format, args...)
+}
+
+// checkLogFn reports whether a logging sink has been bound.
+func (options *Options) checkLogFn() error {
+	if options.LogFn == nil {
+		return logger.ErrNoLogFn
+	}
+	return nil
 }
 
 // NewOptions provides an initialized *Options object.

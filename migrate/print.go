@@ -2,13 +2,16 @@ package migrate
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/pkg/errors"
 )
 
-// Print outputs database migrations for a project to log output.
+// Print outputs database migrations for a project to the bound log sink.
 func Print(options *Options) error {
+	if err := options.checkLogFn(); err != nil {
+		return err
+	}
+
 	fs, ok := migrations[options.Project]
 	if !ok {
 		return errors.Errorf("Migrations for '%s' don't exist", options.Project)
@@ -16,16 +19,16 @@ func Print(options *Options) error {
 
 	printQuery := func(idx int, query string) error {
 		if options.Verbose {
-			log.Println()
-			log.Println("-- Statement index:", idx)
-			log.Println(query)
-			log.Println()
+			options.Logf("")
+			options.Logf("-- Statement index: %d", idx)
+			options.Logf("%s", query)
+			options.Logf("")
 		}
 		return nil
 	}
 
 	migrate := func(filename string) error {
-		log.Println("-- Migrations file:", filename)
+		options.Logf("-- Migrations file: %s", filename)
 		stmts, err := statements(fs.ReadFile(filename))
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf("Error reading migration: %s", filename))

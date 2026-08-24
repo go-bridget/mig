@@ -41,6 +41,7 @@ func TestStatementsAppended(t *testing.T) {
 	err = RunWithFS(ctx, db, fs, &Options{
 		Project: "test",
 		Apply:   true,
+		LogFn:   t.Logf,
 	})
 	require.NoError(t, err)
 
@@ -59,6 +60,7 @@ func TestStatementsAppended(t *testing.T) {
 	err = RunWithFS(ctx, db, fs, &Options{
 		Project: "test",
 		Apply:   true,
+		LogFn:   t.Logf,
 	})
 	require.NoError(t, err)
 

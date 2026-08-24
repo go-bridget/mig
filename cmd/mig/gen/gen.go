@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-bridget/mig/db"
 	"github.com/go-bridget/mig/db/introspect"
+	"github.com/go-bridget/mig/logger"
 	"github.com/go-bridget/mig/model"
 )
 
@@ -25,12 +26,14 @@ func New() *cli.Command {
 	}
 	config.options.Language = "go"
 	config.options.Output = "types"
+	config.options.LogFn = logger.Printf
 
 	return &cli.Command{
 		Name:  "gen",
 		Title: Name,
 		Bind: func(fs *cli.FlagSet) {
 			config.db = db.NewOptions()
+			config.db.LogFn = logger.Printf
 			config.db.Bind(fs)
 
 			fs.StringVar(&config.options.Language, "lang", "go", "Programming language")

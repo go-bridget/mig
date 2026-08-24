@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-bridget/mig/db"
 	"github.com/go-bridget/mig/db/introspect"
+	"github.com/go-bridget/mig/logger"
 )
 
 // Name is the command title.
@@ -32,6 +33,7 @@ func New() *cli.Command {
 		Title: Name,
 		Bind: func(fs *cli.FlagSet) {
 			config.db = db.NewOptions()
+			config.db.LogFn = logger.Printf
 			config.db.Bind(fs)
 
 			fs.BoolVar(&config.skipComments, "skip-comments", false, "Skip validating table/column comments")

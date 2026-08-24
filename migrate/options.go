@@ -2,6 +2,8 @@ package migrate
 
 import (
 	flag "github.com/spf13/pflag"
+
+	"github.com/go-bridget/mig/logger"
 )
 
 // Options include migration options.
@@ -21,6 +23,23 @@ type Options struct {
 
 	// Verbose will output more details about migration execution.
 	Verbose bool
+
+	// LogFn receives migration progress and SQL output. It must be set;
+	// entry points return logger.ErrNoLogFn when it is nil.
+	LogFn logger.LogFn
+}
+
+// Logf writes a line to the bound sink.
+func (options *Options) Logf(format string, args ...any) {
+	options.LogFn(format, args...)
+}
+
+// checkLogFn reports whether a logging sink has been bound.
+func (options *Options) checkLogFn() error {
+	if options.LogFn == nil {
+		return logger.ErrNoLogFn
+	}
+	return nil
 }
 
 // NewOptions creates a new Options instance with default values.

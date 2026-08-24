@@ -9,7 +9,6 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/apex/log"
 	"github.com/pkg/errors"
 
 	"github.com/go-bridget/mig/cmd/mig/internal"
@@ -120,6 +119,10 @@ func resolveTypeGo(column *Column) (string, error) {
 
 // Render generates Go source code from database tables.
 func Render(options Options, tables []*Table) error {
+	if err := options.checkLogFn(); err != nil {
+		return err
+	}
+
 	var (
 		output = options.Output
 	)
@@ -313,10 +316,10 @@ func Render(options Options, tables []*Table) error {
 		// fall back to unformatted source to inspect
 		// the saved file for the error which occurred
 		formatted = contents
-		log.WithError(err).Errorf("error formatting %s", filename)
+		options.Logf("error formatting %s: %s", filename, err)
 	}
 
-	log.Info(filename)
+	options.Logf("%s", filename)
 
 	return ioutil.WriteFile(filename, formatted, 0644)
 }
