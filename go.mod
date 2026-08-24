@@ -3,7 +3,6 @@ module github.com/go-bridget/mig
 go 1.27.0
 
 require (
-	github.com/apex/log v1.9.0
 	github.com/go-sql-driver/mysql v1.10.0
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/jackc/pgx/v5 v5.10.0
@@ -14,7 +13,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/titpetric/cli v0.6.0
 	gopkg.in/yaml.v3 v3.0.1
-	honnef.co/go/tools v0.8.0
+	honnef.co/go/tools v0.8.1
 	modernc.org/sqlite v1.57.0
 )
 
@@ -37,7 +36,7 @@ require (
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/text v0.41.0 // indirect
 	golang.org/x/tools v0.49.0 // indirect
-	modernc.org/libc v1.75.3 // indirect
+	modernc.org/libc v1.75.4 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
 )
