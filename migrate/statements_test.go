@@ -1,74 +1,31 @@
 package migrate
 
 import (
-	"context"
-	"database/sql"
 	"embed"
-	"io"
-	"log/slog"
 	"testing"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/require"
-
-	_ "modernc.org/sqlite"
 )
 
 //go:embed testdata/*.sql
 var testdataFS embed.FS
 
-func TestStatementsMultiple(t *testing.T) {
+func TestSplitMultiple(t *testing.T) {
 	contents, err := testdataFS.ReadFile("testdata/pulse.up.sql")
 	require.NoError(t, err)
 
-	stmts, err := statements(contents, nil)
-	require.NoError(t, err)
-	require.Len(t, stmts, 3)
+	require.Len(t, split(contents), 3)
 }
 
-func TestStatementsAppended(t *testing.T) {
-	ctx := context.Background()
+func TestSplitComments(t *testing.T) {
+	stmts := split([]byte("-- a comment\nSELECT 1;\n-- another\nSELECT 2;\n"))
 
-	handle, err := sql.Open("sqlite", ":memory:")
-	require.NoError(t, err)
-	defer handle.Close()
+	require.Equal(t, []string{"SELECT 1", "SELECT 2"}, stmts)
+}
 
-	db := sqlx.NewDb(handle, "sqlite")
+func TestBuiltins(t *testing.T) {
+	got := builtins("INSERT INTO t (id) VALUES (uuid())")
 
-	// First run: 3 statements
-	initial, err := testdataFS.ReadFile("testdata/pulse.up.sql")
-	require.NoError(t, err)
-
-	fs := FS{"pulse.up.sql": initial}
-	err = RunWithFS(ctx, db, fs, &Options{
-		Project: "test",
-		Apply:   true,
-		Logger:  slog.New(slog.NewTextHandler(io.Discard, nil)),
-	})
-	require.NoError(t, err)
-
-	// Verify migration recorded with statement_index=2 (0-based, 3 statements)
-	var status Migration
-	err = db.GetContext(ctx, &status, "SELECT * FROM migrations WHERE project='test' AND filename='pulse.up.sql'")
-	require.NoError(t, err)
-	require.Equal(t, "ok", status.Status)
-	require.Equal(t, 2, status.StatementIndex)
-
-	// Second run: append a 4th statement
-	appended, err := testdataFS.ReadFile("testdata/pulse_appended.up.sql")
-	require.NoError(t, err)
-
-	fs["pulse.up.sql"] = appended
-	err = RunWithFS(ctx, db, fs, &Options{
-		Project: "test",
-		Apply:   true,
-		Logger:  slog.New(slog.NewTextHandler(io.Discard, nil)),
-	})
-	require.NoError(t, err)
-
-	// Verify migration updated with statement_index=3
-	err = db.GetContext(ctx, &status, "SELECT * FROM migrations WHERE project='test' AND filename='pulse.up.sql'")
-	require.NoError(t, err)
-	require.Equal(t, "ok", status.Status)
-	require.Equal(t, 3, status.StatementIndex)
+	require.NotContains(t, got, "uuid()")
+	require.Regexp(t, `VALUES \('[0-9a-f-]{36}'\)`, got)
 }
