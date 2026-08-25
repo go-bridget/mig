@@ -3,14 +3,12 @@ package create
 import (
 	"context"
 	"fmt"
-	"log/slog"
 
 	"github.com/pkg/errors"
 
 	"github.com/titpetric/cli"
 
 	"github.com/go-bridget/mig/db"
-	"github.com/go-bridget/mig/migrate"
 )
 
 // Name is the command title.
@@ -25,53 +23,54 @@ func createDatabaseQuery(driver, name string) string {
 	}
 }
 
-// New creates a new create command. It reports through log.
-func New(log *slog.Logger) func() *cli.Command {
-	return func() *cli.Command {
-		var config struct {
-			db      *db.Options
-			migrate *migrate.Options
-		}
+// New creates a new create command.
+func New() *cli.Command {
+	var config struct {
+		db *db.Options
 
-		return &cli.Command{
-			Name:  "create",
-			Title: Name,
-			Bind: func(fs *cli.FlagSet) {
-				config.db = db.NewOptions(log)
-				config.db.Bind(fs)
-				config.migrate = migrate.NewOptions(log)
-				config.migrate.Bind(fs)
-			},
-			Run: func(ctx context.Context, args []string) error {
-				if len(args) > 0 {
-					config.migrate.Project = args[0]
+		project string
+		apply   bool
+	}
+
+	return &cli.Command{
+		Name:  "create",
+		Title: Name,
+		Bind: func(fs *cli.FlagSet) {
+			config.db = db.NewOptions()
+			config.db.Bind(fs)
+
+			fs.StringVar(&config.project, "project", "", "Project name for migrations (db key)")
+			fs.BoolVar(&config.apply, "apply", false, "false = print query, true = run query")
+		},
+		Run: func(ctx context.Context, args []string) error {
+			if len(args) > 0 {
+				config.project = args[0]
+			}
+
+			if config.project == "" {
+				return errors.Errorf("Specify project name as first argument to create")
+			}
+
+			driver, _ := db.ParseDSN(config.db.Credentials.DSN)
+			query := createDatabaseQuery(driver, config.project)
+
+			if config.apply {
+				handle, err := db.ConnectWithRetry(ctx, config.db)
+				if err != nil {
+					return errors.Wrap(err, "error connecting to database")
 				}
 
-				if config.migrate.Project == "" {
-					return errors.Errorf("Specify project name as first argument to create")
-				}
+				fmt.Println(query)
 
-				driver, _ := db.ParseDSN(config.db.Credentials.DSN)
-				query := createDatabaseQuery(driver, config.migrate.Project)
-
-				if config.migrate.Apply {
-					handle, err := db.ConnectWithRetry(ctx, config.db)
-					if err != nil {
-						return errors.Wrap(err, "error connecting to database")
-					}
-
-					fmt.Println(query)
-
-					// error is ignored but printed
-					if _, err := handle.Exec(query); err != nil {
-						fmt.Println("notice:", err)
-						return nil
-					}
+				// error is ignored but printed
+				if _, err := handle.Exec(query); err != nil {
+					fmt.Println("notice:", err)
 					return nil
 				}
-				fmt.Println(query)
 				return nil
-			},
-		}
+			}
+			fmt.Println(query)
+			return nil
+		},
 	}
 }

@@ -10,15 +10,7 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
-// Logger receives what a connection did. The shape is slog's, so a
-// *slog.Logger satisfies it as it stands, but any logger with these two
-// methods does - the package doesn't name slog.
-type Logger interface {
-	Info(msg string, args ...any)
-	Error(msg string, args ...any)
-}
-
-// Options include database connection options
+// Options include database connection options.
 type Options struct {
 	Credentials Credentials
 
@@ -29,15 +21,10 @@ type Options struct {
 	Retries        int
 	RetryDelay     time.Duration
 	ConnectTimeout time.Duration
-
-	// Logger receives the progress of a connection, which is the retries
-	// it took. It's required - take an Options from NewOptions and it's
-	// the argument you passed.
-	Logger Logger
 }
 
-// NewOptions provides an initialized *Options object reporting through log.
-func NewOptions(log Logger) *Options {
+// NewOptions provides an initialized *Options object.
+func NewOptions() *Options {
 	return &Options{
 		Retries:        100,
 		RetryDelay:     2 * time.Second,
@@ -45,7 +32,6 @@ func NewOptions(log Logger) *Options {
 		Credentials: Credentials{
 			DSN: os.Getenv("MIG_DB_DSN"),
 		},
-		Logger: log,
 	}
 }
 

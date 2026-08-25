@@ -9,11 +9,13 @@ import (
 	"github.com/pkg/errors"
 )
 
+// ErrEmptyDSN is returned when connecting without a DSN, which is a
+// connection with nothing to connect to rather than one to retry.
 var ErrEmptyDSN = errors.New("empty dsn")
 
 // Connect connects to a database and produces the handle for injection.
-// It reports nothing of its own; use ConnectWithRetry with an Options
-// carrying a Logger to have the connection retries reported.
+// It takes its DSN from MIG_DB_DSN; use ConnectWithRetry to pass your own
+// Options.
 func Connect(ctx context.Context) (*sqlx.DB, error) {
 	options := &Options{
 		Connector: func(ctx context.Context, credentials Credentials) (*sql.DB, error) {

@@ -24,6 +24,17 @@ tasks:
       - go install {{.ldflags}} ./cmd/...
       - task: test
 
+  docs:
+    desc: "Generate the migrate API reference into docs/api.md"
+    cmds:
+      - defer: rm -f go-fsck.json
+      # Extracted with -i ./migrate and without -r, so the reference holds the
+      # importable package and not the cmd/ or model/ ones. Tests are included
+      # for the examples of example_test.go, which are the only bodies the
+      # reference prints.
+      - go-fsck extract -i ./migrate --include-sources --include-tests
+      - go-fsck docs > docs/api.md
+
   build:
     cmds:
       - go build -o build/ {{.ldflags}} ./cmd/...
@@ -57,6 +68,7 @@ tasks:
       - mig create events --db-dsn "mysql://root:test@tcp(localhost:13306)/mysql" --apply
       - mig create events --db-dsn "mysql://root:test@tcp(localhost:13306)/mysql" --apply
       - mig migrate events --path testdata/events/mysql --apply
+      - mig migrate events --path testdata/events/mysql --list
       - mig lint
       - go test -v -tags integration ./...
       - mkdir -p testdata/docs-mysql
@@ -73,6 +85,7 @@ tasks:
       - mig create events --db-dsn "postgres://postgres:mig@localhost:15432/postgres?sslmode=disable" --apply
       - mig create events --db-dsn "postgres://postgres:mig@localhost:15432/postgres?sslmode=disable" --apply
       - mig migrate events --path testdata/events/postgres --apply
+      - mig migrate events --path testdata/events/postgres --list
       - mig lint
       - mkdir -p testdata/docs-postgresql
       - mig docs --output=testdata/docs-postgresql --output-file=schema.yaml --yaml

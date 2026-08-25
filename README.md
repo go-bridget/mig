@@ -4,10 +4,16 @@ Mig is a database SQL statement based migration utility. It's short for migrate.
 
 It's used in production on several projects, both personal and
 professional. The tool provides controlled migrations for production
-environments.
+environments. It's tested against sqlite, postgres and mysql.
 
-- Well tested and used: mysql.
-- Early, but functional: sqlite.
+## Status
+
+The project is in active use and is being maintained. Breaking changes
+are possible, however the tool lives for many years now, had added
+features over time, and needs a cleanup or two.
+
+It's expected minor breaking changes can occur in imported APIs, namely
+the `/migrate` import got some usability/ergonomic updates.
 
 Status: active use, maintenance.
 
@@ -38,6 +44,46 @@ Available commands:
    gen        Generate source code from DB schema
    version    Print version
 ~~~
+
+## Library
+
+The `migrate` package applies the same migrations from Go. A `Manager` takes a
+database handle, an `fs.FS` holding the `*.up.sql` files, and the project name
+recorded in the migrations table:
+
+~~~go
+//go:embed schema/*.sql
+var schema embed.FS
+
+fsys, err := fs.Sub(schema, "schema")
+if err != nil {
+	return err
+}
+
+m, err := migrate.NewManager(db, fsys, "events")
+if err != nil {
+	return err
+}
+
+applied, err := m.Apply(ctx)
+for _, item := range applied {
+	fmt.Println(item.Filename, item.StatementIndex, item.Status)
+}
+~~~
+
+`Apply` and `List` both return a `[]Migration`, one per migration file, carrying
+the row of the migrations table: the index of the last statement that ran and
+either `ok` or the error of the one that failed. A migration that has never run
+has a `StatementIndex` of -1 and an empty `Status`. `List` applies nothing.
+
+Printing the migrations of a project needs no database:
+
+~~~go
+err := migrate.Print(os.Stdout, os.DirFS("schema"))
+~~~
+
+The package logs nothing of its own. What a run did comes back from `Apply` and
+`List` as a `[]Migration`, for the caller to print or log as they see fit.
 
 ## Lint
 
@@ -100,3 +146,20 @@ any relationship tables with `rel_` or `_rel`:
 - `company_bus_entry_rel`
 
 Same plurality and reserved word rules apply for relationship tables.
+
+### Suggested practices
+
+- Use soft deletes to prevent destructive `DELETE` operations. Various
+  data management practices demand you retain this data for business
+  reasons.
+- Limit client permissions to avoid `DROP, `TRUNCATE`.
+- Avoid foreign keys to prevent destructive `DELETE ... CASCADE;` and
+  simplify backup/restore of single tables which don't depend on others.
+- Exclusively use `?` placeholders or `:name` named placeholders to
+  prevent awkward SQL query escape attack patterns.
+- [github.com/titpetric/pdo](https://github.com/titpetric/pdo) for fluent
+  CRUD with Go >= 1.27, generic function selects that simplify storage
+  package implementations.
+- Use `mig gen` to follow SQL schema as source of truth. Even if you don't
+  use the migration features, the tool allows you to generate the data models,
+  which you can simply populate with pdo.Client in a type driven way.

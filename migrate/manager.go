@@ -9,6 +9,8 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+// Defaults of a run: what a Manager looks for, where it records what it
+// applied, and what it writes there.
 const (
 	// Pattern is the glob selecting migrations in an fs.FS, and the one a
 	// Manager uses until Load says otherwise. Naming no directory, it is
@@ -28,6 +30,8 @@ const (
 	projectLimit = 16
 )
 
+// The errors of the package, each returned for one thing being wrong, so a
+// caller can tell a misconfigured Manager from a run that found no work.
 var (
 	// ErrNoDB is returned by NewManager when the handle is nil.
 	ErrNoDB = errors.New("migrate: nil database handle")
@@ -55,7 +59,7 @@ var (
 )
 
 // Manager applies the migrations of one project to one database and keeps the
-// record of what it applied.
+// record of what it applied, in a table it creates if it is missing.
 //
 // A Manager is safe to use from several processes at once: each file is applied
 // under an advisory lock keyed by project and filename.
@@ -114,12 +118,9 @@ func (m *Manager) Project() string {
 // Load sets the glob selecting the migrations to apply, in place of Pattern.
 // An empty pattern puts Pattern back.
 //
-//	m.Load("schema/*.sql")
-//
 // The syntax is path.Match's, and naming a directory is what decides the depth:
-// a pattern with a "/" in it is matched against the whole path, so
-// "schema/*.sql" is one directory deep and nothing else; a pattern without one
-// is matched against base names, so "*.sql" is every depth there is.
+// a pattern with a "/" in it is matched against the whole path, one without it
+// against base names.
 //
 // Load reads nothing and says nothing about what it was given: a malformed
 // pattern is reported by Apply and List, and a pattern matching no migrations is

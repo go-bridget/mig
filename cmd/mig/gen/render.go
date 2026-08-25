@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go/format"
 	"io/ioutil"
+	"os"
 	"path"
 	"slices"
 	"strings"
@@ -312,10 +313,10 @@ func Render(options *Options, tables []*Table) error {
 		// fall back to unformatted source to inspect
 		// the saved file for the error which occurred
 		formatted = contents
-		options.Logger.Error("cannot format", "file", filename, "error", err)
+		fmt.Fprintf(os.Stderr, "cannot format %s: %s\n", filename, err)
 	}
 
-	options.Logger.Info("wrote", "file", filename)
+	fmt.Fprintf(os.Stderr, "wrote %s\n", filename)
 
 	return ioutil.WriteFile(filename, formatted, 0644)
 }

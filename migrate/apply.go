@@ -22,26 +22,13 @@ const (
 // Apply runs the migrations that have not been applied yet, in lexical order of
 // filename, and returns on the first one that fails.
 //
-// Whatever stopped the run comes back as the error, whether it was a statement
-// or the database being out of reach, and that error is the one to check.
+// The slice is the run to print: one Migration per file, in order, carrying the
+// row recorded for it, and never nil. The entry of a file whose statement failed
+// carries that error.
 //
-// The slice is the run alongside it, to print: one Migration per file, in order,
-// carrying the row recorded for it. It is never nil, so a failure that never
-// reached the migrations table still lists the files it would have applied. The
-// entry of a file whose statement failed carries that error, so Err on it
-// returns what Apply returned rather than a copy of its message; an error with
-// no migration behind it, a connection dropping say, is on the error return
-// alone.
-//
-// Apply creates the migrations table if it is missing. Each file is applied in
-// one transaction: statements the table already records as applied are skipped,
-// and the index of the last statement that ran is recorded whether the file
-// succeeded or not. A file that fails leaves the error in its Status, and a
-// later Apply resumes it from the statement after the last that succeeded.
-//
-// A filesystem holding no migrations is ErrNoMigrations, and a migration that
-// parses to no statements is ErrNoStatements. Neither is a run worth reporting
-// as a success.
+// Each file is applied in one transaction, recording the index of the last
+// statement that ran whether it succeeded or not, so a later Apply resumes a
+// failed file from the statement after that one.
 func (m *Manager) Apply(ctx context.Context) ([]Migration, error) {
 	files, err := m.files()
 	if err != nil {

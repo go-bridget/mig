@@ -24,14 +24,17 @@ func ConnectWithRetry(ctx context.Context, options *Options) (db *sqlx.DB, err e
 		for {
 			try++
 			if options.Retries > 0 && options.Retries <= try {
-				err = errors.Errorf("could not connect, tries=%d", try)
+				// the last attempt's error is the reason, if there was one
+				if err == nil {
+					err = errors.Errorf("could not connect, tries=%d", try)
+				} else {
+					err = errors.Wrapf(err, "could not connect, tries=%d", try)
+				}
 				break
 			}
 
 			db, err = ConnectWithOptions(ctx, options)
 			if err != nil {
-				options.Logger.Info("cannot connect", "error", err, "try", try)
-
 				if errors.Is(err, ErrEmptyDSN) {
 					break
 				}
