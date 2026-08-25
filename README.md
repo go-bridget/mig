@@ -17,6 +17,8 @@ the `/migrate` import got some usability/ergonomic updates.
 
 Status: active use, maintenance.
 
+Suggested to use >= 0.6.0.
+
 ## Goals
 
 - One way automatic or on-demand SQL migrations,
@@ -30,60 +32,8 @@ Additionally, it provides schema migrations for the configured databases,
 so the migrations themselves can be tested from CI jobs, and can generate
 source code and documentation for the final schema.
 
-## Usage
-
-~~~text
-Usage: mig (command) [--flags]
-Available commands:
-
-   create     Create database schema SQL
-   migrate    Apply SQL migrations to database
-   docs       Generate markdown docs from DB schema
-   filter     Filter schema YAML to driver-independent fields
-   lint       Check schema for best practices and comments
-   gen        Generate source code from DB schema
-   version    Print version
-~~~
-
-## Library
-
-The `migrate` package applies the same migrations from Go. A `Manager` takes a
-database handle, an `fs.FS` holding the `*.up.sql` files, and the project name
-recorded in the migrations table:
-
-~~~go
-//go:embed schema/*.sql
-var schema embed.FS
-
-fsys, err := fs.Sub(schema, "schema")
-if err != nil {
-	return err
-}
-
-m, err := migrate.NewManager(db, fsys, "events")
-if err != nil {
-	return err
-}
-
-applied, err := m.Apply(ctx)
-for _, item := range applied {
-	fmt.Println(item.Filename, item.StatementIndex, item.Status)
-}
-~~~
-
-`Apply` and `List` both return a `[]Migration`, one per migration file, carrying
-the row of the migrations table: the index of the last statement that ran and
-either `ok` or the error of the one that failed. A migration that has never run
-has a `StatementIndex` of -1 and an empty `Status`. `List` applies nothing.
-
-Printing the migrations of a project needs no database:
-
-~~~go
-err := migrate.Print(os.Stdout, os.DirFS("schema"))
-~~~
-
-The package logs nothing of its own. What a run did comes back from `Apply` and
-`List` as a `[]Migration`, for the caller to print or log as they see fit.
+- See the [docs/cli.md](docs/cli.md) for CLI installation and usage.
+- See the [docs/api.md](docs/api.md) for usage from Go.
 
 ## Lint
 

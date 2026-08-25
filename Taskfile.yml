@@ -21,7 +21,7 @@ tasks:
     cmds:
       - go mod tidy
       - goimports -w -local {{.package}} .
-      - go install {{.ldflags}} ./cmd/...
+      - go install {{.ldflags}} .
       - task: test
 
   docs:
@@ -29,7 +29,7 @@ tasks:
     cmds:
       - defer: rm -f go-fsck.json
       # Extracted with -i ./migrate and without -r, so the reference holds the
-      # importable package and not the cmd/ or model/ ones. Tests are included
+      # importable package and not the internal/ or model/ ones. Tests are included
       # for the examples of example_test.go, which are the only bodies the
       # reference prints.
       - go-fsck extract -i ./migrate --include-sources --include-tests
@@ -37,7 +37,7 @@ tasks:
 
   build:
     cmds:
-      - go build -o build/ {{.ldflags}} ./cmd/...
+      - go build -o build/ {{.ldflags}} .
       - docker build -t go-bridget/mig -f docker/Dockerfile .
 
   test:

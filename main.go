@@ -11,12 +11,12 @@ import (
 
 	"github.com/titpetric/cli"
 
-	"github.com/go-bridget/mig/cmd/mig/create"
-	"github.com/go-bridget/mig/cmd/mig/docs"
-	"github.com/go-bridget/mig/cmd/mig/filter"
-	"github.com/go-bridget/mig/cmd/mig/gen"
-	"github.com/go-bridget/mig/cmd/mig/lint"
-	"github.com/go-bridget/mig/cmd/mig/migrate"
+	"github.com/go-bridget/mig/internal/create"
+	"github.com/go-bridget/mig/internal/docs"
+	"github.com/go-bridget/mig/internal/filter"
+	"github.com/go-bridget/mig/internal/gen"
+	"github.com/go-bridget/mig/internal/lint"
+	"github.com/go-bridget/mig/internal/migrate"
 )
 
 // mig build info

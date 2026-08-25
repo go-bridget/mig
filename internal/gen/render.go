@@ -12,7 +12,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/go-bridget/mig/cmd/mig/internal"
+	"github.com/go-bridget/mig/internal/util"
 	"github.com/go-bridget/mig/model"
 )
 
@@ -193,11 +193,11 @@ func Render(options *Options, tables []*Table) error {
 			continue
 		}
 
-		tableName := internal.Camel(table.Name)
+		tableName := util.Camel(table.Name)
 
 		// Take care of the helpers (getters, limited setters).
 		for _, column := range table.Columns {
-			columnName := internal.Camel(column.Name)
+			columnName := util.Camel(column.Name)
 			columnType, err := resolveTypeGo(column)
 			if err != nil {
 				return err
@@ -231,7 +231,7 @@ func Render(options *Options, tables []*Table) error {
 		}
 		fmt.Fprintf(buf, "type %s struct {\n", tableName)
 		for idx, column := range table.Columns {
-			columnName := internal.Camel(column.Name)
+			columnName := util.Camel(column.Name)
 			fields = append(fields, column.Name)
 			if column.Key == "PRI" {
 				primary = append(primary, column.Name)
@@ -294,7 +294,7 @@ func Render(options *Options, tables []*Table) error {
 			continue
 		}
 
-		tableName := internal.Camel(table.Name)
+		tableName := util.Camel(table.Name)
 		receiver := strings.ToLower(string(tableName[0]))
 		fields := []string{}
 

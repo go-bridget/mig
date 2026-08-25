@@ -11,7 +11,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/go-bridget/mig/cmd/mig/internal"
+	"github.com/go-bridget/mig/internal/util"
 	"github.com/go-bridget/mig/model"
 )
 
@@ -33,7 +33,7 @@ func renderMarkdownTable(table *model.Table) []byte {
 	// calculate max length for columns for padding
 	for _, column := range table.Columns {
 		if column.Comment == "" {
-			column.Comment = internal.Title(column.Name)
+			column.Comment = util.Title(column.Name)
 		}
 		padding["Name"] = max(padding["Name"], len(column.Name))
 		// Use DataType for display (normalized type)
@@ -131,7 +131,7 @@ func renderMarkdown(basePath string, filename string, tables []*model.Table) err
 			continue
 		}
 
-		filename := path.Join(basePath, internal.Filename(table.Title())+".md")
+		filename := path.Join(basePath, util.Filename(table.Title())+".md")
 		contents := renderMarkdownTable(table)
 
 		if err := ioutil.WriteFile(filename, contents, 0644); err != nil {
