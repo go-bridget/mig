@@ -3,3 +3,8 @@
 *.test
 /*.json
 /build
+
+# splint writes its document beside the tree it describes, and a job that
+# fails leaves it behind. go-fsck reads it and writes its own.
+splint.json
+go-fsck.json
