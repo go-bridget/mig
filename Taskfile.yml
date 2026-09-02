@@ -27,12 +27,14 @@ tasks:
   docs:
     desc: "Generate the migrate API reference into docs/api.md"
     cmds:
-      - defer: rm -f go-fsck.json
+      - defer: rm -f migrate/splint-doc.json go-fsck.json
       # Extracted with -i ./migrate and without -r, so the reference holds the
       # importable package and not the internal/ or model/ ones. Tests are included
       # for the examples of example_test.go, which are the only bodies the
       # reference prints.
-      - go-fsck extract -i ./migrate --include-sources --include-tests
+      - splint -i ./migrate -include-sources -include-tests -output splint-doc.json . || true
+      # -output is written beside the tree -i names, not beside the Taskfile.
+      - jq '.Packages' migrate/splint-doc.json > go-fsck.json
       - go-fsck docs > docs/api.md
 
   build:
