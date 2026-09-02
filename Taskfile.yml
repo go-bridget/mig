@@ -32,9 +32,7 @@ tasks:
       # importable package and not the internal/ or model/ ones. Tests are included
       # for the examples of example_test.go, which are the only bodies the
       # reference prints.
-      # -save resolves its path against -i and fails before writing; -output
-      # writes beside that tree, which is where go-fsck reads it from.
-      - splint -i ./migrate -include-sources -include-tests -output splint.json . || true
+      - splint -i ./migrate -include-sources -include-tests -save . || true
       # -save writes beside the tree -i names, not beside the Taskfile.
       - go-fsck docs -i migrate/splint.json > docs/api.md
 
