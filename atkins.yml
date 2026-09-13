@@ -1,0 +1,95 @@
+env:
+  vars:
+    CGO_ENABLED: 0
+    BUILD_VERSION: $(git describe --always --tags --abbrev=8)
+    BUILD_TIME: $(date +%Y-%m-%dT%T%z)
+
+jobs:
+  default:
+    desc: "Tidy, format, install and test"
+    steps:
+      - run: go mod tidy
+      - run: goimports -w -local $(go mod edit -json | jq .Module.Path -r) .
+      - run: go install -ldflags "-X 'main.BuildVersion=${BUILD_VERSION}' -X 'main.BuildTime=${BUILD_TIME}'" .
+      - task: test
+
+  docs:
+    desc: "Generate the migrate API reference into docs/api.md"
+    steps:
+      - defer: rm -f migrate/splint.json go-fsck.json
+      # Extracted with -i ./migrate and without -r, so the reference holds the
+      # importable package and not the internal/ or model/ ones. Tests are included
+      # for the examples of example_test.go, which are the only bodies the
+      # reference prints.
+      - run: splint -i ./migrate -include-sources -include-tests -save . || true
+      # -save writes beside the tree -i names, not beside the pipeline file.
+      - run: go-fsck docs -i migrate/splint.json > docs/api.md
+
+  build:
+    desc: "Build the binary and the docker image"
+    steps:
+      - run: go build -o build/ -ldflags "-X 'main.BuildVersion=${BUILD_VERSION}' -X 'main.BuildTime=${BUILD_TIME}'" .
+      - run: docker build -t go-bridget/mig -f docker/Dockerfile .
+
+  test:
+    desc: "Run tests for all databases"
+    steps:
+      - task: compose:up
+      - defer: docker compose down
+      - task: test:sqlite
+      - task: test:mysql
+      - task: test:postgresql
+
+  test:sqlite:
+    desc: "Test with SQLite"
+    steps:
+      - run: rm -f test.db
+      - run: mig migrate events --path testdata/events/sqlite --db-dsn "sqlite://:memory:" --apply --verbose
+      - run: mig migrate events --path testdata/events/sqlite --db-dsn "sqlite://test.db" --apply --verbose
+      - run: mig lint --db-dsn "file:test.db" --skip-comments
+      - run: mkdir -p testdata/docs-sqlite
+      - run: mig docs --output=testdata/docs-sqlite --output-file=schema.yaml --yaml --db-dsn "sqlite://test.db"
+      - run: mig gen --lang=go --db-dsn "sqlite://test.db" --output testdata/sqlite/model
+
+  test:mysql:
+    desc: "Test with MySQL"
+    env:
+      vars:
+        DB_DSN: 'mysql://root:test@tcp(localhost:13306)/events'
+    steps:
+      - run: mig create events --db-dsn "mysql://root:test@tcp(localhost:13306)/mysql" --apply
+      - run: mig create events --db-dsn "mysql://root:test@tcp(localhost:13306)/mysql" --apply
+      - run: mig migrate events --path testdata/events/mysql --apply
+      - run: mig migrate events --path testdata/events/mysql --list
+      - run: mig lint
+      - run: go test -v -tags integration ./...
+      - run: mkdir -p testdata/docs-mysql
+      - run: mig docs --output=testdata/docs-mysql --output-file=schema.yaml --yaml
+      - run: mig gen --lang=go --output=testdata/gen_go
+      - run: mig version
+
+  test:postgresql:
+    desc: "Test with PostgreSQL"
+    env:
+      vars:
+        DB_DSN: 'postgres://postgres:mig@localhost:15432/events?sslmode=disable'
+        PGPASSWORD: mig
+    steps:
+      - run: mig create events --db-dsn "postgres://postgres:mig@localhost:15432/postgres?sslmode=disable" --apply
+      - run: mig create events --db-dsn "postgres://postgres:mig@localhost:15432/postgres?sslmode=disable" --apply
+      - run: mig migrate events --path testdata/events/postgres --apply
+      - run: mig migrate events --path testdata/events/postgres --list
+      - run: mig lint
+      - run: mkdir -p testdata/docs-postgresql
+      - run: mig docs --output=testdata/docs-postgresql --output-file=schema.yaml --yaml
+
+  test:inspect:
+    desc: "Compare schemas (filtered to name, normalized_type, enum_values)"
+    steps:
+      - run: mkdir -p testdata/inspect
+      - run: mig filter testdata/docs-sqlite/schema.yaml > testdata/inspect/sqlite.yaml
+      - run: mig filter testdata/docs-mysql/schema.yaml > testdata/inspect/mysql.yaml
+      - run: mig filter testdata/docs-postgresql/schema.yaml > testdata/inspect/postgresql.yaml
+      - run: dyff between -i testdata/inspect/sqlite.yaml testdata/inspect/mysql.yaml || true
+      - run: dyff between -i testdata/inspect/sqlite.yaml testdata/inspect/postgresql.yaml || true
+      - run: dyff between -i testdata/inspect/mysql.yaml testdata/inspect/postgresql.yaml || true
