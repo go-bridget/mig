@@ -9,7 +9,7 @@ jobs:
     desc: "Tidy, format, install and test"
     steps:
       - run: go mod tidy
-      - run: goimports -w -local $(go mod edit -json | jq .Module.Path -r) .
+      - run: splint fix ./...
       - run: go install -ldflags "-X 'main.BuildVersion=${BUILD_VERSION}' -X 'main.BuildTime=${BUILD_TIME}'" .
       - task: test
 

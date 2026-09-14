@@ -5,6 +5,6 @@ tasks:
   default:
     desc: "Run everything"
     cmds:
-      - goimports -w .
+      - splint fix ./...
       - go fmt .
       - go test -v ./...

@@ -17,7 +17,7 @@ is no `./cmd/...` path to install.
 From a checkout:
 
 ~~~sh
-task            # go mod tidy, goimports, go install, tests
+task            # go mod tidy, splint fix, go install, tests
 task build      # build into build/ and build the docker image
 ~~~
 
