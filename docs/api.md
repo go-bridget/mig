@@ -3,8 +3,9 @@
 ```go
 import (
 	"github.com/go-bridget/mig/migrate"
-}
+)
 ```
+
 Package migrate applies SQL migrations to a database and records what it
 applied.
 
@@ -324,7 +325,6 @@ return, only the text of one, so Err reports the Status as an error.
 ```go
 func (Migration) Err () error
 ```
-
 
 ## Examples
 

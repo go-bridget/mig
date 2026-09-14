@@ -13,17 +13,15 @@ jobs:
       - run: go install -ldflags "-X 'main.BuildVersion=${BUILD_VERSION}' -X 'main.BuildTime=${BUILD_TIME}'" .
       - task: test
 
+  setup:
+    desc: "Install the tools the pipeline calls"
+    steps:
+      - run: go install github.com/titpetric/tools/splint@main
+
   docs:
     desc: "Generate the migrate API reference into docs/api.md"
     steps:
-      - defer: rm -f migrate/splint.json go-fsck.json
-      # Extracted with -i ./migrate and without -r, so the reference holds the
-      # importable package and not the internal/ or model/ ones. Tests are included
-      # for the examples of example_test.go, which are the only bodies the
-      # reference prints.
-      - run: splint -i ./migrate -include-sources -include-tests -save . || true
-      # -save writes beside the tree -i names, not beside the pipeline file.
-      - run: go-fsck docs -i migrate/splint.json > docs/api.md
+      - run: splint docs -i ./migrate . > docs/api.md
 
   build:
     desc: "Build the binary and the docker image"
