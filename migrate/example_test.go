@@ -7,8 +7,9 @@ import (
 	"fmt"
 	"testing/fstest"
 
-	"github.com/jmoiron/sqlx"
 	_ "modernc.org/sqlite"
+
+	"github.com/jmoiron/sqlx"
 
 	"github.com/go-bridget/mig/migrate"
 )

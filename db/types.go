@@ -2,10 +2,9 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"os"
 	"time"
-
-	"database/sql"
 
 	flag "github.com/spf13/pflag"
 )

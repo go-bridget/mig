@@ -6,10 +6,10 @@ import (
 	"testing"
 	"testing/fstest"
 
+	_ "modernc.org/sqlite"
+
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/require"
-
-	_ "modernc.org/sqlite"
 
 	"github.com/go-bridget/mig/migrate"
 )

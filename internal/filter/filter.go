@@ -6,9 +6,8 @@ import (
 	"io"
 	"os"
 
-	"gopkg.in/yaml.v3"
-
 	"github.com/titpetric/cli"
+	"gopkg.in/yaml.v3"
 
 	"github.com/go-bridget/mig/model"
 )

@@ -1,6 +1,8 @@
 package migrate
 
-import "context"
+import (
+	"context"
+)
 
 // List returns one Migration per file in the migrations filesystem, in lexical
 // order of filename, along with the rows of the migrations table whose file is

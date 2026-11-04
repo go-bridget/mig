@@ -1,6 +1,8 @@
 package migrate
 
-import "errors"
+import (
+	"errors"
+)
 
 // Migration holds the DB structure for the migration table.
 type Migration struct {

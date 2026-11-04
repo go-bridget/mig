@@ -6,7 +6,6 @@ import (
 	"slices"
 
 	"github.com/pkg/errors"
-
 	"github.com/titpetric/cli"
 
 	"github.com/go-bridget/mig/db"
