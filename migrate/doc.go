@@ -31,14 +31,17 @@
 // # Migrations beside the code that owns them
 //
 // A project can keep each migration with the code owning its table rather than
-// in one folder. Collect gathers them into the filesystem a Manager takes, over
-// a tree carrying access/schema/, keystore/schema/ and modules/notes/schema/:
+// in one folder. A Collector gathers them into the filesystem a Manager takes,
+// over a tree carrying access/schema/, keystore/schema/ and
+// modules/notes/schema/:
 //
-//	fsys, err := migrate.Collect(".", "schema", "")
+//	fsys, err := migrate.Collector{Dir: "schema"}.Collect()
 //
 // A nested name is matched as a path suffix, so "db/schema" finds one/db/schema
 // and not one/schema. A dot directory is not walked, and one the filesystem
-// refuses to read is skipped rather than failing the walk.
+// refuses to read is skipped rather than failing the walk. Skip names the rest:
+// a build directory, a vendored copy, or a data directory the program writes
+// its own extracted copy of a module tree into.
 //
 // The answer is flat, each file at its base name, and that is the point rather
 // than a convenience. A run records the name of a file relative to the root of

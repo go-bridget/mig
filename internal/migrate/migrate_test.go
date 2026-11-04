@@ -32,8 +32,10 @@ func write(t *testing.T, files map[string]string) string {
 // migrations found is one call.
 func TestNew(t *testing.T) {
 	write(t, map[string]string{
-		"access/schema/user.up.sql":       "CREATE TABLE user;",
-		"keystore/schema/key_info.up.sql": "CREATE TABLE key_info;",
+		"access/schema/user.up.sql":            "CREATE TABLE user;",
+		"keystore/schema/key_info.up.sql":      "CREATE TABLE key_info;",
+		"data/access/schema/user.up.sql":       "CREATE TABLE user;",
+		"data/keystore/schema/key_info.up.sql": "CREATE TABLE key_info;",
 	})
 
 	cmd := New()
@@ -41,7 +43,7 @@ func TestNew(t *testing.T) {
 
 	flags := cli.NewFlagSet("migrate", cli.ContinueOnError)
 	cmd.Bind(flags)
-	require.NoError(t, flags.Parse([]string{"--recursive", "--path", "schema"}))
+	require.NoError(t, flags.Parse([]string{"--recursive", "--path", "schema", "--exclude", "data"}))
 
 	require.NoError(t, cmd.Run(t.Context(), []string{"events"}))
 }
@@ -107,6 +109,31 @@ func TestOpenRecursiveMissing(t *testing.T) {
 
 	_, _, err := options{path: "schema", glob: migrate.Pattern, recursive: true}.open()
 	require.ErrorIs(t, err, migrate.ErrNoDir)
+}
+
+// The copy of a module tree a program extracts into its data directory holds
+// the same migrations under another path, so without --exclude the walk reads
+// both and calls the project a duplicate.
+func TestOpenRecursiveExclude(t *testing.T) {
+	write(t, map[string]string{
+		"modules/notes/schema/note.up.sql":      "CREATE TABLE note",
+		"data/modules/notes/schema/note.up.sql": "CREATE TABLE note",
+	})
+
+	_, _, err := options{path: "schema", glob: migrate.Pattern, recursive: true}.open()
+	require.ErrorIs(t, err, migrate.ErrDuplicate)
+
+	fsys, _, err := options{
+		path:      "schema",
+		glob:      migrate.Pattern,
+		recursive: true,
+		exclude:   []string{"data"},
+	}.open()
+	require.NoError(t, err)
+
+	names, err := migrate.Files(fsys, migrate.Pattern)
+	require.NoError(t, err)
+	require.Equal(t, []string{"note.up.sql"}, names)
 }
 
 // A filename wins over both modes, and brings its own glob so the file is

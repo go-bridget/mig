@@ -29,6 +29,7 @@ type options struct {
 	filename  string
 	glob      string
 	recursive bool
+	exclude   []string
 	apply     bool
 	list      bool
 	verbose   bool
@@ -50,6 +51,7 @@ func New() *cli.Command {
 			fs.StringVarP(&config.filename, "filename", "f", "", "Single "+migrate.Pattern+" file as the migration source")
 			fs.StringVar(&config.glob, "glob", migrate.Pattern, "Glob selecting migrations under the path")
 			fs.BoolVarP(&config.recursive, "recursive", "r", false, "treat the path as a directory name to find under the working directory, and merge every one of them")
+			fs.StringSliceVar(&config.exclude, "exclude", nil, "directories the recursive walk does not enter, named the same way as the path")
 			fs.BoolVar(&config.apply, "apply", false, "false = print migrations, true = run migrations")
 			fs.BoolVar(&config.list, "list", false, "print what the migrations table records and exit")
 			fs.BoolVar(&config.verbose, "verbose", false, "false = print summary, true = print details")
@@ -117,10 +119,11 @@ func New() *cli.Command {
 //
 // Recursive reads the path as the name of a directory rather than one place,
 // and answers every directory under the working directory called that, merged
-// flat by migrate.Collect - which is the layout of a project whose migrations
-// live with the code owning each table. The glob selects within each of them,
-// and the answer is flat, so the same glob still selects what came back: see
-// migrate.Collect for why a pattern naming a directory is refused.
+// flat by a migrate.Collector - which is the layout of a project whose
+// migrations live with the code owning each table. The glob selects within each
+// of them, and the answer is flat, so the same glob still selects what came
+// back: see migrate.Collector for why a pattern naming a directory is refused,
+// and for what exclude is for.
 //
 // Otherwise the path is one directory, and the names a run records are relative
 // to it.
@@ -137,7 +140,11 @@ func (o options) open() (fs.FS, string, error) {
 	}
 
 	if o.recursive {
-		fsys, err := migrate.Collect(".", o.path, o.glob)
+		fsys, err := migrate.Collector{
+			Dir:     o.path,
+			Pattern: o.glob,
+			Skip:    o.exclude,
+		}.Collect()
 		if err != nil {
 			return nil, "", err
 		}

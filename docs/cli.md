@@ -116,6 +116,7 @@ mig migrate events --path schema --db-dsn "sqlite://test.db" --apply
 | `--filename`, `-f` | none | Single file as the migration source |
 | `--glob` | `*.up.sql` | Glob selecting migrations under the path |
 | `--recursive`, `-r` | `false` | Read `--path` as a directory name to find under the working directory |
+| `--exclude` | none | Directories the recursive walk does not enter |
 | `--project` | none | Project name, when not given as the first argument |
 | `--apply` | `false` | `false` prints the migrations, `true` runs them |
 | `--list` | `false` | Print what the migrations table records and exit |
@@ -154,6 +155,18 @@ over a tree carrying `access/schema/`, `keystore/schema/` and
 matched as a path suffix, so `--path db/schema` finds `one/db/schema` and
 not `one/schema`. A dot directory is not walked, and a directory the
 filesystem refuses to read is skipped rather than failing the run.
+
+`--exclude` names the rest: a build directory, a vendored copy, or a data
+directory the program writes its own extracted copy of a module tree into.
+It is matched the same way as `--path`, takes a comma-separated list and
+repeats:
+
+~~~sh
+mig migrate task-ui --path schema --recursive --exclude data --apply
+~~~
+
+Without it, that second copy is the same migration under another path, and
+the run refuses it as a duplicate.
 
 The files come back **flat**, each at its base name, and that is the point
 rather than a convenience. A run records the name of a file relative to the

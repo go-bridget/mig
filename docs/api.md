@@ -45,16 +45,19 @@ err := migrate.Print(os.Stdout, os.DirFS("schema"))
 # Migrations beside the code that owns them
 
 A project can keep each migration with the code owning its table rather than
-in one folder. Collect gathers them into the filesystem a Manager takes, over
-a tree carrying access/schema/, keystore/schema/ and modules/notes/schema/:
+in one folder. A Collector gathers them into the filesystem a Manager takes,
+over a tree carrying access/schema/, keystore/schema/ and
+modules/notes/schema/:
 
 ```go
-fsys, err := migrate.Collect(".", "schema", "")
+fsys, err := migrate.Collector{Dir: "schema"}.Collect()
 ```
 
 A nested name is matched as a path suffix, so "db/schema" finds one/db/schema
 and not one/schema. A dot directory is not walked, and one the filesystem
-refuses to read is skipped rather than failing the walk.
+refuses to read is skipped rather than failing the walk. Skip names the rest:
+a build directory, a vendored copy, or a data directory the program writes
+its own extracted copy of a module tree into.
 
 The answer is flat, each file at its base name, and that is the point rather
 than a convenience. A run records the name of a file relative to the root of
@@ -74,6 +77,36 @@ and answered flat, so one that reads a path could match on the way in and
 never on the way out.
 
 ## Types
+
+<details>
+<summary><code>type Collector</code></summary>
+
+```go
+// Collector gathers the migrations of a project that keeps each one with the
+// code owning its table. See the package comment for the layout and for why
+// the answer is flat.
+type Collector struct {
+	// Root is the directory the walk starts at. Empty is ".".
+	Root	string
+
+	// Dir is the name of the directory holding migrations, looked for at
+	// any depth under Root. A name with a "/" in it is matched as a path
+	// suffix, so "db/schema" finds one/db/schema and not one/schema.
+	Dir	string
+
+	// Pattern selects the migrations inside each one. Empty is Pattern.
+	Pattern	string
+
+	// Skip is the directories the walk does not enter, named the same way
+	// as Dir. A tree carrying a build directory, a vendored copy or a data
+	// directory the program itself writes has migrations in it that are not
+	// the project's, and those are what Skip is for. Dot directories are
+	// skipped without being named.
+	Skip	[]string
+}
+```
+
+</details>
 
 <details>
 <summary><code>type Manager</code></summary>
@@ -225,7 +258,6 @@ var (
 
 ## Function symbols
 
-- `func Collect (root,dir,pattern string) (fs.FS, error)`
 - `func Files (fsys fs.FS, pattern string) ([]string, error)`
 - `func NewManager (db *sqlx.DB, migrations fs.FS, project string) (*Manager, error)`
 - `func Print (w io.Writer, fsys fs.FS, pattern string) error`
@@ -235,21 +267,8 @@ var (
 - `func (*Manager) Load (pattern string)`
 - `func (*Manager) Project () string`
 - `func (*Migration) SetError (err error)`
+- `func (Collector) Collect () (fs.FS, error)`
 - `func (Migration) Err () error`
-
-### `Collect`
-
-`Collect` returns the migrations of every directory named dir under root, as
-one filesystem with each file at its base name. An empty pattern is Pattern.
-See the package comment for the layout it is for and why it answers flat.
-
-It fails with ErrRootedPattern for a pattern naming a directory, ErrNoDir for
-a name that is empty or that no directory under root is called, and
-ErrDuplicate for two directories carrying one migration.
-
-```go
-func Collect (root,dir,pattern string) (fs.FS, error)
-```
 
 ### `Files`
 
@@ -372,6 +391,18 @@ a copy of its message.
 
 ```go
 func (*Migration) SetError (err error)
+```
+
+### `Collect`
+
+`Collect` returns the migrations as one filesystem, each file at its base name.
+
+It fails with ErrRootedPattern for a pattern naming a directory, ErrNoDir for
+a Dir that is empty or that no directory under Root is called, and
+ErrDuplicate for two directories carrying one migration.
+
+```go
+func (Collector) Collect () (fs.FS, error)
 ```
 
 ### `Err`

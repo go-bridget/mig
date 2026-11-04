@@ -9,22 +9,51 @@ import (
 	"testing/fstest"
 )
 
-// Collect returns the migrations of every directory named dir under root, as
-// one filesystem with each file at its base name. An empty pattern is Pattern.
-// See the package comment for the layout it is for and why it answers flat.
+// Collector gathers the migrations of a project that keeps each one with the
+// code owning its table. See the package comment for the layout and for why
+// the answer is flat.
+type Collector struct {
+	// Root is the directory the walk starts at. Empty is ".".
+	Root string
+
+	// Dir is the name of the directory holding migrations, looked for at
+	// any depth under Root. A name with a "/" in it is matched as a path
+	// suffix, so "db/schema" finds one/db/schema and not one/schema.
+	Dir string
+
+	// Pattern selects the migrations inside each one. Empty is Pattern.
+	Pattern string
+
+	// Skip is the directories the walk does not enter, named the same way
+	// as Dir. A tree carrying a build directory, a vendored copy or a data
+	// directory the program itself writes has migrations in it that are not
+	// the project's, and those are what Skip is for. Dot directories are
+	// skipped without being named.
+	Skip []string
+}
+
+// Collect returns the migrations as one filesystem, each file at its base name.
 //
 // It fails with ErrRootedPattern for a pattern naming a directory, ErrNoDir for
-// a name that is empty or that no directory under root is called, and
+// a Dir that is empty or that no directory under Root is called, and
 // ErrDuplicate for two directories carrying one migration.
-func Collect(root, dir, pattern string) (fs.FS, error) {
+func (c Collector) Collect() (fs.FS, error) {
+	pattern := c.Pattern
 	if pattern == "" {
 		pattern = Pattern
 	}
 	if strings.Contains(pattern, "/") {
 		return nil, fmt.Errorf("%w: %q", ErrRootedPattern, pattern)
 	}
-	if dir = strings.Trim(dir, "/"); dir == "" {
-		return nil, fmt.Errorf("%w: %q", ErrNoDir, dir)
+
+	dir := strings.Trim(c.Dir, "/")
+	if dir == "" {
+		return nil, fmt.Errorf("%w: %q", ErrNoDir, c.Dir)
+	}
+
+	root := c.Root
+	if root == "" {
+		root = "."
 	}
 
 	merged := fstest.MapFS{}
@@ -40,13 +69,13 @@ func Collect(root, dir, pattern string) (fs.FS, error) {
 			}
 			return fs.SkipDir
 		}
-		if !entry.IsDir() {
+		if !entry.IsDir() || name == "." {
 			return nil
 		}
-		if name != "." && strings.HasPrefix(path.Base(name), ".") {
+		if strings.HasPrefix(path.Base(name), ".") || c.skipped(name) {
 			return fs.SkipDir
 		}
-		if name != dir && !strings.HasSuffix(name, "/"+dir) {
+		if !named(name, dir) {
 			return nil
 		}
 		found++
@@ -60,6 +89,22 @@ func Collect(root, dir, pattern string) (fs.FS, error) {
 	}
 
 	return merged, nil
+}
+
+// skipped reports whether name is one of the directories Skip names.
+func (c Collector) skipped(name string) bool {
+	for _, skip := range c.Skip {
+		if skip = strings.Trim(skip, "/"); skip != "" && named(name, skip) {
+			return true
+		}
+	}
+	return false
+}
+
+// named reports whether the path name is called dir: equal to it, or ending in
+// it on a path boundary.
+func named(name, dir string) bool {
+	return name == dir || strings.HasSuffix(name, "/"+dir)
 }
 
 // collect reads the migrations of one directory into merged.

@@ -49,7 +49,7 @@ func TestCollect(t *testing.T) {
 		"app/modules/runs/schema/empty.up.sql": "-",
 	})
 
-	fsys, err := migrate.Collect(root, "schema", "")
+	fsys, err := migrate.Collector{Root: root, Dir: "schema"}.Collect()
 	require.NoError(t, err)
 
 	require.Equal(t, []string{"a.up.sql", "key_info.up.sql", "user.up.sql", "z.up.sql"}, names(t, fsys),
@@ -69,19 +69,54 @@ func TestCollectNestedName(t *testing.T) {
 		"two/schema/c.up.sql":    "CREATE TABLE c",
 	})
 
-	fsys, err := migrate.Collect(root, "db/schema", "")
+	fsys, err := migrate.Collector{Root: root, Dir: "db/schema"}.Collect()
 	require.NoError(t, err)
 	require.Equal(t, []string{"a.up.sql", "b.up.sql"}, names(t, fsys))
 }
 
-// The root itself counts, so a flat project reads the same either way.
+// TestCollectSkip covers what a tree holds that is not the project's: the copy
+// of a module tree the program itself extracted into its data directory is the
+// same migration under another name, and without Skip the walk reads it and
+// calls the project a duplicate.
+func TestCollectSkip(t *testing.T) {
+	root := tree(t, map[string]string{
+		"modules/notes/schema/note.up.sql":      "CREATE TABLE note",
+		"data/modules/notes/schema/note.up.sql": "CREATE TABLE note",
+		"ext/dep/schema/dep.up.sql":             "CREATE TABLE dep",
+	})
+
+	_, err := migrate.Collector{Root: root, Dir: "schema"}.Collect()
+	require.ErrorIs(t, err, migrate.ErrDuplicate)
+
+	fsys, err := migrate.Collector{Root: root, Dir: "schema", Skip: []string{"data", "/ext/"}}.Collect()
+	require.NoError(t, err)
+	require.Equal(t, []string{"note.up.sql"}, names(t, fsys))
+
+	// A skip naming nothing changes nothing, and an empty one is not a
+	// name that skips the root.
+	fsys, err = migrate.Collector{Root: root, Dir: "schema", Skip: []string{"", "nope", "data", "ext"}}.Collect()
+	require.NoError(t, err)
+	require.Equal(t, []string{"note.up.sql"}, names(t, fsys))
+}
+
+// The root is not named by its own path: a project pointed straight at its
+// migrations wants the plain --path, not this.
 func TestCollectRootDirectory(t *testing.T) {
 	root := tree(t, map[string]string{"schema/a.up.sql": "CREATE TABLE a"})
 
-	_, err := migrate.Collect(filepath.Join(root, "schema"), "schema", "")
-	require.ErrorIs(t, err, migrate.ErrNoDir, "the root is not named by its own path")
+	_, err := migrate.Collector{Root: filepath.Join(root, "schema"), Dir: "schema"}.Collect()
+	require.ErrorIs(t, err, migrate.ErrNoDir)
 
-	fsys, err := migrate.Collect(root, "schema", "")
+	fsys, err := migrate.Collector{Root: root, Dir: "schema"}.Collect()
+	require.NoError(t, err)
+	require.Equal(t, []string{"a.up.sql"}, names(t, fsys))
+}
+
+// An empty Root is the working directory, which is what the CLI hands it.
+func TestCollectDefaultRoot(t *testing.T) {
+	t.Chdir(tree(t, map[string]string{"a/schema/a.up.sql": "CREATE TABLE a"}))
+
+	fsys, err := migrate.Collector{Dir: "schema"}.Collect()
 	require.NoError(t, err)
 	require.Equal(t, []string{"a.up.sql"}, names(t, fsys))
 }
@@ -93,7 +128,7 @@ func TestCollectPattern(t *testing.T) {
 		"a/schema/two.up.sql": "CREATE TABLE two",
 	})
 
-	fsys, err := migrate.Collect(root, "schema", "*.sql")
+	fsys, err := migrate.Collector{Root: root, Dir: "schema", Pattern: "*.sql"}.Collect()
 	require.NoError(t, err)
 
 	// Read back under the same pattern: the default one would hide the file
@@ -102,7 +137,7 @@ func TestCollectPattern(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, []string{"one.sql", "two.up.sql"}, got)
 
-	_, err = migrate.Collect(root, "schema", "schema/*.up.sql")
+	_, err = migrate.Collector{Root: root, Dir: "schema", Pattern: "schema/*.up.sql"}.Collect()
 	require.ErrorIs(t, err, migrate.ErrRootedPattern)
 }
 
@@ -114,7 +149,7 @@ func TestCollectDuplicate(t *testing.T) {
 		"two/schema/user.up.sql": "CREATE TABLE user",
 	})
 
-	_, err := migrate.Collect(root, "schema", "")
+	_, err := migrate.Collector{Root: root, Dir: "schema"}.Collect()
 	require.ErrorIs(t, err, migrate.ErrDuplicate)
 	require.Contains(t, err.Error(), "user.up.sql")
 }
@@ -124,16 +159,16 @@ func TestCollectDuplicate(t *testing.T) {
 func TestCollectErrors(t *testing.T) {
 	root := tree(t, map[string]string{"a/sql/a.up.sql": "CREATE TABLE a"})
 
-	_, err := migrate.Collect(root, "schema", "")
+	_, err := migrate.Collector{Root: root, Dir: "schema"}.Collect()
 	require.ErrorIs(t, err, migrate.ErrNoDir)
 
-	_, err = migrate.Collect(root, "", "")
+	_, err = migrate.Collector{Root: root}.Collect()
 	require.ErrorIs(t, err, migrate.ErrNoDir)
 
-	_, err = migrate.Collect(root, "/", "")
+	_, err = migrate.Collector{Root: root, Dir: "/"}.Collect()
 	require.ErrorIs(t, err, migrate.ErrNoDir)
 
-	_, err = migrate.Collect(filepath.Join(root, "nope"), "schema", "")
+	_, err = migrate.Collector{Root: filepath.Join(root, "nope"), Dir: "schema"}.Collect()
 	require.Error(t, err, "a root that is not there")
 }
 
@@ -143,7 +178,7 @@ func TestCollectErrors(t *testing.T) {
 func TestCollectEmptyDirectory(t *testing.T) {
 	root := tree(t, map[string]string{"a/schema/README.md": "nothing to apply"})
 
-	fsys, err := migrate.Collect(root, "schema", "")
+	fsys, err := migrate.Collector{Root: root, Dir: "schema"}.Collect()
 	require.NoError(t, err)
 	require.Empty(t, names(t, fsys))
 }
