@@ -56,6 +56,20 @@ var (
 	// ErrNoStatements is returned by Apply for a migration that parses to
 	// no statements at all, which is a file someone meant to write.
 	ErrNoStatements = errors.New("migrate: migration has no statements")
+
+	// ErrNoDir is returned by Collect for an empty directory name, and for
+	// one no directory under the root is called.
+	ErrNoDir = errors.New("migrate: no such migrations directory")
+
+	// ErrRootedPattern is returned by Collect for a pattern holding a "/".
+	// Collect answers the files flat, so a pattern reading a path could
+	// match on the way in and never on the way out.
+	ErrRootedPattern = errors.New("migrate: pattern names a directory")
+
+	// ErrDuplicate is returned by Collect when two directories carry one
+	// migration name. One would shadow the other, and the table the loser
+	// creates would never exist.
+	ErrDuplicate = errors.New("migrate: two directories carry one migration")
 )
 
 // Manager applies the migrations of one project to one database and keeps the

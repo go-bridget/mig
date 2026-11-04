@@ -10,7 +10,6 @@ import (
 	"text/tabwriter"
 
 	"github.com/pkg/errors"
-
 	"github.com/titpetric/cli"
 
 	"github.com/go-bridget/mig/db"
@@ -20,19 +19,24 @@ import (
 // Name is the command title.
 const Name = "Apply SQL migrations to database"
 
+// options is what the flags of the command set, and what open reads to decide
+// where the migrations come from.
+type options struct {
+	db *db.Options
+
+	path      string
+	project   string
+	filename  string
+	glob      string
+	recursive bool
+	apply     bool
+	list      bool
+	verbose   bool
+}
+
 // New creates a new migrate command.
 func New() *cli.Command {
-	var config struct {
-		db *db.Options
-
-		path     string
-		project  string
-		filename string
-		glob     string
-		apply    bool
-		list     bool
-		verbose  bool
-	}
+	var config options
 
 	return &cli.Command{
 		Name:  "migrate",
@@ -45,6 +49,7 @@ func New() *cli.Command {
 			fs.StringVar(&config.project, "project", "", "Project name for migrations (db key)")
 			fs.StringVarP(&config.filename, "filename", "f", "", "Single "+migrate.Pattern+" file as the migration source")
 			fs.StringVar(&config.glob, "glob", migrate.Pattern, "Glob selecting migrations under the path")
+			fs.BoolVarP(&config.recursive, "recursive", "r", false, "treat the path as a directory name to find under the working directory, and merge every one of them")
 			fs.BoolVar(&config.apply, "apply", false, "false = print migrations, true = run migrations")
 			fs.BoolVar(&config.list, "list", false, "print what the migrations table records and exit")
 			fs.BoolVar(&config.verbose, "verbose", false, "false = print summary, true = print details")
@@ -58,7 +63,7 @@ func New() *cli.Command {
 				return errors.New("Specify project name as first argument to migrate")
 			}
 
-			fsys, glob, err := open(config.path, config.filename, config.glob)
+			fsys, glob, err := config.open()
 			if err != nil {
 				return fmt.Errorf("error loading migrations: %w", err)
 			}
@@ -104,29 +109,50 @@ func New() *cli.Command {
 	}
 }
 
-// open resolves the migrations to run, and the glob selecting them. A filename
-// wins over a path, and brings its own glob: the file is applied whatever it is
-// called, and the rest of its directory stays out of the run.
-func open(path, filename, glob string) (fs.FS, string, error) {
-	if filename == "" {
-		stat, err := os.Stat(path)
+// open resolves the migrations to run, and the glob selecting them. The three
+// modes are exclusive and in this order of precedence.
+//
+// A filename wins over everything, and brings its own glob: the file is applied
+// whatever it is called, and the rest of its directory stays out of the run.
+//
+// Recursive reads the path as the name of a directory rather than one place,
+// and answers every directory under the working directory called that, merged
+// flat by migrate.Collect - which is the layout of a project whose migrations
+// live with the code owning each table. The glob selects within each of them,
+// and the answer is flat, so the same glob still selects what came back: see
+// migrate.Collect for why a pattern naming a directory is refused.
+//
+// Otherwise the path is one directory, and the names a run records are relative
+// to it.
+func (o options) open() (fs.FS, string, error) {
+	if o.filename != "" {
+		contents, err := os.ReadFile(o.filename)
 		if err != nil {
-			return nil, "", fmt.Errorf("path: '%s': %w", path, err)
+			return nil, "", err
 		}
-		if !stat.IsDir() {
-			return nil, "", fmt.Errorf("path is not a directory: '%s'", path)
-		}
-		return os.DirFS(path), glob, nil
+
+		base := filepath.Base(o.filename)
+
+		return fstest.MapFS{base: &fstest.MapFile{Data: contents}}, base, nil
 	}
 
-	contents, err := os.ReadFile(filename)
+	if o.recursive {
+		fsys, err := migrate.Collect(".", o.path, o.glob)
+		if err != nil {
+			return nil, "", err
+		}
+		return fsys, o.glob, nil
+	}
+
+	stat, err := os.Stat(o.path)
 	if err != nil {
-		return nil, "", err
+		return nil, "", fmt.Errorf("path: '%s': %w", o.path, err)
+	}
+	if !stat.IsDir() {
+		return nil, "", fmt.Errorf("path is not a directory: '%s'", o.path)
 	}
 
-	base := filepath.Base(filename)
-
-	return fstest.MapFS{base: &fstest.MapFile{Data: contents}}, base, nil
+	return os.DirFS(o.path), o.glob, nil
 }
 
 // report prints what the migrations table records for each migration. An empty

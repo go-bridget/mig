@@ -6,7 +6,7 @@ import (
 )
 ```
 
-Package migrate applies SQL migrations to a database and records what it
+Package `migrate` applies SQL migrations to a database and records what it
 applied.
 
 A migration is a file of semicolon-separated SQL statements. Files are read
@@ -41,6 +41,37 @@ Printing the migrations of a project needs no database at all:
 ```go
 err := migrate.Print(os.Stdout, os.DirFS("schema"))
 ```
+
+# Migrations beside the code that owns them
+
+A project can keep each migration with the code owning its table rather than
+in one folder. Collect gathers them into the filesystem a Manager takes, over
+a tree carrying access/schema/, keystore/schema/ and modules/notes/schema/:
+
+```go
+fsys, err := migrate.Collect(".", "schema", "")
+```
+
+A nested name is matched as a path suffix, so "db/schema" finds one/db/schema
+and not one/schema. A dot directory is not walked, and one the filesystem
+refuses to read is skipped rather than failing the walk.
+
+The answer is flat, each file at its base name, and that is the point rather
+than a convenience. A run records the name of a file relative to the root of
+the filesystem it came from, so a file that gains a directory is a file
+nobody has run: it applies again, and the second ALTER TABLE of a column that
+is already there fails. Flattening is what lets a migration move between
+directories against a database that already holds it. It also fixes the
+order, which the walk does not: paths sort by their whole string, so
+a/z.up.sql would come before b/a.up.sql, while a migration reading a table
+another one created wants the order the names give.
+
+A base name therefore belongs to one directory. Two carrying the same one is
+ErrDuplicate, naming the file, rather than one shadowing the other with
+nothing to say the loser's table was never created. A pattern holding a "/"
+is ErrRootedPattern for the same reason: the files are matched where they sit
+and answered flat, so one that reads a path could match on the way in and
+never on the way out.
 
 ## Types
 
@@ -144,7 +175,7 @@ var MigrationFields = []string{"project", "filename", "statement_index", "status
 </details>
 
 <details>
-<summary><code>var ErrNoDB, ErrNoFS, ErrNoProject, ErrDriver, ErrNoMigrations, ErrNoStatements</code></summary>
+<summary><code>var ErrNoDB, ErrNoFS, ErrNoProject, ErrDriver, ErrNoMigrations, ErrNoStatements, ErrNoDir, ErrRootedPattern, ErrDuplicate</code></summary>
 
 ```go
 // The errors of the package, each returned for one thing being wrong, so a
@@ -173,6 +204,20 @@ var (
 	// ErrNoStatements is returned by Apply for a migration that parses to
 	// no statements at all, which is a file someone meant to write.
 	ErrNoStatements	= errors.New("migrate: migration has no statements")
+
+	// ErrNoDir is returned by Collect for an empty directory name, and for
+	// one no directory under the root is called.
+	ErrNoDir	= errors.New("migrate: no such migrations directory")
+
+	// ErrRootedPattern is returned by Collect for a pattern holding a "/".
+	// Collect answers the files flat, so a pattern reading a path could
+	// match on the way in and never on the way out.
+	ErrRootedPattern	= errors.New("migrate: pattern names a directory")
+
+	// ErrDuplicate is returned by Collect when two directories carry one
+	// migration name. One would shadow the other, and the table the loser
+	// creates would never exist.
+	ErrDuplicate	= errors.New("migrate: two directories carry one migration")
 )
 ```
 
@@ -180,6 +225,7 @@ var (
 
 ## Function symbols
 
+- `func Collect (root,dir,pattern string) (fs.FS, error)`
 - `func Files (fsys fs.FS, pattern string) ([]string, error)`
 - `func NewManager (db *sqlx.DB, migrations fs.FS, project string) (*Manager, error)`
 - `func Print (w io.Writer, fsys fs.FS, pattern string) error`
@@ -191,9 +237,23 @@ var (
 - `func (*Migration) SetError (err error)`
 - `func (Migration) Err () error`
 
-### Files
+### `Collect`
 
-Files returns the names of the migrations in fsys matching pattern, sorted.
+`Collect` returns the migrations of every directory named dir under root, as
+one filesystem with each file at its base name. An empty pattern is Pattern.
+See the package comment for the layout it is for and why it answers flat.
+
+It fails with ErrRootedPattern for a pattern naming a directory, ErrNoDir for
+a name that is empty or that no directory under root is called, and
+ErrDuplicate for two directories carrying one migration.
+
+```go
+func Collect (root,dir,pattern string) (fs.FS, error)
+```
+
+### `Files`
+
+`Files` returns the names of the migrations in fsys matching pattern, sorted.
 An empty pattern is Pattern, which finds them wherever they sit.
 
 Names are paths relative to the root of fsys, and that is what a run records
@@ -204,9 +264,9 @@ shortest valid statement is "--", a comment.
 func Files (fsys fs.FS, pattern string) ([]string, error)
 ```
 
-### NewManager
+### `NewManager`
 
-NewManager returns a Manager applying migrations to db, recording them under
+`NewManager` returns a Manager applying migrations to db, recording them under
 project.
 
 It fails if db or migrations is nil, if project is empty or longer than 16
@@ -220,9 +280,9 @@ No query is made and no file is read until Apply or List is called.
 func NewManager (db *sqlx.DB, migrations fs.FS, project string) (*Manager, error)
 ```
 
-### Print
+### `Print`
 
-Print writes every migration in fsys to w as SQL, each file headed by a
+`Print` writes every migration in fsys to w as SQL, each file headed by a
 comment naming it and each statement by its index, so the output is a script
 applying the project by hand. It touches no database.
 
@@ -235,18 +295,18 @@ produce the same bytes for a migration using it.
 func Print (w io.Writer, fsys fs.FS, pattern string) error
 ```
 
-### Statements
+### `Statements`
 
-Statements returns the statements of one migration, with comments removed and
+`Statements` returns the statements of one migration, with comments removed and
 uuid() calls replaced by a fresh UUID literal.
 
 ```go
 func Statements (fsys fs.FS, name string) ([]string, error)
 ```
 
-### Apply
+### `Apply`
 
-Apply runs the migrations that have not been applied yet, in lexical order of
+`Apply` runs the migrations that have not been applied yet, in lexical order of
 filename, and returns on the first one that fails.
 
 The slice is the run to print: one Migration per file, in order, carrying the
@@ -261,9 +321,9 @@ failed file from the statement after that one.
 func (*Manager) Apply (ctx context.Context) ([]Migration, error)
 ```
 
-### List
+### `List`
 
-List returns one Migration per file in the migrations filesystem, in lexical
+`List` returns one Migration per file in the migrations filesystem, in lexical
 order of filename, along with the rows of the migrations table whose file is
 gone. It applies nothing.
 
@@ -277,9 +337,9 @@ List creates the migrations table if it is missing.
 func (*Manager) List (ctx context.Context) ([]Migration, error)
 ```
 
-### Load
+### `Load`
 
-Load sets the glob selecting the migrations to apply, in place of Pattern.
+`Load` sets the glob selecting the migrations to apply, in place of Pattern.
 An empty pattern puts Pattern back.
 
 The syntax is path.Match's, and naming a directory is what decides the depth:
@@ -294,17 +354,17 @@ ErrNoMigrations from Apply.
 func (*Manager) Load (pattern string)
 ```
 
-### Project
+### `Project`
 
-Project returns the migration scope this Manager records under.
+`Project` returns the migration scope this Manager records under.
 
 ```go
 func (*Manager) Project () string
 ```
 
-### SetError
+### `SetError`
 
-SetError records err as the outcome of the migration. Status becomes the
+`SetError` records err as the outcome of the migration. Status becomes the
 error text, which is what the column holds, or StatusOK when err is nil.
 
 The error itself is kept as well, so Err returns what was passed rather than
@@ -314,9 +374,9 @@ a copy of its message.
 func (*Migration) SetError (err error)
 ```
 
-### Err
+### `Err`
 
-Err returns the error the migration failed with, or nil when it succeeded or
+`Err` returns the error the migration failed with, or nil when it succeeded or
 has not run.
 
 For a migration read back from the migrations table there is no error left to
@@ -330,7 +390,7 @@ func (Migration) Err () error
 
 <section name="ExampleManager_Apply">
 
-### ExampleManager_Apply
+### `ExampleManager_Apply`
 
 ExampleManager_Apply applies every migration of a project, and prints the run
 it returns: the file, the index of the last statement that ran, and the status
@@ -371,7 +431,7 @@ func ExampleManager_Apply() {
 
 <section name="ExampleManager_Apply_failure">
 
-### ExampleManager_Apply_failure
+### `ExampleManager_Apply_failure`
 
 ExampleManager_Apply_failure shows what a failed run reports. The second
 statement of the file fails, so Apply returns its error, and the entry of the
@@ -410,7 +470,7 @@ func ExampleManager_Apply_failure() {
 
 <section name="ExampleManager_Apply_noMigrations">
 
-### ExampleManager_Apply_noMigrations
+### `ExampleManager_Apply_noMigrations`
 
 ExampleManager_Apply_noMigrations shows the one failure that otherwise looks
 like a clean run: a filesystem the pattern matches nothing in.
@@ -435,7 +495,7 @@ func ExampleManager_Apply_noMigrations() {
 
 <section name="ExampleManager_Load">
 
-### ExampleManager_Load
+### `ExampleManager_Load`
 
 ExampleManager_Load selects the migrations of one directory. The pattern
 names a directory, so it is matched against the whole path, and the migration
@@ -476,7 +536,7 @@ func ExampleManager_Load() {
 
 <section name="ExampleManager_Load_anyDepth">
 
-### ExampleManager_Load_anyDepth
+### `ExampleManager_Load_anyDepth`
 
 ExampleManager_Load_anyDepth selects migrations wherever they sit. The pattern
 names no directory, so it is matched against base names, which is what the

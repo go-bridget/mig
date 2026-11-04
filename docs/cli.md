@@ -115,6 +115,7 @@ mig migrate events --path schema --db-dsn "sqlite://test.db" --apply
 | `--path` | `schema` | Directory holding the migrations |
 | `--filename`, `-f` | none | Single file as the migration source |
 | `--glob` | `*.up.sql` | Glob selecting migrations under the path |
+| `--recursive`, `-r` | `false` | Read `--path` as a directory name to find under the working directory |
 | `--project` | none | Project name, when not given as the first argument |
 | `--apply` | `false` | `false` prints the migrations, `true` runs them |
 | `--list` | `false` | Print what the migrations table records and exit |
@@ -129,14 +130,48 @@ whole path, one without it against base names, so the default finds
 migrations at any depth. Files shorter than two bytes are skipped, two
 bytes being the shortest statement there is, the `--` of a comment.
 
-`--filename` wins over `--path` and brings its own glob: the named file is
-applied whatever it is called, and the rest of its directory stays out of
-the run.
+`--filename` wins over everything else and brings its own glob: the named
+file is applied whatever it is called, and the rest of its directory stays
+out of the run.
 
 Matching no file at all is an error, `migrate: no migrations found`, so a
 `--path` pointing at the wrong directory fails instead of reporting a clean
 run. A file that parses to no statements is `migrate: migration has no
 statements`.
+
+#### Migrations beside the code that owns them
+
+`--recursive` reads `--path` as the *name* of a directory rather than one
+place, finds every directory called that under the working directory, and
+applies them as one:
+
+~~~sh
+mig migrate task-ui --path schema --recursive --apply
+~~~
+
+over a tree carrying `access/schema/`, `keystore/schema/` and
+`app/modules/notes/schema/` applies the three together. A nested name is
+matched as a path suffix, so `--path db/schema` finds `one/db/schema` and
+not `one/schema`. A dot directory is not walked, and a directory the
+filesystem refuses to read is skipped rather than failing the run.
+
+The files come back **flat**, each at its base name, and that is the point
+rather than a convenience. A run records the name of a file relative to the
+root of the filesystem it came from, so a file that gains a directory is a
+file nobody has run: it applies again, and the second `ALTER TABLE` of a
+column that is already there fails. Flattening is what lets a migration move
+between directories against a database that already holds it. It also fixes
+the order, which the walk does not: paths sort by their whole string, so
+`a/z.up.sql` would come before `b/a.up.sql`, while a migration reading a
+table another one created wants the order the names give.
+
+A base name therefore belongs to one directory. Two carrying the same one is
+`migrate: two directories carry one migration`, naming the file, rather than
+one shadowing the other with nothing to say the loser's table was never
+created. A `--glob` holding a `/` is refused for the same reason: the files
+are matched where they sit and answered flat, so a pattern reading a path
+could match on the way in and never on the way out. A `--path` nothing under
+the working directory is called is `migrate: no such migrations directory`.
 
 #### Printing
 

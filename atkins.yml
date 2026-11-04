@@ -44,6 +44,10 @@ jobs:
       - run: rm -f test.db
       - run: mig migrate events --path testdata/events/sqlite --db-dsn "sqlite://:memory:" --apply --verbose
       - run: mig migrate events --path testdata/events/sqlite --db-dsn "sqlite://test.db" --apply --verbose
+      # The same migrations found by name rather than by place: --recursive
+      # reads the path as a directory to look for under the working directory,
+      # and a nested name is matched as a path suffix.
+      - run: mig migrate events --path events/sqlite --recursive --db-dsn "sqlite://:memory:" --apply --verbose
       - run: mig lint --db-dsn "file:test.db" --skip-comments
       - run: mkdir -p testdata/docs-sqlite
       - run: mig docs --output=testdata/docs-sqlite --output-file=schema.yaml --yaml --db-dsn "sqlite://test.db"

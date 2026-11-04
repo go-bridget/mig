@@ -27,4 +27,33 @@
 // Printing the migrations of a project needs no database at all:
 //
 //	err := migrate.Print(os.Stdout, os.DirFS("schema"))
+//
+// # Migrations beside the code that owns them
+//
+// A project can keep each migration with the code owning its table rather than
+// in one folder. Collect gathers them into the filesystem a Manager takes, over
+// a tree carrying access/schema/, keystore/schema/ and modules/notes/schema/:
+//
+//	fsys, err := migrate.Collect(".", "schema", "")
+//
+// A nested name is matched as a path suffix, so "db/schema" finds one/db/schema
+// and not one/schema. A dot directory is not walked, and one the filesystem
+// refuses to read is skipped rather than failing the walk.
+//
+// The answer is flat, each file at its base name, and that is the point rather
+// than a convenience. A run records the name of a file relative to the root of
+// the filesystem it came from, so a file that gains a directory is a file
+// nobody has run: it applies again, and the second ALTER TABLE of a column that
+// is already there fails. Flattening is what lets a migration move between
+// directories against a database that already holds it. It also fixes the
+// order, which the walk does not: paths sort by their whole string, so
+// a/z.up.sql would come before b/a.up.sql, while a migration reading a table
+// another one created wants the order the names give.
+//
+// A base name therefore belongs to one directory. Two carrying the same one is
+// ErrDuplicate, naming the file, rather than one shadowing the other with
+// nothing to say the loser's table was never created. A pattern holding a "/"
+// is ErrRootedPattern for the same reason: the files are matched where they sit
+// and answered flat, so one that reads a path could match on the way in and
+// never on the way out.
 package migrate
