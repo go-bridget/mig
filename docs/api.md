@@ -118,7 +118,7 @@ type Collector struct {
 // A Manager is safe to use from several processes at once: each file is applied
 // under an advisory lock keyed by project and filename.
 type Manager struct {
-	db	*sqlx.DB
+	db	*client.Client
 	fsys	fs.FS
 	project	string
 
@@ -259,7 +259,7 @@ var (
 ## Function symbols
 
 - `func Files (fsys fs.FS, pattern string) ([]string, error)`
-- `func NewManager (db *sqlx.DB, migrations fs.FS, project string) (*Manager, error)`
+- `func NewManager (conn *sql.DB, migrations fs.FS, project string) (*Manager, error)`
 - `func Print (w io.Writer, fsys fs.FS, pattern string) error`
 - `func Statements (fsys fs.FS, name string) ([]string, error)`
 - `func (*Manager) Apply (ctx context.Context) ([]Migration, error)`
@@ -296,7 +296,7 @@ and sqlite (also sqlite3).
 No query is made and no file is read until Apply or List is called.
 
 ```go
-func NewManager (db *sqlx.DB, migrations fs.FS, project string) (*Manager, error)
+func NewManager (conn *sql.DB, migrations fs.FS, project string) (*Manager, error)
 ```
 
 ### `Print`

@@ -9,6 +9,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/titpetric/pdo/client"
+
 	"github.com/go-bridget/mig/migrate"
 )
 
@@ -60,7 +62,7 @@ func TestApplyAppended(t *testing.T) {
 
 	// The row is the proof the db tags still bind to a select *.
 	var status migrate.Migration
-	require.NoError(t, db.GetContext(ctx, &status,
+	require.NoError(t, client.NewClient(db, client.WithDriver("sqlite")).Get(ctx, &status,
 		"SELECT * FROM migrations WHERE project='test' AND filename='pulse.up.sql'"))
 	require.Equal(t, migrate.StatusOK, status.Status)
 	require.Equal(t, 2, status.StatementIndex)
@@ -74,7 +76,7 @@ func TestApplyAppended(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 3, applied[0].StatementIndex)
 
-	require.NoError(t, db.GetContext(ctx, &status,
+	require.NoError(t, client.NewClient(db, client.WithDriver("sqlite")).Get(ctx, &status,
 		"SELECT * FROM migrations WHERE project='test' AND filename='pulse.up.sql'"))
 	require.Equal(t, migrate.StatusOK, status.Status)
 	require.Equal(t, 3, status.StatementIndex)

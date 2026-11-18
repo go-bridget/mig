@@ -93,7 +93,7 @@ var specialTypes map[string]specialType = map[string]specialType{
 	"time":      specialType{"time", "*time.Time"},
 	"timestamp": specialType{"time", "*time.Time"},
 	// `set` is not implemented
-	"json": specialType{"sqlxTypes github.com/jmoiron/sqlx/types", "sqlxTypes.JSONText"},
+	"json": specialType{"encoding/json", "json.RawMessage"},
 }
 
 func isSpecial(column *Column) (specialType, bool) {

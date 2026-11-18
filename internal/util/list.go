@@ -22,5 +22,5 @@ func ListTables(ctx context.Context, config *db.Options) ([]*model.Table, error)
 		return nil, err
 	}
 
-	return desc.ListTables(ctx, handle)
+	return desc.ListTables(ctx, db.Client(handle))
 }

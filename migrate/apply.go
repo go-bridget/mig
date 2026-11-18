@@ -3,10 +3,11 @@ package migrate
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"sort"
 
-	"github.com/jmoiron/sqlx"
+	"github.com/titpetric/pdo/client"
 
 	"github.com/go-bridget/mig/db"
 )
@@ -88,23 +89,21 @@ func (m *Manager) applyFile(ctx context.Context, filename string) (Migration, er
 		StatementIndex: -1,
 	}
 
-	tx, err := m.db.BeginTxx(ctx, nil)
-	if err != nil {
+	if err := m.db.Begin(ctx); err != nil {
 		return status, fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Rollback()
+	defer m.db.Rollback()
 
 	// Take the lock before reading the row, so a concurrent migration can't
 	// decide to apply the same statements.
 	lockKey := fmt.Sprintf("%s:%s", status.Project, status.Filename)
-	if err := db.AcquireLock(ctx, tx, m.driver, lockKey); err != nil {
+	if err := db.AcquireLock(ctx, m.db, m.driver, lockKey); err != nil {
 		return status, fmt.Errorf("failed to acquire migration lock: %w", err)
 	}
 
-	query := m.db.Rebind("select * from " + Table + " where project=? and filename=?")
 	exists := true
-	if err := tx.GetContext(ctx, &status, query, status.Project, status.Filename); err != nil {
-		if err != sql.ErrNoRows {
+	if err := m.db.Get(ctx, &status, "select * from "+Table+" where project=? and filename=?", status.Project, status.Filename); err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
 			return status, fmt.Errorf("error reading %s table: %w", Table, err)
 		}
 		exists = false
@@ -125,13 +124,13 @@ func (m *Manager) applyFile(ctx context.Context, filename string) (Migration, er
 	// A file recorded as applied is only work again if it grew statements
 	// since the last run.
 	if exists && status.Status == StatusOK && len(stmts) <= status.StatementIndex+1 {
-		if err := tx.Commit(); err != nil {
+		if err := m.db.Commit(); err != nil {
 			return status, fmt.Errorf("failed to commit transaction: %w", err)
 		}
 		return status, nil
 	}
 
-	applyErr := m.execStatements(ctx, tx, filename, stmts, &status)
+	applyErr := m.execStatements(ctx, m.db, filename, stmts, &status)
 
 	// The status row records what ran, so it is written whether the file
 	// succeeded or not - that is what makes a failed migration resumable.
@@ -139,11 +138,11 @@ func (m *Manager) applyFile(ctx context.Context, filename string) (Migration, er
 	if exists {
 		saveQuery = updateQuery
 	}
-	if _, err := tx.NamedExecContext(ctx, saveQuery, status); err != nil {
+	if err := m.db.Exec(ctx, saveQuery, status); err != nil {
 		return status, fmt.Errorf("updating migration state failed: %w", err)
 	}
 
-	if err := tx.Commit(); err != nil {
+	if err := m.db.Commit(); err != nil {
 		return status, fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
@@ -155,14 +154,14 @@ func (m *Manager) applyFile(ctx context.Context, filename string) (Migration, er
 //
 // The error names the statement it came from, because that is the whole of what
 // a caller needs to find it, and it is what lands in the status column.
-func (m *Manager) execStatements(ctx context.Context, tx *sqlx.Tx, filename string, stmts []string, status *Migration) error {
+func (m *Manager) execStatements(ctx context.Context, tx *client.Client, filename string, stmts []string, status *Migration) error {
 	for idx, stmt := range stmts {
 		if idx <= status.StatementIndex {
 			continue
 		}
 
 		status.StatementIndex = idx
-		if _, err := tx.ExecContext(ctx, stmt); err != nil && err != sql.ErrNoRows {
+		if err := tx.Exec(ctx, stmt); err != nil && err != sql.ErrNoRows {
 			status.StatementIndex--
 			status.SetError(fmt.Errorf("%s: statement %d: %w", filename, idx, err))
 			return status.Err()

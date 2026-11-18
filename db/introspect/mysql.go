@@ -6,14 +6,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
+	"github.com/titpetric/pdo/client"
 
 	"github.com/go-bridget/mig/model"
 )
 
 // enrichKeysFromInfoSchema retrieves type, key, and comment from information_schema.
-func enrichKeysFromInfoSchema(ctx context.Context, db *sqlx.DB, tableName string, columns []*model.Column) {
+func enrichKeysFromInfoSchema(ctx context.Context, db *client.Client, tableName string, columns []*model.Column) {
 	var schemaColumns []*model.Column
 
 	// Query information_schema for complete column information
@@ -23,7 +23,7 @@ func enrichKeysFromInfoSchema(ctx context.Context, db *sqlx.DB, tableName string
 		fields,
 	)
 
-	if err := db.SelectContext(ctx, &schemaColumns, query, tableName); err != nil {
+	if err := db.Select(ctx, &schemaColumns, query, tableName); err != nil {
 		// Silently ignore errors - we'll use DESCRIBE information as fallback
 		return
 	}
@@ -53,10 +53,12 @@ func enrichKeysFromInfoSchema(ctx context.Context, db *sqlx.DB, tableName string
 }
 
 // MysqlDescriber implements Describer for MySQL.
-type MysqlDescriber struct{}
+type MysqlDescriber struct {
+	driver string
+}
 
 // Describe returns column metadata from a query.
-func (d *MysqlDescriber) Describe(ctx context.Context, db *sqlx.DB, query string) ([]*model.Column, error) {
+func (d *MysqlDescriber) Describe(ctx context.Context, db *client.Client, query string) ([]*model.Column, error) {
 	var err error
 
 	// Normalize query
@@ -71,14 +73,14 @@ func (d *MysqlDescriber) Describe(ctx context.Context, db *sqlx.DB, query string
 	// Create temporary table from the query with LIMIT 0 to get only structure
 	// This is more reliable than using TEMPORARY VIEW in MySQL
 	createTableSQL := fmt.Sprintf("CREATE TEMPORARY TABLE `%s` AS %s LIMIT 0", tableName, query)
-	if _, err = db.ExecContext(ctx, createTableSQL); err != nil {
+	if err = db.Exec(ctx, createTableSQL); err != nil {
 		return nil, errors.Wrapf(err, "failed to create temporary table for query")
 	}
 
 	// Defer cleanup - drop the temporary table
 	defer func() {
 		dropSQL := fmt.Sprintf("DROP TEMPORARY TABLE IF EXISTS `%s`", tableName)
-		_, _ = db.ExecContext(context.Background(), dropSQL)
+		_ = db.Exec(context.Background(), dropSQL)
 	}()
 
 	// Query the temporary table structure using DESCRIBE
@@ -94,7 +96,7 @@ func (d *MysqlDescriber) Describe(ctx context.Context, db *sqlx.DB, query string
 
 	var describeRows []describeRow
 	describeQuery := fmt.Sprintf("DESCRIBE `%s`", tableName)
-	if err = db.SelectContext(ctx, &describeRows, describeQuery); err != nil {
+	if err = db.Select(ctx, &describeRows, describeQuery); err != nil {
 		return nil, errors.Wrap(err, "failed to describe temporary table")
 	}
 
@@ -122,7 +124,7 @@ func (d *MysqlDescriber) Describe(ctx context.Context, db *sqlx.DB, query string
 }
 
 // DescribeTable returns the structure of a table.
-func (d *MysqlDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tableName string) (*model.Table, error) {
+func (d *MysqlDescriber) DescribeTable(ctx context.Context, db *client.Client, tableName string) (*model.Table, error) {
 	table := &model.Table{
 		Name: tableName,
 	}
@@ -132,7 +134,7 @@ func (d *MysqlDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tableNa
 		Comment string `db:"TABLE_COMMENT"`
 	}
 	var tr tableRow
-	if err := db.GetContext(ctx, &tr, "SELECT TABLE_COMMENT FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name=?", tableName); err != nil {
+	if err := db.Get(ctx, &tr, "SELECT TABLE_COMMENT FROM information_schema.tables WHERE table_schema=DATABASE() AND table_name=?", tableName); err != nil {
 		return nil, errors.Wrapf(err, "failed to get table comment for %s", tableName)
 	}
 	table.Comment = tr.Comment
@@ -145,7 +147,7 @@ func (d *MysqlDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tableNa
 		fields,
 	)
 
-	if err := db.SelectContext(ctx, &columns, query, tableName); err != nil {
+	if err := db.Select(ctx, &columns, query, tableName); err != nil {
 		return nil, errors.Wrapf(err, "failed to get columns for table %s", tableName)
 	}
 
@@ -154,7 +156,7 @@ func (d *MysqlDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tableNa
 		parseMySQLType(col)
 
 		// Normalize the type
-		normalizeColumnType(col, db.DriverName())
+		normalizeColumnType(col, d.driver)
 	}
 
 	// Get indexes for this table
@@ -172,13 +174,13 @@ func (d *MysqlDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tableNa
 }
 
 // ListTables returns all tables without columns populated.
-func (d *MysqlDescriber) ListTables(ctx context.Context, db *sqlx.DB) ([]*model.Table, error) {
+func (d *MysqlDescriber) ListTables(ctx context.Context, db *client.Client) ([]*model.Table, error) {
 	const tableType = "BASE TABLE"
 
 	tables := []*model.Table{}
 
 	// Get all base tables (excluding views)
-	if err := db.SelectContext(ctx, &tables, "SELECT TABLE_NAME, TABLE_COMMENT FROM information_schema.tables WHERE table_schema=DATABASE() AND table_type=? ORDER BY table_name ASC", tableType); err != nil {
+	if err := db.Select(ctx, &tables, "SELECT TABLE_NAME, TABLE_COMMENT FROM information_schema.tables WHERE table_schema=DATABASE() AND table_type=? ORDER BY table_name ASC", tableType); err != nil {
 		return nil, errors.Wrap(err, "failed to list tables")
 	}
 
@@ -186,7 +188,7 @@ func (d *MysqlDescriber) ListTables(ctx context.Context, db *sqlx.DB) ([]*model.
 }
 
 // TableIndexes returns all indexes for a MySQL table.
-func (d *MysqlDescriber) TableIndexes(ctx context.Context, db *sqlx.DB, tableName string) ([]*model.Index, error) {
+func (d *MysqlDescriber) TableIndexes(ctx context.Context, db *client.Client, tableName string) ([]*model.Index, error) {
 	type indexStatistic struct {
 		IndexName  string `db:"INDEX_NAME"`
 		ColumnList string `db:"COLUMN_LIST"`
@@ -205,7 +207,7 @@ func (d *MysqlDescriber) TableIndexes(ctx context.Context, db *sqlx.DB, tableNam
 		ORDER BY INDEX_NAME
 	`
 
-	if err := db.SelectContext(ctx, &indexStats, query, tableName); err != nil {
+	if err := db.Select(ctx, &indexStats, query, tableName); err != nil {
 		return nil, errors.Wrapf(err, "failed to get indexes for table %s", tableName)
 	}
 

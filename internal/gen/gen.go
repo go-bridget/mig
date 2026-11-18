@@ -48,7 +48,7 @@ func New() *cli.Command {
 				return err
 			}
 
-			tables, err := introspect.ListTablesWithColumns(ctx, handle, desc)
+			tables, err := introspect.ListTablesWithColumns(ctx, db.Client(handle), desc)
 			if err != nil {
 				return err
 			}

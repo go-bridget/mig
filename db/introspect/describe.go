@@ -2,8 +2,11 @@ package introspect
 
 import (
 	"context"
+	"database/sql"
 
-	"github.com/jmoiron/sqlx"
+	"github.com/titpetric/pdo/client"
+
+	"github.com/go-bridget/mig/db"
 	"github.com/pkg/errors"
 
 	"github.com/go-bridget/mig/model"
@@ -18,25 +21,25 @@ type Describer interface {
 	// For queries, pass any SELECT statement.
 	// It works by creating a temporary view from the query, inspecting its columns,
 	// and dropping the view afterwards.
-	Describe(ctx context.Context, db *sqlx.DB, query string) ([]*model.Column, error)
+	Describe(ctx context.Context, db *client.Client, query string) ([]*model.Column, error)
 
 	// DescribeTable returns the table structure including all columns and metadata.
 	// This is more efficient than Describe() for tables as it queries the schema directly.
-	DescribeTable(ctx context.Context, db *sqlx.DB, tableName string) (*model.Table, error)
+	DescribeTable(ctx context.Context, db *client.Client, tableName string) (*model.Table, error)
 
 	// ListTables returns all tables in the database (excluding system/temporary tables).
 	// Note: Columns are not populated. Use DescribeTable to fetch columns for a specific table.
-	ListTables(ctx context.Context, db *sqlx.DB) ([]*model.Table, error)
+	ListTables(ctx context.Context, db *client.Client) ([]*model.Table, error)
 
 	// TableIndexes returns all indexes for a given table, including primary keys and unique constraints.
-	TableIndexes(ctx context.Context, db *sqlx.DB, tableName string) ([]*model.Index, error)
+	TableIndexes(ctx context.Context, db *client.Client, tableName string) ([]*model.Index, error)
 }
 
 // ListTablesWithColumns returns all tables with their columns populated and indexes sorted.
 // For each table returned by ListTables, it calls DescribeTable to fetch column information.
 // If a table comment is empty, it's filled with a title-cased version of the table name.
 // Indexes are sorted consistently: primary key first, then by column names.
-func ListTablesWithColumns(ctx context.Context, db *sqlx.DB, describer Describer) ([]*model.Table, error) {
+func ListTablesWithColumns(ctx context.Context, db *client.Client, describer Describer) ([]*model.Table, error) {
 	// Get list of tables without columns
 	tables, err := describer.ListTables(ctx, db)
 	if err != nil {
@@ -66,17 +69,21 @@ func ListTablesWithColumns(ctx context.Context, db *sqlx.DB, describer Describer
 	return tables, nil
 }
 
-// NewDescriber returns a Describer implementation for the given database connection.
-// The driver type is determined from the database connection's DriverName().
-func NewDescriber(db *sqlx.DB) (Describer, error) {
-	driverName := db.DriverName()
+// NewDescriber returns a Describer implementation for the given database
+// connection. database/sql does not keep the driver name, so it is read from
+// the driver's package path.
+func NewDescriber(conn *sql.DB) (Describer, error) {
+	driverName, ok := db.DriverName(conn)
+	if !ok {
+		return nil, errors.New("unknown describer: unrecognised database driver")
+	}
 	switch driverName {
 	case "sqlite":
-		return &SqliteDescriber{}, nil
-	case "postgres", "postgresql", "pgx":
-		return &PostgresDescriber{}, nil
+		return &SqliteDescriber{driver: driverName}, nil
+	case "postgres":
+		return &PostgresDescriber{driver: driverName}, nil
 	case "mysql":
-		return &MysqlDescriber{}, nil
+		return &MysqlDescriber{driver: driverName}, nil
 	}
-	return nil, errors.New("Unknown describer: " + driverName)
+	return nil, errors.New("unknown describer: " + driverName)
 }

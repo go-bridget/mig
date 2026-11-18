@@ -14,7 +14,7 @@ type Options struct {
 	Credentials Credentials
 
 	// Connector is an optional parameter to produce our
-	// own *sql.DB, which is then wrapped in *sqlx.DB
+	// own *sql.DB, which is handed to pdo unchanged
 	Connector func(context.Context, Credentials) (*sql.DB, error)
 
 	Retries        int

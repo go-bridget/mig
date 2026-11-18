@@ -2,21 +2,22 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
-	"github.com/jmoiron/sqlx"
+	"github.com/titpetric/pdo/client"
 )
 
 // AcquireLock acquires a database-specific advisory lock for a given key.
 // This is used to prevent concurrent migrations from conflicting.
 // The lock is released when the transaction commits or rolls back.
-func AcquireLock(ctx context.Context, tx *sqlx.Tx, driverName string, lockKey string) error {
+func AcquireLock(ctx context.Context, conn *client.Client, driverName string, lockKey string) error {
 	switch driverName {
 	case "postgres", "postgresql", "pgx":
 		// PostgreSQL: use advisory lock function
 		// We hash the key to a 64-bit integer
 		hash := hashString(lockKey)
-		if _, err := tx.ExecContext(ctx, "SELECT pg_advisory_xact_lock($1)", hash); err != nil {
+		if err := conn.Exec(ctx, "SELECT pg_advisory_xact_lock(?)", hash); err != nil {
 			return fmt.Errorf("failed to acquire advisory lock: %w", err)
 		}
 		return nil
@@ -26,11 +27,12 @@ func AcquireLock(ctx context.Context, tx *sqlx.Tx, driverName string, lockKey st
 		// GET_LOCK returns 1 on success, 0 on timeout, NULL on error
 		// MySQL enforces a maximum lock name length of 64 characters
 		lockKey = fmt.Sprintf("%x", hashString(lockKey))
-		var result *int
-		if err := tx.QueryRowContext(ctx, "SELECT GET_LOCK(?, 30)", lockKey).Scan(&result); err != nil {
+		var result sql.NullInt64
+		err := conn.Get(ctx, &result, "SELECT GET_LOCK(?, 30)", lockKey)
+		if err != nil {
 			return fmt.Errorf("failed to acquire lock: %w", err)
 		}
-		if result == nil || *result != 1 {
+		if !result.Valid || result.Int64 != 1 {
 			return fmt.Errorf("failed to acquire lock (timeout or error)")
 		}
 		return nil
@@ -38,7 +40,7 @@ func AcquireLock(ctx context.Context, tx *sqlx.Tx, driverName string, lockKey st
 	case "sqlite":
 		// SQLite: transactions are exclusive by default
 		// Issue a PRAGMA to ensure we're not in read-only mode
-		if _, err := tx.ExecContext(ctx, "PRAGMA query_only = FALSE"); err != nil {
+		if err := conn.Exec(ctx, "PRAGMA query_only = FALSE"); err != nil {
 			return fmt.Errorf("failed to set query_only pragma: %w", err)
 		}
 		return nil

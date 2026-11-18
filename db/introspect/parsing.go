@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/jmoiron/sqlx"
+	"github.com/titpetric/pdo/client"
 
 	"github.com/go-bridget/mig/model"
 )
@@ -37,7 +37,7 @@ func parseSqliteType(column *model.Column) {
 	}
 }
 
-func parsePostgresType(ctx context.Context, db *sqlx.DB, column *model.Column) {
+func parsePostgresType(ctx context.Context, db *client.Client, column *model.Column) {
 	typeStr := strings.ToLower(strings.TrimSpace(column.Type))
 	column.DataType = typeStr
 
