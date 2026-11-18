@@ -6,18 +6,20 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
+	"github.com/titpetric/pdo/client"
 
 	"github.com/go-bridget/mig/model"
 )
 
 // PostgresDescriber implements Describer for PostgreSQL.
-type PostgresDescriber struct{}
+type PostgresDescriber struct {
+	driver string
+}
 
 // Describe returns column metadata from a query.
-func (d *PostgresDescriber) Describe(ctx context.Context, db *sqlx.DB, query string) ([]*model.Column, error) {
+func (d *PostgresDescriber) Describe(ctx context.Context, db *client.Client, query string) ([]*model.Column, error) {
 	var err error
 
 	// Normalize query
@@ -31,14 +33,14 @@ func (d *PostgresDescriber) Describe(ctx context.Context, db *sqlx.DB, query str
 
 	// Create temporary view
 	createViewSQL := fmt.Sprintf("CREATE TEMPORARY VIEW %s AS %s", viewName, query)
-	if _, err = db.ExecContext(ctx, createViewSQL); err != nil {
+	if err = db.Exec(ctx, createViewSQL); err != nil {
 		return nil, errors.Wrapf(err, "failed to create temporary view for query")
 	}
 
 	// Defer cleanup - drop the temporary view
 	defer func() {
 		dropSQL := fmt.Sprintf("DROP VIEW IF EXISTS %s", viewName)
-		_, _ = db.ExecContext(context.Background(), dropSQL)
+		_ = db.Exec(context.Background(), dropSQL)
 	}()
 
 	// Query information_schema to get column details
@@ -78,7 +80,7 @@ func (d *PostgresDescriber) Describe(ctx context.Context, db *sqlx.DB, query str
 
 	pgCols := []pgColumn{}
 	columns := []*model.Column{}
-	if err = db.SelectContext(ctx, &pgCols, pgQuery, viewName); err != nil {
+	if err = db.Select(ctx, &pgCols, pgQuery, viewName); err != nil {
 		return nil, errors.Wrap(err, "failed to query column metadata from information_schema")
 	}
 
@@ -107,14 +109,14 @@ func (d *PostgresDescriber) Describe(ctx context.Context, db *sqlx.DB, query str
 }
 
 // DescribeTable returns the structure of a table.
-func (d *PostgresDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tableName string) (*model.Table, error) {
+func (d *PostgresDescriber) DescribeTable(ctx context.Context, db *client.Client, tableName string) (*model.Table, error) {
 	table := &model.Table{
 		Name: tableName,
 	}
 
 	// Get table comment from pg_description
 	var comment *string
-	if err := db.GetContext(ctx, &comment, `
+	if err := db.Get(ctx, &comment, `
 		SELECT description FROM pg_description 
 		WHERE objoid = (SELECT oid FROM pg_class WHERE relname = $1)
 		AND objsubid = 0
@@ -144,7 +146,7 @@ func (d *PostgresDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tabl
 		ORDER BY c.ordinal_position
 	`
 
-	if err := db.SelectContext(ctx, &columns, query, tableName); err != nil {
+	if err := db.Select(ctx, &columns, query, tableName); err != nil {
 		return nil, errors.Wrapf(err, "failed to get columns for table %s", tableName)
 	}
 
@@ -155,7 +157,7 @@ func (d *PostgresDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tabl
 		parsePostgresType(ctx, db, col)
 
 		// Normalize the type
-		normalizeColumnType(col, db.DriverName())
+		normalizeColumnType(col, d.driver)
 	}
 
 	// Get indexes for this table
@@ -173,11 +175,11 @@ func (d *PostgresDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tabl
 }
 
 // ListTables returns all tables without columns populated.
-func (d *PostgresDescriber) ListTables(ctx context.Context, db *sqlx.DB) ([]*model.Table, error) {
+func (d *PostgresDescriber) ListTables(ctx context.Context, db *client.Client) ([]*model.Table, error) {
 	tables := []*model.Table{}
 
 	// Get all tables in current schema (excluding system tables)
-	if err := db.SelectContext(ctx, &tables, `
+	if err := db.Select(ctx, &tables, `
 		SELECT 
 			c.relname as "TABLE_NAME",
 			COALESCE(d.description, '') as "TABLE_COMMENT"
@@ -194,7 +196,7 @@ func (d *PostgresDescriber) ListTables(ctx context.Context, db *sqlx.DB) ([]*mod
 }
 
 // TableIndexes returns all indexes for a table.
-func (d *PostgresDescriber) TableIndexes(ctx context.Context, db *sqlx.DB, tableName string) ([]*model.Index, error) {
+func (d *PostgresDescriber) TableIndexes(ctx context.Context, db *client.Client, tableName string) ([]*model.Index, error) {
 	type indexInfo struct {
 		Name    string         `db:"name"`
 		Columns pq.StringArray `db:"columns"`
@@ -218,7 +220,7 @@ func (d *PostgresDescriber) TableIndexes(ctx context.Context, db *sqlx.DB, table
 		ORDER BY i.relname
 	`
 
-	if err := db.SelectContext(ctx, &indexInfos, query, tableName); err != nil {
+	if err := db.Select(ctx, &indexInfos, query, tableName); err != nil {
 		return nil, errors.Wrapf(err, "failed to get indexes for table %s", tableName)
 	}
 
@@ -236,7 +238,7 @@ func (d *PostgresDescriber) TableIndexes(ctx context.Context, db *sqlx.DB, table
 }
 
 // extractPostgresEnumValues fetches the allowed values for an ENUM type.
-func extractPostgresEnumValues(ctx context.Context, db *sqlx.DB, enumTypeName string) []string {
+func extractPostgresEnumValues(ctx context.Context, db *client.Client, enumTypeName string) []string {
 	var values []string
 
 	// Query pg_enum to get all values for this enum type
@@ -246,7 +248,7 @@ func extractPostgresEnumValues(ctx context.Context, db *sqlx.DB, enumTypeName st
 		ORDER BY enumsortorder
 	`
 
-	if err := db.SelectContext(ctx, &values, query, enumTypeName); err != nil {
+	if err := db.Select(ctx, &values, query, enumTypeName); err != nil {
 		// Silently ignore if we can't fetch enum values
 		return nil
 	}

@@ -2,27 +2,28 @@ package migrate_test
 
 import (
 	"database/sql"
+	"database/sql/driver"
+	"errors"
 	"os"
 	"testing"
 	"testing/fstest"
 
 	_ "modernc.org/sqlite"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/require"
 
 	"github.com/go-bridget/mig/migrate"
 )
 
 // testDB returns an in-memory sqlite handle closed with the test.
-func testDB(t *testing.T) *sqlx.DB {
+func testDB(t *testing.T) *sql.DB {
 	t.Helper()
 
 	handle, err := sql.Open("sqlite", ":memory:")
 	require.NoError(t, err)
 	t.Cleanup(func() { handle.Close() })
 
-	return sqlx.NewDb(handle, "sqlite")
+	return handle
 }
 
 // testFS returns a filesystem holding one migration, named as the migrations
@@ -60,11 +61,11 @@ func TestNewManagerErrors(t *testing.T) {
 	})
 
 	t.Run("unsupported driver", func(t *testing.T) {
-		handle, err := sql.Open("sqlite", ":memory:")
+		handle, err := sql.Open("mig-unknown-driver", "")
 		require.NoError(t, err)
 		defer handle.Close()
 
-		_, err = migrate.NewManager(sqlx.NewDb(handle, "oracle"), fsys, "test")
+		_, err = migrate.NewManager(handle, fsys, "test")
 		require.ErrorIs(t, err, migrate.ErrDriver)
 	})
 }
@@ -74,4 +75,16 @@ func TestManagerProject(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, "events", m.Project())
+}
+
+// unknownDriver registers a driver whose package path names no engine mig
+// knows, so NewManager reports ErrDriver.
+type unknownDriver struct{}
+
+func (unknownDriver) Open(string) (driver.Conn, error) {
+	return nil, errors.New("unknownDriver: not implemented")
+}
+
+func init() {
+	sql.Register("mig-unknown-driver", unknownDriver{})
 }

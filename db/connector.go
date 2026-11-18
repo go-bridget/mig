@@ -2,14 +2,14 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 )
 
 // ConnectWithRetry uses retry options set in Options{}.
-func ConnectWithRetry(ctx context.Context, options *Options) (db *sqlx.DB, err error) {
+func ConnectWithRetry(ctx context.Context, options *Options) (db *sql.DB, err error) {
 	// by default, retry for 5 minutes, 5 seconds between retries
 	if options.Retries == 0 && options.ConnectTimeout.Seconds() == 0 {
 		options.ConnectTimeout = 5 * time.Minute

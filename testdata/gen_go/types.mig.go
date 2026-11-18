@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	sqlxTypes "github.com/jmoiron/sqlx/types"
+	"encoding/json"
 )
 
 // QueryOption is implemented by each data model type.
@@ -146,7 +146,7 @@ type Event struct {
 	Status string `db:"status" json:"-"`
 
 	// Event payload with job-specific data
-	Payload sqlxTypes.JSONText `db:"payload" json:"-"`
+	Payload json.RawMessage `db:"payload" json:"-"`
 
 	// Number of failed attempts
 	RetryCount int32 `db:"retry_count" json:"-"`
@@ -195,10 +195,10 @@ func (e *Event) GetStatus() string { return e.Status }
 func (e *Event) SetStatus(val string) { e.Status = val }
 
 // GetPayload will return the value of Payload.
-func (e *Event) GetPayload() sqlxTypes.JSONText { return e.Payload }
+func (e *Event) GetPayload() json.RawMessage { return e.Payload }
 
 // SetPayload sets Payload to the provided value.
-func (e *Event) SetPayload(val sqlxTypes.JSONText) { e.Payload = val }
+func (e *Event) SetPayload(val json.RawMessage) { e.Payload = val }
 
 // GetRetryCount will return the value of RetryCount.
 func (e *Event) GetRetryCount() int32 { return e.RetryCount }

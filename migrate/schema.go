@@ -8,7 +8,7 @@ import (
 //go:embed *.sql
 var schemaFS embed.FS
 
-// drivers maps the driver name of a *sqlx.DB onto the one this package has a
+// drivers maps a normalized database driver name onto the one this package has a
 // bookkeeping schema for. The same normalized name goes to db.AcquireLock,
 // which knows the same three engines.
 var drivers = map[string]string{

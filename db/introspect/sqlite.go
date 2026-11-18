@@ -7,17 +7,19 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
+	"github.com/titpetric/pdo/client"
 
 	"github.com/go-bridget/mig/model"
 )
 
 // SqliteDescriber implements Describer for SQLite.
-type SqliteDescriber struct{}
+type SqliteDescriber struct {
+	driver string
+}
 
 // Describe returns column metadata from a query.
-func (d *SqliteDescriber) Describe(ctx context.Context, db *sqlx.DB, query string) ([]*model.Column, error) {
+func (d *SqliteDescriber) Describe(ctx context.Context, db *client.Client, query string) ([]*model.Column, error) {
 	var err error
 
 	// Normalize query
@@ -31,14 +33,14 @@ func (d *SqliteDescriber) Describe(ctx context.Context, db *sqlx.DB, query strin
 
 	// Create temporary view
 	createViewSQL := fmt.Sprintf("CREATE TEMPORARY VIEW %s AS %s", viewName, query)
-	if _, err = db.ExecContext(ctx, createViewSQL); err != nil {
+	if err = db.Exec(ctx, createViewSQL); err != nil {
 		return nil, errors.Wrapf(err, "failed to create temporary view for query")
 	}
 
 	// Defer cleanup - drop the temporary view
 	defer func() {
 		dropSQL := fmt.Sprintf("DROP VIEW IF EXISTS %s", viewName)
-		_, _ = db.ExecContext(context.Background(), dropSQL)
+		_ = db.Exec(context.Background(), dropSQL)
 	}()
 
 	// Use PRAGMA table_info to get column details
@@ -52,7 +54,7 @@ func (d *SqliteDescriber) Describe(ctx context.Context, db *sqlx.DB, query strin
 	}
 
 	var pragmaColumns []pragmaColumn
-	if err := db.SelectContext(ctx, &pragmaColumns, fmt.Sprintf("PRAGMA table_info(%s)", viewName)); err != nil {
+	if err := db.Select(ctx, &pragmaColumns, fmt.Sprintf("PRAGMA table_info(%s)", viewName)); err != nil {
 		return nil, errors.Wrap(err, "failed to query column metadata with PRAGMA table_info")
 	}
 
@@ -88,7 +90,7 @@ func (d *SqliteDescriber) Describe(ctx context.Context, db *sqlx.DB, query strin
 }
 
 // DescribeTable returns the structure of a table.
-func (d *SqliteDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tableName string) (*model.Table, error) {
+func (d *SqliteDescriber) DescribeTable(ctx context.Context, db *client.Client, tableName string) (*model.Table, error) {
 	table := &model.Table{
 		Name:    tableName,
 		Comment: "", // SQLite doesn't have table comments
@@ -105,7 +107,7 @@ func (d *SqliteDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tableN
 	}
 
 	var pragmaColumns []pragmaColumn
-	if err := db.SelectContext(ctx, &pragmaColumns, fmt.Sprintf("PRAGMA table_info(%s)", tableName)); err != nil {
+	if err := db.Select(ctx, &pragmaColumns, fmt.Sprintf("PRAGMA table_info(%s)", tableName)); err != nil {
 		return nil, errors.Wrapf(err, "failed to query table info for %s", tableName)
 	}
 
@@ -144,7 +146,7 @@ func (d *SqliteDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tableN
 			col.Values = extractEnumValuesFromCheckConstraint(constraints[0])
 		}
 		// Normalize the type
-		normalizeColumnType(col, db.DriverName())
+		normalizeColumnType(col, d.driver)
 	}
 
 	// Get indexes for this table
@@ -162,11 +164,11 @@ func (d *SqliteDescriber) DescribeTable(ctx context.Context, db *sqlx.DB, tableN
 }
 
 // ListTables returns all tables without columns populated.
-func (d *SqliteDescriber) ListTables(ctx context.Context, db *sqlx.DB) ([]*model.Table, error) {
+func (d *SqliteDescriber) ListTables(ctx context.Context, db *client.Client) ([]*model.Table, error) {
 	tables := []*model.Table{}
 
 	// Get all user-defined tables (excluding sqlite internal tables)
-	if err := db.SelectContext(ctx, &tables, "SELECT name as TABLE_NAME, '' as TABLE_COMMENT FROM sqlite_schema WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name ASC"); err != nil {
+	if err := db.Select(ctx, &tables, "SELECT name as TABLE_NAME, '' as TABLE_COMMENT FROM sqlite_schema WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name ASC"); err != nil {
 		return nil, errors.Wrap(err, "failed to list tables")
 	}
 
@@ -174,7 +176,7 @@ func (d *SqliteDescriber) ListTables(ctx context.Context, db *sqlx.DB) ([]*model
 }
 
 // TableIndexes returns all indexes for a table, synthesizing the primary key from table_info.
-func (d *SqliteDescriber) TableIndexes(ctx context.Context, db *sqlx.DB, tableName string) ([]*model.Index, error) {
+func (d *SqliteDescriber) TableIndexes(ctx context.Context, db *client.Client, tableName string) ([]*model.Index, error) {
 	// Get all indexes for the table (PRAGMA doesn't support parameterized queries)
 	type indexInfo struct {
 		Seq     int    `db:"seq"`
@@ -185,7 +187,7 @@ func (d *SqliteDescriber) TableIndexes(ctx context.Context, db *sqlx.DB, tableNa
 	}
 
 	var indexInfos []indexInfo
-	if err := db.SelectContext(ctx, &indexInfos, fmt.Sprintf("PRAGMA index_list(%s)", tableName)); err != nil {
+	if err := db.Select(ctx, &indexInfos, fmt.Sprintf("PRAGMA index_list(%s)", tableName)); err != nil {
 		return nil, errors.Wrapf(err, "failed to get indexes for table %s", tableName)
 	}
 
@@ -199,7 +201,7 @@ func (d *SqliteDescriber) TableIndexes(ctx context.Context, db *sqlx.DB, tableNa
 		}
 
 		var indexColumns []indexColumn
-		if err := db.SelectContext(ctx, &indexColumns, fmt.Sprintf("PRAGMA index_info(%s)", ii.Name)); err != nil {
+		if err := db.Select(ctx, &indexColumns, fmt.Sprintf("PRAGMA index_info(%s)", ii.Name)); err != nil {
 			continue
 		}
 
@@ -228,7 +230,7 @@ func (d *SqliteDescriber) TableIndexes(ctx context.Context, db *sqlx.DB, tableNa
 	}
 
 	var pragmaColumns []pragmaColumn
-	if err := db.SelectContext(ctx, &pragmaColumns, fmt.Sprintf("PRAGMA table_info(%s)", tableName)); err != nil {
+	if err := db.Select(ctx, &pragmaColumns, fmt.Sprintf("PRAGMA table_info(%s)", tableName)); err != nil {
 		return indexes, nil // Return what we have if we can't get primary key info
 	}
 
@@ -266,12 +268,12 @@ func (d *SqliteDescriber) TableIndexes(ctx context.Context, db *sqlx.DB, tableNa
 
 // extractSqliteCheckConstraints extracts CHECK constraints from table definition
 // Returns a map of column name to list of CHECK constraint expressions
-func extractSqliteCheckConstraints(ctx context.Context, db *sqlx.DB, tableName string) map[string][]string {
+func extractSqliteCheckConstraints(ctx context.Context, db *client.Client, tableName string) map[string][]string {
 	constraintMap := make(map[string][]string)
 
 	// Get table creation SQL from sqlite_schema
 	var sql string
-	err := db.GetContext(ctx, &sql, "SELECT sql FROM sqlite_schema WHERE type='table' AND name=?", tableName)
+	err := db.Get(ctx, &sql, "SELECT sql FROM sqlite_schema WHERE type='table' AND name=?", tableName)
 	if err != nil || sql == "" {
 		return constraintMap
 	}

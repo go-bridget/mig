@@ -2,11 +2,14 @@ package migrate
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"io/fs"
 
-	"github.com/jmoiron/sqlx"
+	"github.com/titpetric/pdo/client"
+
+	dbpkg "github.com/go-bridget/mig/db"
 )
 
 // Defaults of a run: what a Manager looks for, where it records what it
@@ -78,7 +81,7 @@ var (
 // A Manager is safe to use from several processes at once: each file is applied
 // under an advisory lock keyed by project and filename.
 type Manager struct {
-	db      *sqlx.DB
+	db      *client.Client
 	fsys    fs.FS
 	project string
 
@@ -99,8 +102,8 @@ type Manager struct {
 // and sqlite (also sqlite3).
 //
 // No query is made and no file is read until Apply or List is called.
-func NewManager(db *sqlx.DB, migrations fs.FS, project string) (*Manager, error) {
-	if db == nil {
+func NewManager(conn *sql.DB, migrations fs.FS, project string) (*Manager, error) {
+	if conn == nil {
 		return nil, ErrNoDB
 	}
 	if migrations == nil {
@@ -110,13 +113,13 @@ func NewManager(db *sqlx.DB, migrations fs.FS, project string) (*Manager, error)
 		return nil, fmt.Errorf("%w: %q", ErrNoProject, project)
 	}
 
-	driverName, ok := driver(db.DriverName())
+	driverName, ok := dbpkg.DriverName(conn)
 	if !ok {
-		return nil, fmt.Errorf("%w: %s", ErrDriver, db.DriverName())
+		return nil, fmt.Errorf("%w: unrecognised database driver", ErrDriver)
 	}
 
 	return &Manager{
-		db:      db,
+		db:      client.NewClient(conn, client.WithDriver(driverName)),
 		fsys:    migrations,
 		project: project,
 		pattern: Pattern,
@@ -162,7 +165,7 @@ func (m *Manager) ensureTable(ctx context.Context) error {
 	}
 
 	for _, stmt := range stmts {
-		if _, err := m.db.ExecContext(ctx, stmt); err != nil {
+		if err := m.db.Exec(ctx, stmt); err != nil {
 			return fmt.Errorf("error creating %s table: %w", Table, err)
 		}
 	}
@@ -172,12 +175,13 @@ func (m *Manager) ensureTable(ctx context.Context) error {
 
 // rows returns the recorded migrations of the project, keyed by filename.
 func (m *Manager) rows(ctx context.Context) (map[string]Migration, error) {
-	query := m.db.Rebind(
-		"select project, filename, statement_index, status from " + Table + " where project = ?",
-	)
-
 	var recorded []Migration
-	if err := m.db.SelectContext(ctx, &recorded, query, m.project); err != nil {
+	if err := m.db.Select(
+		ctx,
+		&recorded,
+		"select project, filename, statement_index, status from "+Table+" where project = ?",
+		m.project,
+	); err != nil {
 		return nil, fmt.Errorf("error reading %s table: %w", Table, err)
 	}
 

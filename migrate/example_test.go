@@ -9,18 +9,16 @@ import (
 
 	_ "modernc.org/sqlite"
 
-	"github.com/jmoiron/sqlx"
-
 	"github.com/go-bridget/mig/migrate"
 )
 
 // exampleDB returns an in-memory sqlite handle for the examples to migrate.
-func exampleDB() *sqlx.DB {
+func exampleDB() *sql.DB {
 	handle, err := sql.Open("sqlite", ":memory:")
 	if err != nil {
 		panic(err)
 	}
-	return sqlx.NewDb(handle, "sqlite")
+	return handle
 }
 
 // ExampleManager_Apply applies every migration of a project, and prints the run

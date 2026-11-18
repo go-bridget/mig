@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"os"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 )
 
@@ -16,7 +15,7 @@ var ErrEmptyDSN = errors.New("empty dsn")
 // Connect connects to a database and produces the handle for injection.
 // It takes its DSN from MIG_DB_DSN; use ConnectWithRetry to pass your own
 // Options.
-func Connect(ctx context.Context) (*sqlx.DB, error) {
+func Connect(ctx context.Context) (*sql.DB, error) {
 	options := &Options{
 		Connector: func(ctx context.Context, credentials Credentials) (*sql.DB, error) {
 			driver, dsn := credentials.Open()
@@ -36,21 +35,30 @@ func Connect(ctx context.Context) (*sqlx.DB, error) {
 }
 
 // ConnectWithOptions connects to host based on Options{}.
-func ConnectWithOptions(ctx context.Context, options *Options) (*sqlx.DB, error) {
+func ConnectWithOptions(ctx context.Context, options *Options) (*sql.DB, error) {
 	driver, dsn := options.Credentials.Open()
 	if dsn == "" {
 		return nil, ErrEmptyDSN
 	}
 
-	connect := func() (*sqlx.DB, error) {
+	connect := func() (*sql.DB, error) {
 		if options.Connector != nil {
 			handle, err := options.Connector(ctx, options.Credentials)
-			if err == nil {
-				return sqlx.NewDb(handle, driver), nil
+			if err != nil {
+				return nil, errors.WithStack(err)
 			}
+			return handle, nil
+		}
+
+		handle, err := sql.Open(driver, dsn)
+		if err != nil {
 			return nil, errors.WithStack(err)
 		}
-		return sqlx.ConnectContext(ctx, driver, dsn)
+		if err := handle.PingContext(ctx); err != nil {
+			handle.Close()
+			return nil, errors.WithStack(err)
+		}
+		return handle, nil
 	}
 
 	db, err := connect()
